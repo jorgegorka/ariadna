@@ -61,11 +61,11 @@ Create a query with your metrics and dimensions
     "end-date"   => 1.day.ago.strftime("%Y-%m-%d"),
     "metrics"    => "ga:visits,ga:bounces,ga:timeOnSite"
   ).order("visits")
-```  
+```
 </pre>
-  
+
 All the metrics and dimensions returned by the query are mapped into attributes.
-In this particular query yo can get visits, bounces and timeOnSite
+In this example query you can get visits, bounces and timeOnSite
 
 <pre>
 ```ruby
@@ -74,7 +74,7 @@ In this particular query yo can get visits, bounces and timeOnSite
     result.bounces
     result.timeonsite
   end
-```  
+```
 </pre>
 
 ### Create a connexion
@@ -82,14 +82,13 @@ In this particular query yo can get visits, bounces and timeOnSite
   Ariadna::Analytics.new(access_token, proxy_settings, refresh_token_data)
 
   There are three possible params:
-  
+
   access_token (mandatory): an oauth2 access token 
-  
+
   proxy_settings (optional): a hash containing your proxy options
-  
+
   refresh_token_data (optional): a hash with information about your app so access_token can be renewed automatically in case it is expired.
-  
-<pre>
+
 ```ruby
   analytics = Ariadna::Analytics.new(
     access_token,
@@ -105,8 +104,7 @@ In this particular query yo can get visits, bounces and timeOnSite
       current_user:  current_user
     }
   )
-```  
-</pre>
+```
 
 ### Access token
 
