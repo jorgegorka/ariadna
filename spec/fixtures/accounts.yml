@@ -1,0 +1,13 @@
+account_111:
+  id: 111
+  name: 'name'
+  selfLink: 'www.example.com/self/111'
+  childLink:
+    href: 'www.example.com/child/111'
+
+account_222:
+  id: 222
+  name: 'name 222'
+  selfLink: 'www.example.com/self/222'
+  childLink:
+    href: 'https://www.googleapis.com/analytics/v3/management/accounts/111/webproperties/909090'    

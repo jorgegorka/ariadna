@@ -1,0 +1,16 @@
+property:
+  id:                    909090
+  kind:                  'analytics#webProperty'
+  selfLink:              'selfLink'
+  accountId:             111
+  internalWebPropertyId: 4321432
+  name:                  'web_property_name'
+  websiteUrl:            'http://www.url.com'
+  created:               Date.today
+  updated:               Date.today
+  parentLink:
+    type: 'analytics#account'
+    href: 'https://www.googleapis.com/analytics/v3/management/accounts/111'
+  childLink:
+    type: 'analytics#profiles'
+    href: 'https://www.googleapis.com/analytics/v3/management/accounts/111/webproperties/909090/profiles'

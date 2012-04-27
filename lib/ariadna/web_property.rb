@@ -4,20 +4,15 @@ module Ariadna
     class << self; 
       attr_accessor :owner 
     end
-
-    attr_reader :id, :link_url, :name, :profiles_url, :parent_url, :profiles
     
     def self.all
-      @properties ||= get_all_properties
+      @properties ||= create_properties
     end
 
     def initialize(item)
-      @id             = item["id"]
-      @link_url       = item["selfLink"]
-      @name           = item["name"]
-      @account        = item["accountId"]
-      @profiles_url   = item["childLink"]["href"]
-      @parent_url     = item["parentLink"]["href"]
+      item.each do |k,v|
+        instance_variable_set("@#{k}", v)
+      end
     end
 
     def profiles
@@ -29,14 +24,17 @@ module Ariadna
     def self.create_properties
       properties = Ariadna.connexion.get_url("https://www.googleapis.com/analytics/v3/management/accounts/#{@owner.id}/webproperties")
       if (properties["totalResults"].to_i > 0)
+        create_attributes(properties["items"])
         properties["items"].map do |property|
           WebProperty.new(property)
         end
       end
     end
 
-    def self.get_all_properties
-      @properties = create_properties
+    def self.create_attributes(items)
+      items.first.each do |k,v|
+        attr_reader k.to_sym
+      end
     end
   end
 end

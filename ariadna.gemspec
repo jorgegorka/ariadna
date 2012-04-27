@@ -14,6 +14,9 @@ Gem::Specification.new do |gem|
   gem.name          = "ariadna"
   gem.require_paths = ["lib"]
   gem.version       = Ariadna::VERSION
+  gem.add_development_dependency "sqlite3"
+  gem.add_development_dependency "pry"
   gem.add_development_dependency "rspec"
   gem.add_development_dependency "guard-rspec"
+  gem.add_development_dependency "factory_girl", "~> 2.3.2"
 end

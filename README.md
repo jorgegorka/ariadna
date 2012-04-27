@@ -132,4 +132,4 @@ gem 'omniauth-google-oauth2'
 
 ## Contributors
 
-* Jorge Alvarez [http://www.alvareznavarro.es](http://www.alvareznavarro.es)
+* Jorge Alvarez [http://www.alvareznavarro.es](http://www.alvareznavarro.es/?utm_source=github&utm_medium=gem&utm_campaign=ariadna)

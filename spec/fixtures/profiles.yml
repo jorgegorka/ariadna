@@ -1,0 +1,45 @@
+profile:
+  id:                           123456
+  kind:                         'analytics#profile'
+  selfLink:                     'selfLink'
+  accountId:                    111
+  webPropertyId:                909090
+  internalWebPropertyId:        4321432
+  name:                         'profile_name'
+  currency:                     'EUR'
+  timezone:                     'GMT'
+  defaultPage:                  'index.html'
+  excludeQueryParameters:       's'
+  siteSearchQueryParameters:    's,search'
+  siteSearchCategoryParameters: 'cat'
+  created:                      Date.today
+  updated:                      Date.today
+  parentLink:
+    type: 'analytics#webProperty'
+    href: 'https://www.googleapis.com/analytics/v3/management/accounts/111/webproperties/909090'
+  childLink:
+    type: 'analytics#goals'
+    href: 'https://www.googleapis.com/analytics/v3/management/accounts/111/webproperties/909090/profiles/123456/goals'
+
+profile2:
+  id:                           654321
+  kind:                         'analytics#profile'
+  selfLink:                     'selfLink'
+  accountId:                    111
+  webPropertyId:                909090
+  internalWebPropertyId:        4321432
+  name:                         'profile_name'
+  currency:                     'EUR'
+  timezone:                     'GMT'
+  defaultPage:                  ''
+  excludeQueryParameters:       ''
+  siteSearchQueryParameters:    ''
+  siteSearchCategoryParameters: ''
+  created:                      Date.today
+  updated:                      Date.today
+  parentLink:
+    type: 'analytics#webProperty'
+    href: 'https://www.googleapis.com/analytics/v3/management/accounts/111/webproperties/909090'
+  childLink:
+    type: 'analytics#goals'
+    href: 'https://www.googleapis.com/analytics/v3/management/accounts/111/webproperties/909090/profiles/654321/goals'    

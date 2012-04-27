@@ -7,6 +7,10 @@ module Ariadna
 
     URL = "https://www.googleapis.com/analytics/v3/data/ga"
 
+    def self.all
+      get_results
+    end
+
     # main filter conditions 
     def self.where(params)
       conditions.merge!(params)
@@ -41,7 +45,7 @@ module Ariadna
     # create attributes for each metric and dimension
     def self.create_metrics_and_dimensions(headers)
       headers.each do |header|
-        attr_accessor accessor_name(header).to_sym
+        attr_reader accessor_name(header).to_sym
       end
     end
 
@@ -51,15 +55,16 @@ module Ariadna
     def self.get_results 
       url     = generate_url
       results = Ariadna.connexion.get_url(url)
+
       if (results["totalResults"].to_i > 0)
         #create an accessor for each header
         create_metrics_and_dimensions(results["columnHeaders"])
         results["rows"].map do |items|
           res = Result.new
           items.map do |item|
-            res.send("#{accessor_name(results["columnHeaders"][(items.index(item))])}=", set_value_for_result(results["columnHeaders"][(items.index(item))], item))
+            res.instance_variable_set("@#{accessor_name(results["columnHeaders"][(items.index(item))])}", set_value_for_result(results["columnHeaders"][(items.index(item))], item))
           end
-          [res]
+          res
         end
       end
     end

@@ -1,0 +1,51 @@
+result:
+  kind: "analytics#gaData"
+  id:   "https://www.googleapis.com/analytics/v3/data/ga?ids=ga:1174&dimensions=ga:country&metrics=ga:visits&sort=-ga:visits&start-date=2010-04-01&end-date=2010-04-20&max-results=5"
+  query: 
+    start-date": "2010-04-01"
+    end-date": "2010-04-20"
+    ids": "ga:1174"
+    dimensions: "ga:country"
+    metrics": "ga:visits"
+    sort": "-ga:visits"
+    max-results: 5
+    start-index: 1
+  itemsPerPage: 5
+  totalResults: 201
+  selfLink: "https://www.googleapis.com/analytics/v3/data/ga?ids=ga:1174&dimensions=ga:country&metrics=ga:visits&sort=-ga:visits&start-date=2010-04-01&end-date=2010-04-20&max-results=5"
+  nextLink: "https://www.googleapis.com/analytics/v3/data/ga?ids=ga:1174&dimensions=ga:country&metrics=ga:visits&sort=-ga:visits&start-date=2010-04-01&end-date=2010-04-20&start-index=6&max-results=5"
+  profileInfo:
+    profileId: "1174"
+    accountId: "30481"
+    webPropertyId: "UA-30481-1"
+    internalWebPropertyId: "3516338"
+    profileName: "www.googlestore.com - goals & ecomm"
+    tableId: "ga:1174"
+  containsSampledData: false
+  columnHeaders:
+    -
+      name: "ga:country"
+      columnType: "DIMENSION"
+      dataType: "STRING"
+    -
+      name: "ga:visits"
+      columnType: "METRIC"
+      dataType: "INTEGER"
+  totalsForAllResults:
+    visits: "241543"
+  rows:
+    - 
+      - "United States"
+      - "94351"
+    - 
+      - "Brazil"
+      - "15826"
+    - 
+      - "Spain"
+      - "13967"
+    - 
+      - "United Kingdom"
+      - "13234"
+    - 
+      - "Germany"
+      - "11347"
