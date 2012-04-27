@@ -2,11 +2,11 @@ result:
   kind: "analytics#gaData"
   id:   "https://www.googleapis.com/analytics/v3/data/ga?ids=ga:1174&dimensions=ga:country&metrics=ga:visits&sort=-ga:visits&start-date=2010-04-01&end-date=2010-04-20&max-results=5"
   query: 
-    start-date": "2010-04-01"
-    end-date": "2010-04-20"
-    ids": "ga:1174"
+    start-date: "2010-04-01"
+    end-date: "2010-04-20"
+    ids: "ga:1174"
     dimensions: "ga:country"
-    metrics": "ga:visits"
+    metrics: "ga:visits"
     sort": "-ga:visits"
     max-results: 5
     start-index: 1
@@ -32,7 +32,7 @@ result:
       columnType: "METRIC"
       dataType: "INTEGER"
   totalsForAllResults:
-    visits: "241543"
+    "ga:visits": "241543"
   rows:
     - 
       - "United States"

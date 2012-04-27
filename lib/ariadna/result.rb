@@ -43,6 +43,18 @@ module Ariadna
     end
 
     # create attributes for each metric and dimension
+    def self.create_attributes(results)
+      summary_rows = Hash.new
+      summary_rows.merge!(results)
+      summary_rows.delete("columnHeaders")
+      summary_rows.delete("rows")
+      summary_rows.each do |row, value|
+        attr_reader row.to_sym
+      end
+      summary_rows
+    end
+
+    # create attributes for each metric and dimension
     def self.create_metrics_and_dimensions(headers)
       headers.each do |header|
         attr_reader accessor_name(header).to_sym
@@ -57,11 +69,18 @@ module Ariadna
       results = Ariadna.connexion.get_url(url)
 
       if (results["totalResults"].to_i > 0)
-        #create an accessor for each header
+        #create an accessor for each summary attribute
+        summary_rows = create_attributes(results)
+        #create an accessor for each metric and dimension
         create_metrics_and_dimensions(results["columnHeaders"])
         results["rows"].map do |items|
           res = Result.new
-          items.map do |item|
+          #assign values to summary fields
+          summary_rows.each do |name, value|
+            res.instance_variable_set("@#{name}", value)
+          end
+          #assign values to metrics and dimensions
+          items.each do |item|
             res.instance_variable_set("@#{accessor_name(results["columnHeaders"][(items.index(item))])}", set_value_for_result(results["columnHeaders"][(items.index(item))], item))
           end
           res
