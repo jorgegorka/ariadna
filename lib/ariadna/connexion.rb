@@ -75,8 +75,8 @@ module Ariadna
         # use the new access token 
         refresh_info              = parse_response(conn)
         @token                    = refresh_info["access_token"]
-        @current_user.analytics_token = @token
-        return @current_user.save
+        @current_user.update_access_token_from_google(@token)
+        return true
       # if not allowed revoke access
       when Net::HTTPUnauthorized
         @refresh_token = nil

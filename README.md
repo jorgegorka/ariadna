@@ -22,39 +22,30 @@ $ gem install ariadna
 
 Create a new connexion with your Oauth2 access token
 
-<pre>
 ```ruby
   analytics = Ariadna::Analytics.new(access_token)
-```  
-</pre>
+```
 
 Get a list of all accounts available
 
-<pre>
 ```ruby
   accounts    = analytics.accounts
-```  
-</pre>
+```
 
 Get a list of all web properties available for an account
 
-<pre>
 ```ruby
   properties = accounts.first.properties.all
-```  
-</pre>
+```
 
 Get a list of all profiles available for a web property
-  
-<pre>
+
 ```ruby
   profile    = properties.first.profiles.all.first
-```  
-</pre>
+```
 
 Create a query with your metrics and dimensions
-  
-<pre>
+
 ```ruby
   results  = @profile.results.where(
     "start-date" => 10.days.ago.strftime("%Y-%m-%d"),
@@ -62,12 +53,10 @@ Create a query with your metrics and dimensions
     "metrics"    => "ga:visits,ga:bounces,ga:timeOnSite"
   ).order("visits")
 ```
-</pre>
 
 All the metrics and dimensions returned by the query are mapped into attributes.
 In this example query you can get visits, bounces and timeOnSite
 
-<pre>
 ```ruby
   @results.each do |result|
     result.visits
@@ -75,7 +64,6 @@ In this example query you can get visits, bounces and timeOnSite
     result.timeonsite
   end
 ```
-</pre>
 
 ### Create a connexion
 
@@ -112,16 +100,25 @@ Ariadna is agnostic about the way you get your Oauth2 access token.
 
 For the development of this gem I've been using [Omiauth](https://github.com/intridea/omniauth) with the [Google Oauth2 strategy](https://github.com/zquestz/omniauth-google-oauth2)
 
-<pre>
+```ruby
 gem 'omniauth'
 
 gem 'omniauth-google-oauth2'
-</pre>
+```
+
+Google Oauth2 tokens have a very short life.  To make things easy if the connexion gives a 401 error and there is a refresh token passed as a param Ariadna will try to get a new access token from Google and store it in the curren user info calling update_access_token_from_google.  If you want to use this feature you must create a method in your user model that saves this token.
+
+```ruby
+def update_access_token_from_google(new_token)
+  update_attribute(:google_oauth2_token, new_token)
+end
+```
+
+It is obviously out of the scope of this gem to update tokens but it is definetly something that will make your life easier.
 
 
-  
 ## Contributing
- 
+
 1. Fork it
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Added some feature'`)
