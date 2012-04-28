@@ -29,7 +29,7 @@ Create a new connexion with your Oauth2 access token
 Get a list of all accounts available
 
 ```ruby
-  accounts    = analytics.accounts
+  accounts    = analytics.accounts.all
 ```
 
 Get a list of all web properties available for an account
@@ -44,7 +44,7 @@ Get a list of all profiles available for a web property
   profiles    = properties.first.profiles.all
 ```
 
-Create a query with your metrics and dimensions
+Create a query with metrics and dimensions
 
 ```ruby
   results  = profile.results.select(
@@ -65,10 +65,10 @@ Create a query with your metrics and dimensions
 All the metrics and dimensions returned by the query are mapped into attributes.
 
 ```ruby
-  @results.each do |result|
+  results.each do |result|
     puts result.visits
     puts result.bounces
-    puts result.timeonsite
+    puts result.timeOnSite
     puts result.country
   end
 ```
@@ -114,7 +114,7 @@ gem 'omniauth'
 gem 'omniauth-google-oauth2'
 ```
 
-Google Oauth2 tokens have a very short life.  To make things easy if the connexion gives a 401 error and there is a refresh token passed as a param Ariadna will try to get a new access token from Google and store it in the curren user info calling update_access_token_from_google.  If you want to use this feature you must create a method in your user model that saves this token.
+Google Oauth2 tokens have a very short life.  To make things easy if the connexion gives a 401 error and there is a refresh token passed as a param Ariadna will try to get a new access token from Google and store it in the current user info calling update_access_token_from_google.  If you want to use this feature you must create a method in your user model that saves this token.
 
 ```ruby
 def update_access_token_from_google(new_token)
