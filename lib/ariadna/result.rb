@@ -21,13 +21,14 @@ module Ariadna
 
     # main filter conditions 
     def self.where(params)
-      conditions.merge!(params)
+      extract_dates(params)
+      get_filters(params) unless params.empty?
       self
     end
 
     # sort conditions for the query
     def self.order(params)
-      sort << params
+      conditions.merge!({"sort" => api_compatible_names(params)})
       self
     end
 
@@ -56,10 +57,6 @@ module Ariadna
 
     def self.conditions
       @conditions ||= {}
-    end
-
-    def self.sort
-      @sort ||= []
     end
 
     def self.accessor_name(header)
@@ -128,15 +125,41 @@ module Ariadna
     end
 
     def self.generate_url
-      params         = conditions.merge({"ids" => "ga:#{@owner.id}"})
-      #params["sort"] = sort.join(",") if sort
+      params = conditions.merge({"ids" => "ga:#{@owner.id}"})
       "#{URL}?" + params.map{ |k,v| "#{k}=#{v}"}.join("&")
+    end
+
+    def self.get_filters(params)
+      filters = params.map do |k,v|
+          "#{api_compatible_names([k])}#{url_encoded_value(v)}"
+      end
+      conditions.merge!({"filters" => filters.join(",")})
     end
 
     def self.get_metrics_and_dimensions(params)
       params.each do |k,v|
-        conditions.merge!({"#{k}" => v.collect {|e| "ga:#{e}"}.join(",")})
+        conditions.merge!({"#{k}" => api_compatible_names(v)})
       end
+    end
+
+    def self.api_compatible_names(values)
+      values.collect {|e| "ga:#{e}"}.join(",")
+    end
+
+    def self.extract_dates(params)
+      start_date = params.delete(:start_date)
+      end_date  = params.delete(:end_date)
+      #require 'pry';binding.pry
+      conditions.merge!({"start-date" => format_date(start_date)})
+      conditions.merge!({"end-date" => format_date(end_date)})
+    end
+
+    def self.format_date(date)
+      date.strftime("%Y-%m-%d")
+    end
+
+    def self.url_encoded_value(value)
+      URI.escape(value, "=@!><")
     end
   end
 end

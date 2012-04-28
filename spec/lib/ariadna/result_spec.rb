@@ -29,7 +29,7 @@ describe "Result" do
     end
   end
 
-  context "call google api with the right query" do
+  context "generates a url following google api rules" do
 
     before :each do
       @profile.results.select(
@@ -37,11 +37,13 @@ describe "Result" do
         :dimensions => [:country]
       )
       .where(
-        "start-date" => Date.today.strftime("%Y-%m-%d"),
-        "end-date"   => Date.today.strftime("%Y-%m-%d")
+        :start_date => Date.today,
+        :end_date   => Date.today,
+        :browser    => "==Firefox"
       )
       .limit(100)
       .offset(40)
+      .order([:visits, :bounces])
       .all
     end
 
@@ -51,6 +53,12 @@ describe "Result" do
 
     it "should include profile id" do
       Ariadna::Result.url.include?("ga:#{@profile.id}").should be
+    end
+
+    it "should include start and end date" do
+      #Ariadna::Result.url.should == ""
+      Ariadna::Result.url.include?("start-date=#{Date.today.strftime("%Y-%m-%d")}").should be
+      Ariadna::Result.url.include?("end-date=#{Date.today.strftime("%Y-%m-%d")}").should be
     end
 
     it "should add metrics" do
@@ -64,8 +72,13 @@ describe "Result" do
     it "should add max results" do
       Ariadna::Result.url.include?("max-results=100").should be
     end
+
     it "should add an offset" do
       Ariadna::Result.url.include?("start-index=40").should be
+    end
+
+    it "should add filters" do
+      Ariadna::Result.url.include?("filters=ga:browser%3D%3DFirefox").should be
     end
   end
 end
