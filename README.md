@@ -47,21 +47,29 @@ Get a list of all profiles available for a web property
 Create a query with your metrics and dimensions
 
 ```ruby
-  results  = @profile.results.where(
-    "start-date" => 10.days.ago.strftime("%Y-%m-%d"),
-    "end-date"   => 1.day.ago.strftime("%Y-%m-%d"),
-    "metrics"    => "ga:visits,ga:bounces,ga:timeOnSite"
-  ).order("visits")
+  results  = results.select(
+        :metrics    => [:visits, :bounces, :timeOnSite],
+        :dimensions => [:country]
+      )
+      .where(
+        :start_date => Date.today,
+        :end_date   => 2.months.ago,
+        :browser    => "==Firefox"
+      )
+      .limit(100)
+      .offset(40)
+      .order([:visits, :bounces])
+      .all
 ```
 
 All the metrics and dimensions returned by the query are mapped into attributes.
-In this example query you can get visits, bounces and timeOnSite
 
 ```ruby
   @results.each do |result|
-    result.visits
-    result.bounces
-    result.timeonsite
+    puts result.visits
+    puts result.bounces
+    puts result.timeonsite
+    puts result.country
   end
 ```
 
