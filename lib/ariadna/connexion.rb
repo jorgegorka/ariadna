@@ -9,10 +9,11 @@ module Ariadna
       extract_refresh_info(refresh_info) if refresh_info
     end
 
+    # get url and try to refresh token if Unauthorized
     def get_url(url, params=nil)
-      uri    = URI(url)
+      uri     = URI(url)
       headers = Hash.new
-      resp = get_conn(uri)
+      resp    = get_conn(uri)
 
       case resp
       # response is ok
@@ -34,7 +35,7 @@ module Ariadna
     private
 
     def extract_proxy_options(proxy_options)
-      return if !proxy_options
+      return unless proxy_options.present?
       @use_proxy  = true
       @proxy_host = proxy_options[:proxy_host]
       @proxy_port = proxy_options[:proxy_port]
@@ -43,7 +44,7 @@ module Ariadna
     end
 
     def extract_refresh_info(refresh_info)
-      return if !refresh_info
+      return unless refresh_info.present?
       @refresh_token = refresh_info[:refresh_token]
       @client_id     = refresh_info[:client_id]
       @client_secret = refresh_info[:client_secret]
@@ -53,7 +54,7 @@ module Ariadna
     # refresh access token as google access tokens have short term live
     def get_access_token
       uri = URI("https://accounts.google.com/o/oauth2/token")
-      req                  = Net::HTTP::Post.new(uri.request_uri)
+      req = Net::HTTP::Post.new(uri.request_uri)
       req.set_form_data(
         'client_id'     => @client_id, 
         'client_secret' => @client_secret,
@@ -65,8 +66,12 @@ module Ariadna
           http.request(req)
         }
       else 
-        conn = Net::HTTP.new(uri.host, uri.port)
-        conn.request(req) 
+        # conn = Net::HTTP.new(uri.host, uri.port)
+        # conn.request(req) 
+        http = Net::HTTP.new(uri.host, uri.port)
+        http.use_ssl = uri.port == 443
+        conn = http.start { |http| http.request(req) }
+        conn
       end
 
       case conn
@@ -87,18 +92,18 @@ module Ariadna
     end
 
     def get_conn(uri)
-      if @use_proxy
-        req                  = Net::HTTP::Get.new(uri.request_uri)
-        req["Authorization"] = "Bearer #{@token}"
+      req                  = Net::HTTP::Get.new(uri.request_uri)
+      req["Authorization"] = "Bearer #{@token}"
+      if @use_proxy  
         res = Net::HTTP::Proxy(@proxy_host, @proxy_port, @proxy_user, @proxy_pass).start(uri.hostname, uri.port) {|http|
           http.request(req)
         }
         res
-      else 
-        conn = Net::HTTP.new(uri.host, uri.port)
-        # req                  = Net::HTTP::Get.new(uri.path)
-        # req["Authorization"] = "Bearer #{@token}"
-        conn.request(req) 
+      else        
+        http = Net::HTTP.new(uri.host, uri.port)
+        http.use_ssl = uri.port == 443
+        conn = http.start {|http| http.request(req) }
+        conn
       end
     end
 

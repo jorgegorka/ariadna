@@ -41,13 +41,13 @@ Get a list of all web properties available for an account
 Get a list of all profiles available for a web property
 
 ```ruby
-  profile    = properties.first.profiles.all.first
+  profiles    = properties.first.profiles.all
 ```
 
 Create a query with your metrics and dimensions
 
 ```ruby
-  results  = results.select(
+  results  = profile.results.select(
         :metrics    => [:visits, :bounces, :timeOnSite],
         :dimensions => [:country]
       )

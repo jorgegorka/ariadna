@@ -8,6 +8,7 @@ module Ariadna
 
     URL = "https://www.googleapis.com/analytics/v3/data/ga"
 
+    #gel all results
     def self.all
       get_results
     end
@@ -33,7 +34,6 @@ module Ariadna
     end
 
     # number of results returned
-
     def self.limit(results)
       if ((results.to_i > 0) and (results.to_i < 1001))
         conditions.merge!({"max-results" => results.to_i})
@@ -41,6 +41,7 @@ module Ariadna
       self
     end
 
+    # number of row from which to start collecting results (used for pagination)
     def self.offset(offset)
       if (offset.to_i > 0) 
         conditions.merge!({"start-index" => offset.to_i})
@@ -149,7 +150,6 @@ module Ariadna
     def self.extract_dates(params)
       start_date = params.delete(:start_date)
       end_date  = params.delete(:end_date)
-      #require 'pry';binding.pry
       conditions.merge!({"start-date" => format_date(start_date)})
       conditions.merge!({"end-date" => format_date(end_date)})
     end
