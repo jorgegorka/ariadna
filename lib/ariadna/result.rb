@@ -90,6 +90,8 @@ module Ariadna
       self.url = generate_url
       results  = Ariadna.connexion.get_url(self.url)
 
+      return results unless results.is_a? Hash
+
       if (results["totalResults"].to_i > 0)
         #create an accessor for each summary attribute
         summary_rows = create_attributes(results)

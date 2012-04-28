@@ -23,7 +23,7 @@ module Ariadna
       when Net::HTTPUnauthorized
         get_url(url) if @refresh_token and get_access_token     
       when Net::HTTPBadRequest
-        ["bad request", uri]
+        raise Error.new(parse_response(resp))
       when Net::HTTPNotFound
         ["not found", uri]
       else

@@ -18,6 +18,8 @@ module Ariadna
         load_data('webProperties')
       elsif url.include? "accounts"
         load_data('accounts')
+      elsif url.include? "error"
+        load_errors
       end
     end
 
@@ -42,7 +44,11 @@ module Ariadna
 
     def load_results
       items = YAML.load_file("#{File.dirname(__FILE__)}/../../spec/fixtures/results.yml")
-      
+      items.first[1]
+    end
+
+    def load_errors
+      items = YAML.load_file("#{File.dirname(__FILE__)}/../../spec/fixtures/errors.yml")
       items.first[1]
     end
   end
