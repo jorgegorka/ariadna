@@ -7,7 +7,7 @@ result:
     ids: "ga:1174"
     dimensions: "ga:country"
     metrics: "ga:visits"
-    sort": "-ga:visits"
+    sort: "-ga:visits"
     max-results: 5
     start-index: 1
   itemsPerPage: 5

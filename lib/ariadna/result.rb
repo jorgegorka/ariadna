@@ -3,12 +3,20 @@ module Ariadna
 
     class << self
       attr_accessor :owner
+      attr_accessor :url
     end
 
     URL = "https://www.googleapis.com/analytics/v3/data/ga"
 
     def self.all
       get_results
+    end
+
+    # metrics and dimensions
+
+    def self.select(params)
+      get_metrics_and_dimensions(params)
+      self
     end
 
     # main filter conditions 
@@ -20,6 +28,22 @@ module Ariadna
     # sort conditions for the query
     def self.order(params)
       sort << params
+      self
+    end
+
+    # number of results returned
+
+    def self.limit(results)
+      if ((results.to_i > 0) and (results.to_i < 1001))
+        conditions.merge!({"max-results" => results.to_i})
+      end
+      self
+    end
+
+    def self.offset(offset)
+      if (offset.to_i > 0) 
+        conditions.merge!({"start-index" => offset.to_i})
+      end
       self
     end
 
@@ -65,8 +89,8 @@ module Ariadna
     # every metric and dimension is created as an attribute
     # I.E. You can get result.visits or result.bounces
     def self.get_results 
-      url     = generate_url
-      results = Ariadna.connexion.get_url(url)
+      self.url = generate_url
+      results  = Ariadna.connexion.get_url(self.url)
 
       if (results["totalResults"].to_i > 0)
         #create an accessor for each summary attribute
@@ -107,6 +131,12 @@ module Ariadna
       params         = conditions.merge({"ids" => "ga:#{@owner.id}"})
       #params["sort"] = sort.join(",") if sort
       "#{URL}?" + params.map{ |k,v| "#{k}=#{v}"}.join("&")
+    end
+
+    def self.get_metrics_and_dimensions(params)
+      params.each do |k,v|
+        conditions.merge!({"#{k}" => v.collect {|e| "ga:#{e}"}.join(",")})
+      end
     end
   end
 end
