@@ -81,4 +81,25 @@ describe "Result" do
       Ariadna::Result.url.include?("filters=ga:browser%3D%3DFirefox").should be
     end
   end
+
+  context "Generate results with a profile id" do
+    it "should include a profile id" do
+      Ariadna::Result.profile(998877)
+      .select(
+        :metrics    => [:visits, :bounces, :timeOnSite],
+        :dimensions => [:country]
+      )
+      .where(
+        :start_date => Date.today,
+        :end_date   => Date.today,
+        :browser    => "==Firefox"
+      )
+      .limit(100)
+      .offset(40)
+      .order([:visits, :bounces])
+      .all
+
+      Ariadna::Result.url.include?("ga:998877").should be
+    end
+  end
 end

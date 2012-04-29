@@ -35,7 +35,7 @@ module Ariadna
     private
 
     def extract_proxy_options(proxy_options)
-      return unless proxy_options.present?
+      return if proxy_options.empty?
       @use_proxy  = true
       @proxy_host = proxy_options[:proxy_host]
       @proxy_port = proxy_options[:proxy_port]
@@ -44,7 +44,7 @@ module Ariadna
     end
 
     def extract_refresh_info(refresh_info)
-      return unless refresh_info.present?
+      return if refresh_info.empty?
       @refresh_token = refresh_info[:refresh_token]
       @client_id     = refresh_info[:client_id]
       @client_secret = refresh_info[:client_secret]

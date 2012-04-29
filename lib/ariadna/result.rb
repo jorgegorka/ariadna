@@ -14,7 +14,6 @@ module Ariadna
     end
 
     # metrics and dimensions
-
     def self.select(params)
       get_metrics_and_dimensions(params)
       self
@@ -32,6 +31,13 @@ module Ariadna
       conditions.merge!({"sort" => api_compatible_names(params)})
       self
     end
+
+    #uses profile id for query
+    def self.profile(id)
+      @profile_id = id
+      self
+    end
+
 
     # number of results returned
     def self.limit(results)
@@ -64,7 +70,7 @@ module Ariadna
       header["name"].sub('ga:', '')
     end
 
-    # create attributes for each metric and dimension
+    # create attributes
     def self.create_attributes(results)
       summary_rows = Hash.new
       summary_rows.merge!(results)
@@ -128,7 +134,7 @@ module Ariadna
     end
 
     def self.generate_url
-      params = conditions.merge({"ids" => "ga:#{@owner.id}"})
+      params = conditions.merge(get_profile_id)
       "#{URL}?" + params.map{ |k,v| "#{k}=#{v}"}.join("&")
     end
 
@@ -142,6 +148,14 @@ module Ariadna
     def self.get_metrics_and_dimensions(params)
       params.each do |k,v|
         conditions.merge!({"#{k}" => api_compatible_names(v)})
+      end
+    end
+
+    def self.get_profile_id
+      if @profile_id
+        {"ids" => "ga:#{@profile_id}"}
+      else
+        {"ids" => "ga:#{@owner.id}"}
       end
     end
 

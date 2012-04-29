@@ -1,3 +1,5 @@
+require 'spec_helper'
+
 describe "Profile" do
   before :each do
     conn       = Ariadna::Analytics.new("token")
@@ -61,7 +63,7 @@ describe "Profile" do
     end
 
     it "returns a list of profiles objects" do
-      @profile.class == Ariadna::Profile
+      @profile.class.should == Ariadna::Profile
     end
   end
 end

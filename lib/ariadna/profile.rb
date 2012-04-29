@@ -4,8 +4,6 @@ module Ariadna
     class << self; 
       attr_accessor :owner 
     end
-
-    attr_reader :id, :link, :name, :goals, :parent
     
     def initialize(item)
       item.each do |k,v|

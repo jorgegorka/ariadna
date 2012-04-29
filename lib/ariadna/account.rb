@@ -6,8 +6,6 @@ module Ariadna
       attr_accessor :owner
     end
 
-    #attr_reader :id, :link, :name, :properties_url
-
     @url = "https://www.googleapis.com/analytics/v3/management/accounts"
     
     def initialize(item)
