@@ -73,65 +73,9 @@ All the metrics and dimensions returned by the query are mapped into attributes.
   end
 ```
 
-### Create a connexion
+## More info
 
-  Ariadna::Analytics.new(access_token, proxy_settings, refresh_token_data)
-
-  There are three possible params:
-
-  access_token (mandatory): an oauth2 access token 
-
-  proxy_settings (optional): a hash containing your proxy options
-
-  refresh_token_data (optional): a hash with information about your app so access_token can be renewed automatically in case it is expired.
-
-```ruby
-  analytics = Ariadna::Analytics.new(
-    access_token,
-    { proxy_host: 'proxy.yourproxy.com',
-      proxy_port: 8080,
-      proxy_user: 'username',
-      proxy_pass: 'password'
-     },
-    # Google access tokens are short term so chances are you are going to need to refresh them
-    { refresh_token: analytics_refresh_token,
-      client_id: 'apps.googleusercontent.com',
-      client_secret: 'client_secret',
-      current_user:  current_user
-    }
-  )
-```
-
-### Access token
-
-Ariadna is agnostic about the way you get your Oauth2 access token.
-
-For the development of this gem I've been using [Omiauth](https://github.com/intridea/omniauth) with the [Google Oauth2 strategy](https://github.com/zquestz/omniauth-google-oauth2)
-
-```ruby
-gem 'omniauth'
-
-gem 'omniauth-google-oauth2'
-```
-
-Google Oauth2 tokens have a very short life.  To make things easy if the connexion gives a 401 error and there is a refresh token passed as a param Ariadna will try to get a new access token from Google and store it in the current user info calling update_access_token_from_google.  If you want to use this feature you must create a method in your user model that saves this token.
-
-```ruby
-def update_access_token_from_google(new_token)
-  update_attribute(:google_oauth2_token, new_token)
-end
-```
-
-It is obviously out of the scope of this gem to update tokens but it is definetly something that will make your life easier.
-
-
-## Contributing
-
-1. Fork it
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Added some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create new Pull Request
+### [Table of Contents](https://github.com/jorgegorka/ariadna/wiki/Table-of-Contents)
 
 ## Contributors
 
