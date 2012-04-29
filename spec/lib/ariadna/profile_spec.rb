@@ -66,4 +66,11 @@ describe "Profile" do
       @profile.class.should == Ariadna::Profile
     end
   end
+
+  context "can find a profile by id" do
+    it "should return the requested profile" do
+      profile = @property.profiles.find(423423)
+      profile.class.should == Ariadna::Profile
+    end
+  end
 end

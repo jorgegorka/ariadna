@@ -15,6 +15,11 @@ module Ariadna
       @profiles ||= create_profiles
     end
 
+    def self.find(id)
+      @profile_id = id
+      all.first
+    end
+
     def results
       Delegator.new(Result, self)
     end
@@ -22,7 +27,7 @@ module Ariadna
     private
 
     def self.create_profiles
-      profiles = Ariadna.connexion.get_url(@owner.childLink["href"])
+      profiles = Ariadna.connexion.get_url(get_url)
       if (profiles["totalResults"].to_i > 0)
         create_attributes(profiles["items"])
         profiles["items"].map do |item|
@@ -34,6 +39,15 @@ module Ariadna
     def self.create_attributes(items)
       items.first.each do |k,v|
         attr_reader k.to_sym
+      end
+    end
+
+    def self.get_url
+      url = @owner.childLink["href"]
+      if @profile_id
+        "#{url}/#{@profile_id}"
+      else
+        url
       end
     end
   end

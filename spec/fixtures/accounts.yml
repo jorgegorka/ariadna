@@ -1,6 +1,6 @@
 account_111:
   id: 111
-  name: 'name'
+  name: 'my company account'
   selfLink: 'www.example.com/self/111'
   childLink:
     href: 'www.example.com/child/111'

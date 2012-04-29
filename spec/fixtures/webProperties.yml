@@ -1,5 +1,5 @@
 property:
-  id:                    909090
+  id:                    "UA-909090-1"
   kind:                  'analytics#webProperty'
   selfLink:              'selfLink'
   accountId:             111

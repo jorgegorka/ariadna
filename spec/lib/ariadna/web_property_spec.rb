@@ -10,7 +10,7 @@ describe "WebProperty" do
   context "A new web_property" do
     before :each do
       new_property = {
-        "id"                    => 888888,
+        "id"                    => "UA-888888-1",
         "kind"                  => "analytics#webProperty",
         "selfLink"              => "selfLink",
         "accountId"             => @account.id,
@@ -51,6 +51,23 @@ describe "WebProperty" do
 
     it "returns an array of profiles objects" do
       @profiles.first.class == Ariadna::Profile
+    end
+  end
+
+  context "can find a web property by id or name" do
+    it "should return an empty array if can not find anything" do
+      property = @account.properties.find({})
+      property.size.should == 0
+    end
+
+    it "should return the requested account filtered by name" do
+      property = @account.properties.find(:name => "web_property_name")
+      property.id.should == "UA-909090-1"
+    end
+
+    it "should return the requested account filtered by id" do
+      property = @account.properties.find(:id => "UA-909090-1")
+      property.name.should == 'web_property_name'
     end
   end
 end

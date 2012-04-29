@@ -7,7 +7,7 @@ describe "Accounts" do
   end
 
   it "uses version 3 of the api" do
-    Ariadna::Account.url.should == "https://www.googleapis.com/analytics/v3/management/accounts"
+    Ariadna::Account::URL.should == "https://www.googleapis.com/analytics/v3/management/accounts"
   end
 
   context "A new account" do
@@ -41,6 +41,23 @@ describe "Accounts" do
 
     it "returns a list of WebProperty objects" do
       @properties.first.class == Ariadna::WebProperty
+    end
+  end
+
+  context "can find an account by id or name" do
+    it "should return an empty array if can not find anything" do
+      account = Ariadna::Account.find({})
+      account.size.should == 0
+    end
+
+    it "should return the requested account filtered by name" do
+      account = Ariadna::Account.find(:name => "my COMpany account")
+      account.id.should == 111
+    end
+
+    it "should return the requested account filtered by name" do
+      account = Ariadna::Account.find(:id => 222)
+      account.name.should == 'name 222'
     end
   end
 end
