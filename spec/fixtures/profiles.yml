@@ -3,7 +3,7 @@ profile:
   kind:                         'analytics#profile'
   selfLink:                     'selfLink'
   accountId:                    111
-  webPropertyId:                909090
+  webPropertyId:                "UA-909090-1"
   internalWebPropertyId:        4321432
   name:                         'profile_name'
   currency:                     'EUR'

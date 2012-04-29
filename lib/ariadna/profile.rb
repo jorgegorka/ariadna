@@ -15,9 +15,12 @@ module Ariadna
       @profiles ||= create_profiles
     end
 
-    def self.find(id)
-      @profile_id = id
-      all.first
+    def self.find(params)
+      return [] if params.empty?
+      all.each do |profile|
+        return profile if get_a_match(params, profile)
+      end
+      []
     end
 
     def results
@@ -40,6 +43,16 @@ module Ariadna
       items.first.each do |k,v|
         attr_reader k.to_sym
       end
+    end
+
+    def self.get_a_match(params, profile)
+      if params[:id]
+        return true if profile.id.to_i == params[:id].to_i
+      end
+      if params[:name]
+        return true if profile.name.downcase.include? params[:name].downcase 
+      end
+      return false
     end
 
     def self.get_url

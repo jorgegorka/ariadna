@@ -67,10 +67,20 @@ describe "Profile" do
     end
   end
 
-  context "can find a profile by id" do
-    it "should return the requested profile" do
-      profile = @property.profiles.find(423423)
-      profile.class.should == Ariadna::Profile
+  context "can find a profile by id or name" do
+    it "should return an empty array if can not find anything" do
+      profile = @property.profiles.find({})
+      profile.size.should == 0
+    end
+
+    it "should return the requested account filtered by name" do
+      profile = @property.profiles.find(:name => "profile")
+      profile.id.should == 123456
+    end
+
+    it "should return the requested account filtered by id" do
+      profile = @property.profiles.find(:id => 123456)
+      profile.name.should == 'profile_name'
     end
   end
 end
