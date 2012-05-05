@@ -7,7 +7,7 @@
 require 'ariadna'
 
 module Ariadna
-  # The test of the api is made through an sqlite in memory database
+  # The test of the api is made through yml fixtures and a fake connector that loads it
   # It is easier to test things than adding JSon stuff all over the place
 
   class Analytics

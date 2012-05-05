@@ -124,10 +124,9 @@ module Ariadna
         return item.to_i
       when "CURRENCY"
         return item.to_d
-      when "FLOAT"
+      when "FLOAT", "TIME"
         return item.to_f
-      when "TIME"
-        Time.at(item.to_d).gmtime.strftime('%R:%S')
+      
       else
         return item.to_s
       end
