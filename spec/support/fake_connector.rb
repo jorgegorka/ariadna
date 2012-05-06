@@ -1,7 +1,7 @@
 require 'yaml'
 
 module Ariadna
-  #Sqlite3 in memoroy connector to simulate Zuora in test environments
+  #connector that loads fixtures instead of actually calling Google Analytics API
   class FakeConnector
     def initialize(token, proxy_options, refresh_token_options)
       #build_schema

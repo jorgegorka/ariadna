@@ -8,6 +8,22 @@ module Ariadna
 
     URL = "https://www.googleapis.com/analytics/v3/data/ga"
 
+    def initialize(summary_rows, headers, totals, items)
+      #assign values to summary fields
+      summary_rows.each do |name, value|
+        instance_variable_set("@#{name}", value)
+      end
+      #assign values to totals
+      totals.each do |name, value|
+        name = name.sub('ga:', 'total_')
+        instance_variable_set("@#{name}", value)
+      end
+      #assign values to metrics and dimensions
+      items.each do |item|
+        instance_variable_set("@#{Result.accessor_name(headers[(items.index(item))])}", set_value_for_result(headers[(items.index(item))], item))
+      end
+    end
+
     #gel all results
     def self.all
       get_results
@@ -89,45 +105,44 @@ module Ariadna
       end
     end
 
-    # map the json results collection into result objects
-    # every metric and dimension is created as an attribute
-    # I.E. You can get result.visits or result.bounces
-    def self.get_results 
-      self.url = generate_url
-      results  = Ariadna.connexion.get_url(self.url)
-
-      return results unless results.is_a? Hash
-
-      if (results["totalResults"].to_i > 0)
-        #create an accessor for each summary attribute
-        summary_rows = create_attributes(results)
-        #create an accessor for each metric and dimension
-        create_metrics_and_dimensions(results["columnHeaders"])
-        results["rows"].map do |items|
-          res = Result.new
-          #assign values to summary fields
-          summary_rows.each do |name, value|
-            res.instance_variable_set("@#{name}", value)
-          end
-          #assign values to metrics and dimensions
-          items.each do |item|
-            res.instance_variable_set("@#{accessor_name(results["columnHeaders"][(items.index(item))])}", set_value_for_result(results["columnHeaders"][(items.index(item))], item))
-          end
-          res
-        end
+    def self.create_total_results(total_results)
+      total_results.each do |k, v|
+        attr_reader k.sub('ga:', 'total_').to_sym   
       end
     end
 
-    def self.set_value_for_result(header, item)
+    # map the json results collection into result objects
+    # every metric and dimension is created as an attribute
+    # I.E. You can get result.visits, result.bounces...
+    def self.get_results 
+      self.url = generate_url
+      results  = Ariadna.connexion.get_url(self.url)
+      return results unless results.is_a? Hash
+
+      if (results["totalResults"].to_i > 0)
+        create_results(results)
+      end
+    end
+
+    def self.create_results(results)
+      #create an accessor for each summary attribute
+      summary_rows = create_attributes(results)
+      #create an accessor for each metric and dimension
+      create_metrics_and_dimensions(results["columnHeaders"])
+      create_total_results(results["totalsForAllResults"])
+      results["rows"].map do |items|
+        Result.new(summary_rows, results["columnHeaders"], results["totalsForAllResults"], items)
+      end
+    end
+
+    def set_value_for_result(header, item)
       case header["dataType"]
       when "INTEGER"
         return item.to_i
       when "CURRENCY"
         return item.to_d
-      when "FLOAT"
+      when "FLOAT", "TIME"
         return item.to_f
-      when "TIME"
-        Time.at(item.to_d).gmtime.strftime('%R:%S')
       else
         return item.to_s
       end
