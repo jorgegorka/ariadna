@@ -92,7 +92,7 @@ db/
 lib/
 ├── tasks/                 # [rake task organization discovered]
 ├── [custom modules]/      # [lib/ usage discovered]
-test/ or spec/             # [test framework: minitest/rspec]
+test/                      # [test framework: Minitest (default) or spec/ if RSpec]
 ├── models/                # [model test patterns discovered]
 ├── controllers/           # [controller test patterns discovered]
 ├── system/                # [system test approach discovered]
@@ -241,7 +241,7 @@ Client receives → DOM update
 | Database queries | [indexes, eager loading, query optimization discovered] | [read replicas, sharding, etc.] |
 | Caching | [fragment / Russian doll / low-level / HTTP caching discovered] | [Solid Cache, Redis, CDN, cache layers] |
 | Background jobs | [job queue backend, job patterns discovered] | [worker scaling, queue prioritization] |
-| Connection pooling | [database pool size, Puma threads discovered] | [PgBouncer, connection management] |
+| Connection pooling | [database pool size, Puma threads discovered] | [PgBouncer for PostgreSQL, or SQLite WAL mode for better concurrent reads] |
 | Asset delivery | [CDN, asset pipeline, fingerprinting discovered] | [edge caching, compression] |
 
 ### Database Optimization Patterns
@@ -300,7 +300,7 @@ Client receives → DOM update
 |-------------|------------------|-------|
 | Active Storage | [file upload handling] | [service backend: local/S3/GCS/etc.] |
 | Action Mailer | [email sending patterns] | [delivery method, previews] |
-| Action Cable | [real-time features] | [adapter: Solid Cable/Redis/PostgreSQL/async] |
+| Action Cable | [real-time features] | [adapter: Solid Cable (default)/Redis/PostgreSQL/async] |
 | Action Text | [rich text editing] | [if Trix editor is used] |
 | Active Job | [background job framework] | [queue backend: Solid Queue/Sidekiq/GoodJob/etc.] |
 

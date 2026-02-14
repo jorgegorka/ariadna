@@ -107,7 +107,7 @@ Template for `.planning/codebase/ARCHITECTURE.md` - captures conceptual code org
 4. Results persisted to database or notifications sent
 
 **State Management:**
-- [How state is handled: e.g., "PostgreSQL via ActiveRecord", "Solid Cache for caching (database-backed)", "Redis for sessions or shared state", "Kredis for structured Redis data"]
+- [How state is handled: e.g., "SQLite via ActiveRecord (Rails default)", "Solid Cache for caching (database-backed)", "Redis for sessions or shared state", "Kredis for structured Redis data"]
 
 ## Background Job Patterns
 
@@ -323,7 +323,7 @@ Template for `.planning/codebase/ARCHITECTURE.md` - captures conceptual code org
 5. Model method handles all logic — notification creation, delivery
 
 **State Management:**
-- PostgreSQL for all persistent data via ActiveRecord
+- SQLite for all persistent data via ActiveRecord (upgrade to PostgreSQL for high-concurrency production)
 - Solid Cache (database-backed) for fragment caching and Rails.cache
 - Turbo maintains UI state client-side (no server-side view state)
 

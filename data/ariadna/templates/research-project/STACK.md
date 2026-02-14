@@ -17,7 +17,7 @@ Template for `.planning/research/STACK.md` — discovered technology stack for t
 |-----------|-----------------|--------|
 | Ruby version | [version from .ruby-version or Gemfile] | [where found] |
 | Rails version | [version from Gemfile.lock] | [where found] |
-| Database | [PostgreSQL/MySQL/SQLite] | [config/database.yml] |
+| Database | [SQLite/PostgreSQL/MySQL] | [config/database.yml] |
 | Ruby version manager | [rbenv/asdf/chruby/rvm/none] | [where found] |
 
 ## Application Type
@@ -66,7 +66,7 @@ Template for `.planning/research/STACK.md` — discovered technology stack for t
 
 | Category | Discovered Value | Evidence |
 |----------|-----------------|----------|
-| Test framework | [Minitest/RSpec] | [test/ or spec/ directory, Gemfile] |
+| Test framework | [Minitest (recommended)/RSpec] | [test/ or spec/ directory, Gemfile] |
 | Fixtures or factories | [fixtures/FactoryBot/Fabrication] | [test/fixtures or spec/factories] |
 | System tests | [Capybara driver: Selenium/Cuprite/Playwright] | [Gemfile, test_helper or rails_helper] |
 | Code coverage | [SimpleCov/none] | [Gemfile, test_helper] |
@@ -104,7 +104,7 @@ Template for `.planning/research/STACK.md` — discovered technology stack for t
 
 ```bash
 # System dependencies
-[discovered system deps: postgresql, etc.]
+[discovered system deps: e.g., libvips for image processing — note: SQLite requires no external service; add postgresql only if project uses PostgreSQL]
 
 # Ruby setup
 [ruby version manager install command if applicable]
@@ -226,8 +226,8 @@ bin/rails server
 - Check `app/models/user.rb` for authentication modules
 
 **Testing:**
-- Determine framework by checking for `test/` (Minitest) vs `spec/` (RSpec)
-- Check `test/test_helper.rb` or `spec/rails_helper.rb` for test configuration
+- Determine framework: check for `test/` (Minitest, recommended) vs `spec/` (RSpec)
+- Check `test/test_helper.rb` (Minitest) or `spec/rails_helper.rb` (if RSpec) for test configuration
 - Look for `test/fixtures/` or `spec/factories/` to determine data strategy
 - Check for system test configuration and browser driver
 

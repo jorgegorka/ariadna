@@ -53,7 +53,7 @@ Template for `.planning/codebase/STACK.md` - captures the technology foundation.
 - [Gem] [Version] - [Why it matters]
 
 **Infrastructure:**
-- [Gem] [Version] - [e.g., "PostgreSQL adapter"]
+- [Gem] [Version] - [e.g., "SQLite adapter" or "PostgreSQL adapter"]
 - [Gem] [Version] - [e.g., "application server"]
 
 ## Configuration
@@ -69,7 +69,7 @@ Template for `.planning/codebase/STACK.md` - captures the technology foundation.
 
 **Development:**
 - [OS requirements or "any platform"]
-- [Additional tooling: e.g., "PostgreSQL"]
+- [Additional tooling if any: e.g., "PostgreSQL" if not using SQLite]
 
 **Production:**
 - [Deployment target: e.g., "Kamal to VPS", "Heroku", "Fly.io", "Docker container"]
@@ -128,7 +128,7 @@ Template for `.planning/codebase/STACK.md` - captures the technology foundation.
 - stripe — Payment processing
 
 **Infrastructure:**
-- pg — PostgreSQL adapter
+- sqlite3 — SQLite adapter (Rails default)
 - solid_cache — Database-backed caching (Rails 8 default)
 - puma — Application server
 
@@ -145,12 +145,12 @@ Template for `.planning/codebase/STACK.md` - captures the technology foundation.
 ## Platform Requirements
 
 **Development:**
-- macOS/Linux, PostgreSQL
-- No Docker required for local development
+- macOS/Linux
+- No Docker or external database required for local development (SQLite is file-based)
 
 **Production:**
 - Kamal deployment to VPS, Docker container, Puma application server
-- PostgreSQL
+- SQLite (or PostgreSQL for high-concurrency production)
 
 ---
 

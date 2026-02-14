@@ -43,7 +43,7 @@ Launch **6 parallel agents** (one per file), each tasked with rewriting a single
 - Replace JS/Supabase/Vercel examples with Rails ecosystem:
   - **Payment**: Stripe via `stripe` gem
   - **Email**: ActionMailer with SMTP/Postmark/SendGrid
-  - **Databases**: PostgreSQL via ActiveRecord, `database.yml`
+  - **Databases**: SQLite (Rails default) or PostgreSQL via ActiveRecord, `database.yml`
   - **File Storage**: ActiveStorage with S3/GCS/local disk
   - **Caching**: Solid Cache/Redis via `Rails.cache`
   - **Auth**: Rails authentication generator, OmniAuth
@@ -56,7 +56,7 @@ Launch **6 parallel agents** (one per file), each tasked with rewriting a single
 - Replace Node.js/TypeScript/npm examples with:
   - **Languages**: Ruby (version from `.ruby-version`), JavaScript/CSS for assets
   - **Runtime**: Ruby + Bundler, `.ruby-version`
-  - **Frameworks**: Rails (version), Minitest/RSpec, Hotwire/Turbo/Stimulus
+  - **Frameworks**: Rails (version), Minitest (recommended)/RSpec, Hotwire/Turbo/Stimulus
   - **Key Dependencies**: Key gems (solid_queue, solid_cache, pundit, etc.)
   - **Configuration**: `database.yml`, `credentials.yml.enc`, `config/environments/`
   - **Build**: Asset pipeline (Propshaft/Sprockets), importmap/esbuild/vite

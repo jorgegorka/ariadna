@@ -100,7 +100,7 @@ end
 
 **Example:**
 ```ruby
-# Dangerous — locks table on large datasets (PostgreSQL < 11)
+# Dangerous — locks table on large datasets (PostgreSQL < 11; SQLite locks entire DB during writes)
 add_column :users, :status, :string, default: "active"
 
 # Safer — add column then backfill

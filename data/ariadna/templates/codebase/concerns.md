@@ -253,11 +253,12 @@ Template for `.planning/codebase/CONCERNS.md` - captures known issues and areas 
 
 ## Scaling Limits
 
-**PostgreSQL connection pool:**
+**Database connection pool (applies when using PostgreSQL):**
 - Current capacity: 20 connections (default `pool` in `config/database.yml`)
 - Limit: With Solid Queue workers + Puma (5 workers x 5 threads), need 50+ connections
 - Symptoms at limit: `ActiveRecord::ConnectionTimeoutError` in background jobs during peak load
 - Scaling path: Increase `pool` to match total thread count, configure PgBouncer for connection multiplexing
+- Note: SQLite uses file-based locking and does not have connection pool limits, but has write concurrency constraints — consider PostgreSQL when write throughput becomes a bottleneck
 
 **Solid Queue worker memory usage:**
 - Current capacity: Single Solid Queue worker process, 512MB RAM

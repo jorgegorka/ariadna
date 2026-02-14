@@ -37,7 +37,7 @@ Template for `.planning/codebase/INTEGRATIONS.md` - captures external service de
 ## Data Storage
 
 **Databases:**
-- [Type/Provider] - [e.g., "PostgreSQL on Render"]
+- [Type/Provider] - [e.g., "SQLite (Rails default)" or "PostgreSQL on Render"]
   - Connection: [e.g., "via `config/database.yml` and `DATABASE_URL` env var"]
   - Client: [e.g., "ActiveRecord"]
   - Migrations: [e.g., "`db/migrate/` via `rails db:migrate`"]
@@ -112,7 +112,7 @@ Template for `.planning/codebase/INTEGRATIONS.md` - captures external service de
 **Development:**
 - Required env vars: [List critical vars]
 - Secrets location: [e.g., "`.env` via `dotenv-rails` gem (gitignored)", "`config/database.yml`"]
-- Mock/stub services: [e.g., "Stripe test mode", "local PostgreSQL", "ActiveStorage local disk"]
+- Mock/stub services: [e.g., "Stripe test mode", "SQLite (no setup needed)", "ActiveStorage local disk"]
 
 **Staging:**
 - Environment-specific differences: [e.g., "uses staging Stripe account"]
@@ -171,10 +171,11 @@ Template for `.planning/codebase/INTEGRATIONS.md` - captures external service de
 ## Data Storage
 
 **Databases:**
-- PostgreSQL on Render - Primary data store
-  - Connection: `config/database.yml` with `DATABASE_URL` env var in production
+- SQLite - Primary data store (Rails default, zero-configuration)
+  - Connection: `config/database.yml` (file-based, no external service needed)
   - Client: ActiveRecord
   - Migrations: `db/migrate/` via `rails db:migrate`
+  - Note: Switch to PostgreSQL for high-concurrency production or when needing PostgreSQL-specific features (jsonb, full-text search, advisory locks)
 
 **File Storage:**
 - AWS S3 via ActiveStorage - User uploads (profile images, course materials)
@@ -251,7 +252,7 @@ Template for `.planning/codebase/INTEGRATIONS.md` - captures external service de
 **Development:**
 - Required env vars: None (development defaults in `config/database.yml`)
 - Secrets location: `config/credentials.yml.enc` via `rails credentials:edit`, `.env` via `dotenv-rails` for overrides
-- Mock/stub services: Stripe test mode, local PostgreSQL, ActiveStorage local disk service
+- Mock/stub services: Stripe test mode, SQLite (file-based, no setup), ActiveStorage local disk service
 
 **Staging:**
 - Uses staging Stripe account
@@ -260,7 +261,7 @@ Template for `.planning/codebase/INTEGRATIONS.md` - captures external service de
 
 **Production:**
 - Secrets management: `config/credentials/production.yml.enc` via `rails credentials:edit --environment production`
-- Database: PostgreSQL on Render with daily backups
+- Database: SQLite with Litestream replication (or PostgreSQL on Render for high-concurrency apps)
 
 ## Webhooks & Callbacks
 

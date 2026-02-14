@@ -31,7 +31,7 @@ Template for `.planning/research/SUMMARY.md` — executive summary of project re
 - [Rails version]: [why this version — e.g., latest stable, Solid Queue/Cache built-in, Turbo maturity]
 
 **Database:**
-- [Database]: [purpose] — [why recommended — e.g., PostgreSQL for full-text search, jsonb, advisory locks]
+- [Database]: [purpose] — [why recommended — e.g., SQLite for zero-setup default (Rails ships with it); PostgreSQL when needing full-text search, jsonb, advisory locks, or high-concurrency production]
 
 **Background jobs:**
 - [Job backend]: [purpose] — [why recommended — e.g., Solid Queue for zero-dependency simplicity (Rails 8 default), Sidekiq for extreme throughput needs]
@@ -48,7 +48,7 @@ Template for `.planning/research/SUMMARY.md` — executive summary of project re
 - [Asset pipeline]: [purpose] — [why recommended — e.g., Propshaft + importmap, esbuild for bundling]
 
 **Testing framework:**
-- [Test framework]: [purpose] — [why recommended — e.g., Minitest for convention, RSpec for expressiveness]
+- [Test framework]: [purpose] — [why recommended — e.g., Minitest (recommended, Rails default, no extra dependencies), RSpec if team prefers]
 - [Additional test tools]: [purpose] — [e.g., Capybara for system tests, FactoryBot for fixtures]
 
 **Authentication & authorization:**
@@ -113,7 +113,7 @@ Based on research, suggested phase structure for this Rails application:
 **Delivers:** [what this phase produces — e.g., migrations, core models with validations and associations, authentication flow, basic authorization, seed data, model-level tests]
 **Addresses:** [features from FEATURES.md — e.g., user registration, core domain entities]
 **Avoids:** [pitfall from PITFALLS.md — e.g., migration rework by designing schema upfront, N+1 prevention with eager loading strategy from day one]
-**Stack elements:** [from STACK.md — e.g., Rails generators, PostgreSQL, chosen auth gem, model concerns]
+**Stack elements:** [from STACK.md — e.g., Rails generators, SQLite (or PostgreSQL), chosen auth gem, model concerns]
 
 ### Phase 2: Core Features — Controllers, Views & Turbo Interactions
 **Rationale:** [why this order — e.g., with models stable, build the user-facing CRUD and interactions; Turbo Frames/Streams add interactivity without JavaScript complexity]
