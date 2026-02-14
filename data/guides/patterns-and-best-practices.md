@@ -4,7 +4,7 @@
 
 This documentation explains the patterns, conventions, and best practices used in Rails application. It's designed for developers who already know Ruby on Rails and need to understand how to structure and organize code.
 
-It has been heavily inspired by the architecture and patterns of [Fizzy](https://www.fizzy.do/), a public-facing Trello clone built with Ruby on Rails. Fizzy is an excellent example of a well-architected Rails application, and this guide distills the key patterns and practices that make it successful.
+It has been heavily inspired by the architecture and patterns of [Fizzy](https://github.com/basecamp/fizzy)l(https://www.fizzy.do/), a [Kanban board](https://www.fizzy.do/) built with Ruby on Rails. Fizzy is an excellent example of a well-architected Rails application, and this guide distills the key patterns and practices that make it successful.
 
 We stand on the shoulders of giants.
 
