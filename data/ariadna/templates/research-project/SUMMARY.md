@@ -34,17 +34,17 @@ Template for `.planning/research/SUMMARY.md` — executive summary of project re
 - [Database]: [purpose] — [why recommended — e.g., PostgreSQL for full-text search, jsonb, advisory locks]
 
 **Background jobs:**
-- [Job backend]: [purpose] — [why recommended — e.g., Solid Queue for simplicity, Sidekiq for throughput]
+- [Job backend]: [purpose] — [why recommended — e.g., Solid Queue for zero-dependency simplicity (Rails 8 default), Sidekiq for extreme throughput needs]
 
 **Caching & key-value:**
-- [Cache backend]: [purpose] — [why recommended — e.g., Solid Cache for DB-backed, Redis for shared state]
+- [Cache backend]: [purpose] — [why recommended — e.g., Solid Cache for DB-backed caching with no external dependencies (Rails 8 default), Redis for shared cross-process state]
 
 **Real-time:**
 - [Approach]: [purpose] — [why recommended — e.g., Turbo Streams over WebSocket, Action Cable for custom channels]
 
 **Frontend approach:**
 - [Frontend stack]: [purpose] — [why recommended — e.g., Hotwire/Turbo + Stimulus for server-rendered, React/Inertia for SPA-like]
-- [CSS framework]: [purpose] — [why recommended — e.g., Tailwind CSS, Bootstrap]
+- [CSS approach]: [purpose] — [why recommended — e.g., custom CSS with CSS layers and custom properties (Rails default), Tailwind CSS if already in use]
 - [Asset pipeline]: [purpose] — [why recommended — e.g., Propshaft + importmap, esbuild for bundling]
 
 **Testing framework:**
@@ -52,7 +52,7 @@ Template for `.planning/research/SUMMARY.md` — executive summary of project re
 - [Additional test tools]: [purpose] — [e.g., Capybara for system tests, FactoryBot for fixtures]
 
 **Authentication & authorization:**
-- [Auth solution]: [purpose] — [why recommended — e.g., Rails built-in authentication generator, Devise for full-featured]
+- [Auth solution]: [purpose] — [why recommended — e.g., Rails authentication generator for session-based auth]
 - [Authorization]: [purpose] — [why recommended — e.g., Pundit for policies, Action Policy for scalable rules]
 
 **Additional gems:**
@@ -126,14 +126,14 @@ Based on research, suggested phase structure for this Rails application:
 **Rationale:** [why this order — e.g., core features surface the need for async work; emails, notifications, data processing should not block web requests]
 **Delivers:** [what this phase produces — e.g., Active Job classes, mailer templates, recurring job schedule, webhook processing, error handling/retry strategy]
 **Addresses:** [features from FEATURES.md — e.g., email notifications, data imports/exports, scheduled reports]
-**Uses:** [stack elements from STACK.md — e.g., Solid Queue/Sidekiq, Action Mailer, Active Storage for file processing]
+**Uses:** [stack elements from STACK.md — e.g., Solid Queue, Action Mailer, Active Storage for file processing]
 **Avoids:** [pitfall from PITFALLS.md — e.g., long-running requests, timeout issues, job idempotency problems]
 
 ### Phase 4: Polish — Caching, Performance, Search & Real-Time
 **Rationale:** [why this order — e.g., optimize after features are stable; caching and real-time add complexity best deferred until core is solid]
 **Delivers:** [what this phase produces — e.g., fragment caching, Russian doll caching, counter caches, database indexes, full-text search, Action Cable channels, Turbo Stream broadcasts, performance monitoring]
 **Addresses:** [features from FEATURES.md — e.g., search, live updates, dashboard performance]
-**Uses:** [stack elements from STACK.md — e.g., Solid Cache/Redis, pg_search/Meilisearch, Action Cable]
+**Uses:** [stack elements from STACK.md — e.g., Solid Cache, pg_search/Meilisearch, Solid Cable for Action Cable]
 **Avoids:** [pitfall from PITFALLS.md — e.g., premature optimization, cache invalidation bugs, N+1 regressions under load]
 
 [Continue for additional phases if needed...]

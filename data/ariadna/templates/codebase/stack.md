@@ -69,7 +69,7 @@ Template for `.planning/codebase/STACK.md` - captures the technology foundation.
 
 **Development:**
 - [OS requirements or "any platform"]
-- [Additional tooling: e.g., "PostgreSQL, Redis"]
+- [Additional tooling: e.g., "PostgreSQL"]
 
 **Production:**
 - [Deployment target: e.g., "Kamal to VPS", "Heroku", "Fly.io", "Docker container"]
@@ -122,14 +122,14 @@ Template for `.planning/codebase/STACK.md` - captures the technology foundation.
 ## Key Dependencies
 
 **Critical:**
-- devise — Authentication
+- authentication (built-in) — Session-based auth
 - pundit — Authorization
-- sidekiq — Background jobs
+- solid_queue — Background jobs (Rails 8 default)
 - stripe — Payment processing
 
 **Infrastructure:**
 - pg — PostgreSQL adapter
-- redis — Caching and job queues
+- solid_cache — Database-backed caching (Rails 8 default)
 - puma — Application server
 
 ## Configuration
@@ -145,12 +145,12 @@ Template for `.planning/codebase/STACK.md` - captures the technology foundation.
 ## Platform Requirements
 
 **Development:**
-- macOS/Linux, PostgreSQL, Redis
+- macOS/Linux, PostgreSQL
 - No Docker required for local development
 
 **Production:**
 - Kamal deployment to VPS, Docker container, Puma application server
-- PostgreSQL, Redis
+- PostgreSQL
 
 ---
 

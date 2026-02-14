@@ -157,7 +157,7 @@ Template for `.planning/codebase/CONCERNS.md` - captures known issues and areas 
 - Workaround: Database-level default fills in number on save, but numbering can have gaps
 - Root cause: `belongs_to :board` must be declared before `before_create :set_number` because `set_number` depends on `board.account`
 
-**Race condition in Sidekiq notification jobs:**
+**Race condition in background notification jobs:**
 - Symptoms: Duplicate notifications sent when card is assigned to multiple users simultaneously
 - Trigger: Bulk assignment via board import or API, multiple `NotifyAssigneeJob` enqueued at once
 - Files: `app/jobs/notify_assignee_job.rb`, `app/models/card/assignable.rb`
@@ -169,7 +169,7 @@ Template for `.planning/codebase/CONCERNS.md` - captures known issues and areas 
 - Symptoms: Background jobs occasionally run with wrong tenant context, creating records in wrong account
 - Trigger: Job enqueued during request A, executed during request B on same thread in development
 - File: `app/jobs/application_job.rb`
-- Workaround: Production uses separate Sidekiq process (not affected), only impacts development with inline adapter
+- Workaround: Production uses separate Solid Queue process (not affected), only impacts development with inline adapter
 - Root cause: `Current.account` not properly reset between inline job executions in development
 
 **Turbo Stream partial not updating after card close:**
@@ -255,14 +255,14 @@ Template for `.planning/codebase/CONCERNS.md` - captures known issues and areas 
 
 **PostgreSQL connection pool:**
 - Current capacity: 20 connections (default `pool` in `config/database.yml`)
-- Limit: With Sidekiq (25 threads) + Puma (5 workers x 5 threads), need 50+ connections
+- Limit: With Solid Queue workers + Puma (5 workers x 5 threads), need 50+ connections
 - Symptoms at limit: `ActiveRecord::ConnectionTimeoutError` in background jobs during peak load
 - Scaling path: Increase `pool` to match total thread count, configure PgBouncer for connection multiplexing
 
-**Sidekiq memory usage:**
-- Current capacity: Single Sidekiq process, 512MB RAM
+**Solid Queue worker memory usage:**
+- Current capacity: Single Solid Queue worker process, 512MB RAM
 - Limit: Import jobs loading full CSV into memory hit OOM at ~50k rows
-- Symptoms at limit: Sidekiq worker killed by OOM killer, jobs silently lost
+- Symptoms at limit: Worker process killed by OOM killer, jobs remain in database as claimed (require manual release)
 - Scaling path: Stream CSV processing with `CSV.foreach`, batch database inserts with `insert_all`
 
 ## Dependencies at Risk

@@ -19,7 +19,7 @@ Features users assume exist. Missing these = product feels incomplete.
 
 | Feature | Why Expected | Complexity | Rails Approach | Notes |
 |---------|--------------|------------|----------------|-------|
-| [feature] | [user expectation] | LOW/MEDIUM/HIGH | [e.g., Devise, Action Cable, Active Storage, Turbo Streams, background job, standard CRUD] | [implementation notes] |
+| [feature] | [user expectation] | LOW/MEDIUM/HIGH | [e.g., Rails authentication generator, Action Cable, Active Storage, Turbo Streams, background job, standard CRUD] | [implementation notes] |
 | [feature] | [user expectation] | LOW/MEDIUM/HIGH | [Rails approach] | [implementation notes] |
 | [feature] | [user expectation] | LOW/MEDIUM/HIGH | [Rails approach] | [implementation notes] |
 
@@ -155,9 +155,9 @@ Features to defer until product-market fit is established.
 
 **Rails Infrastructure Needs:**
 - Identifying subsystem needs early avoids mid-phase yak shaving
-- Features needing Action Cable or Turbo Streams may require Redis and deployment config
+- Features needing Action Cable or Turbo Streams use Solid Cable (database-backed, no Redis needed in Rails 8)
 - Features needing Active Storage require storage service setup (local, S3, etc.)
-- Features needing background jobs require queue adapter setup (Sidekiq, Solid Queue, etc.)
+- Features needing background jobs require queue adapter setup (Solid Queue is Rails 8 default, Sidekiq for high-throughput needs)
 - Features needing search may require an external service (Elasticsearch, Meilisearch) or pg_search
 
 **MVP Definition:**

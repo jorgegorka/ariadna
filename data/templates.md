@@ -45,11 +45,11 @@ Launch **6 parallel agents** (one per file), each tasked with rewriting a single
   - **Email**: ActionMailer with SMTP/Postmark/SendGrid
   - **Databases**: PostgreSQL via ActiveRecord, `database.yml`
   - **File Storage**: ActiveStorage with S3/GCS/local disk
-  - **Caching**: Redis/Solid Cache via `Rails.cache`
-  - **Auth**: Devise/has_secure_password, OmniAuth
+  - **Caching**: Solid Cache/Redis via `Rails.cache`
+  - **Auth**: Rails authentication generator, OmniAuth
   - **Monitoring**: Sentry/Honeybadger via gems
   - **CI/CD**: GitHub Actions, Kamal/Docker deployment
-  - **Background Jobs**: Sidekiq/GoodJob/Solid Queue
+  - **Background Jobs**: Solid Queue/Sidekiq/GoodJob
   - **Webhooks**: Rails controller endpoints with signature verification
 
 ### 4. `stack.md` — Technology Stack
@@ -57,7 +57,7 @@ Launch **6 parallel agents** (one per file), each tasked with rewriting a single
   - **Languages**: Ruby (version from `.ruby-version`), JavaScript/CSS for assets
   - **Runtime**: Ruby + Bundler, `.ruby-version`
   - **Frameworks**: Rails (version), Minitest/RSpec, Hotwire/Turbo/Stimulus
-  - **Key Dependencies**: Key gems (sidekiq, devise, pundit, etc.)
+  - **Key Dependencies**: Key gems (solid_queue, solid_cache, pundit, etc.)
   - **Configuration**: `database.yml`, `credentials.yml.enc`, `config/environments/`
   - **Build**: Asset pipeline (Propshaft/Sprockets), importmap/esbuild/vite
   - **Platform**: Kamal, Docker, Heroku, etc.

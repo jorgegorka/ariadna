@@ -1,10 +1,10 @@
-# Fizzy Style Guide
+# Style Guide
 
-This document defines the CSS architecture, design tokens, and styling conventions used throughout Fizzy.
+This document defines the CSS architecture, design tokens, and styling conventions.
 
 ## Overview
 
-Fizzy uses **pure, custom CSS** with no external frameworks (no Tailwind, Bootstrap, etc.). The design system is built on modern CSS features including CSS custom properties, OKLCH colors, CSS layers, and logical properties.
+Use **pure, custom CSS** with no external frameworks (no Tailwind, Bootstrap, etc.). The design system is built on modern CSS features including CSS custom properties, OKLCH colors, CSS layers, and logical properties.
 
 ## CSS Architecture
 
@@ -45,7 +45,7 @@ app/assets/stylesheets/
 
 ### OKLCH Color Model
 
-Fizzy uses the OKLCH color space for better perceptual uniformity across light and dark modes. Colors are defined as lightness, chroma, and hue values:
+Use the OKLCH color space for better perceptual uniformity across light and dark modes. Colors are defined as lightness, chroma, and hue values:
 
 ```css
 --lch-black: 0% 0 0
@@ -145,7 +145,7 @@ line-height: 1.375;
 
 ### Logical Properties
 
-Fizzy uses CSS logical properties for RTL support. Use `block` (vertical) and `inline` (horizontal) instead of top/bottom/left/right.
+Use CSS logical properties for RTL support. Use `block` (vertical) and `inline` (horizontal) instead of top/bottom/left/right.
 
 ### Base Spacing Variables
 
@@ -256,7 +256,7 @@ Dialogs use CSS transitions with `allow-discrete`:
 
 ## Icons & SVG
 
-Fizzy uses a **CSS mask-based icon system** with individual SVG files. Icons inherit color from their parent via `currentColor`, making them easy to style contextually.
+Use a **CSS mask-based icon system** with individual SVG files. Icons inherit color from their parent via `currentColor`, making them easy to style contextually.
 
 ### Icon Storage
 
@@ -465,7 +465,7 @@ Common icons organized by category:
 
 ## Forms & Inputs
 
-Fizzy uses CSS custom properties for flexible, themeable form controls. All inputs prevent iOS auto-zoom with `font-size: max(16px, 1em)`.
+Use CSS custom properties for flexible, themeable form controls. All inputs prevent iOS auto-zoom with `font-size: max(16px, 1em)`.
 
 ### Base Input Styling
 

@@ -162,7 +162,7 @@ ariadna-tools commit "wip: [phase-name] paused at task [X]/[Y]" --files .plannin
 a7f2d1 feat(checkout): Stripe payments with webhook verification
 3e9c4b feat(products): catalog with search, filters, and pagination
 8a1b2c feat(auth): JWT with refresh rotation using jose
-5c3d7e feat(foundation): Next.js 15 + Prisma + Tailwind scaffold
+5c3d7e feat(foundation): Next.js 15 + Prisma + CSS scaffold
 2f4a8d docs: initialize ecommerce-app (5 phases)
 ```
 
@@ -190,7 +190,7 @@ a7f2d1 feat(checkout): Stripe payments with webhook verification
 
 # Phase 01 - Foundation
 3q4r5s docs(01-01): complete scaffold plan
-6t7u8v feat(01-01): configure Tailwind and globals
+6t7u8v feat(01-01): configure global styles and CSS layers
 9w0x1y feat(01-01): set up Prisma with database
 2z3a4b feat(01-01): create Next.js 15 project
 

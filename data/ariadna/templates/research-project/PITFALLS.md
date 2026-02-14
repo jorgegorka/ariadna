@@ -208,8 +208,8 @@ Common mistakes when integrating Rails gems and external services.
 
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| Devise / authentication | [e.g., customizing controllers without understanding the full flow, not configuring lockout, missing `authenticate_user!`] | [what to do instead] |
-| Sidekiq / background jobs | [e.g., passing ActiveRecord objects instead of IDs, no retry configuration, no error handling] | [what to do instead] |
+| Authentication | [e.g., not understanding the generated `Authentication` concern flow, missing `allow_unauthenticated_access`, session fixation on login] | [what to do instead] |
+| Solid Queue / background jobs | [e.g., passing ActiveRecord objects instead of IDs, no retry configuration, no error handling] | [what to do instead] |
 | ActionCable / WebSockets | [e.g., broadcasting without authorization, no connection authentication, memory leaks from unsubscribed channels] | [what to do instead] |
 | ActiveStorage / file uploads | [e.g., missing virus scanning, no file size limits, serving user uploads from same domain] | [what to do instead] |
 | Turbo / Hotwire | [e.g., full page reloads from misconfigured frames, missing turbo stream responses, form submission edge cases] | [what to do instead] |
@@ -338,7 +338,7 @@ How roadmap phases should address these pitfalls.
 - Note which security issues are caught by Rails defaults vs. require explicit configuration
 
 **Integration Gotchas:**
-- Cover common Rails gem integration issues (Devise, Sidekiq, Turbo, ActiveStorage)
+- Cover common Rails gem integration issues (authentication generator, Solid Queue, Turbo, ActiveStorage)
 - Include Rails version upgrade pain points — deprecated APIs, changed defaults
 - Note gems that are known to conflict or require specific version coordination
 

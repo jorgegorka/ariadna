@@ -79,7 +79,7 @@ app/
 ├── components/            # [ViewComponent usage if present]
 ├── javascript/            # [JS approach: importmaps/jsbundling/etc.]
 ├── assets/                # [asset pipeline approach discovered]
-│   └── stylesheets/       # [CSS approach: Tailwind/cssbundling/etc.]
+│   └── stylesheets/       # [CSS approach: custom CSS/Tailwind/cssbundling]
 config/
 ├── routes.rb              # [routing organization discovered]
 ├── initializers/          # [key initializers discovered]
@@ -163,7 +163,7 @@ test/ or spec/             # [test framework: minitest/rspec]
 
 ### Authentication and Authorization
 
-**Authentication:** [Devise / has_secure_password / custom / other]
+**Authentication:** [Rails authentication generator / has_secure_password / custom / other]
 **Authorization:** [Pundit / CanCanCan / custom / Action Policy / other]
 
 ## Data Flow
@@ -239,7 +239,7 @@ Client receives → DOM update
 | Area | Current Approach | Scaling Path |
 |------|------------------|--------------|
 | Database queries | [indexes, eager loading, query optimization discovered] | [read replicas, sharding, etc.] |
-| Caching | [fragment / Russian doll / low-level / HTTP caching discovered] | [Redis, CDN, cache layers] |
+| Caching | [fragment / Russian doll / low-level / HTTP caching discovered] | [Solid Cache, Redis, CDN, cache layers] |
 | Background jobs | [job queue backend, job patterns discovered] | [worker scaling, queue prioritization] |
 | Connection pooling | [database pool size, Puma threads discovered] | [PgBouncer, connection management] |
 | Asset delivery | [CDN, asset pipeline, fingerprinting discovered] | [edge caching, compression] |
@@ -258,7 +258,7 @@ Client receives → DOM update
 - **Russian doll caching:** [nested cache keys with touch: true]
 - **Low-level caching:** [Rails.cache.fetch usage]
 - **HTTP caching:** [stale?, fresh_when, ETags]
-- **Cache store:** [Redis, Memcached, file store, etc.]
+- **Cache store:** [Solid Cache, Redis, Memcached, file store, etc.]
 
 ## Anti-Patterns to Watch For
 
@@ -300,9 +300,9 @@ Client receives → DOM update
 |-------------|------------------|-------|
 | Active Storage | [file upload handling] | [service backend: local/S3/GCS/etc.] |
 | Action Mailer | [email sending patterns] | [delivery method, previews] |
-| Action Cable | [real-time features] | [adapter: Redis/PostgreSQL/async] |
+| Action Cable | [real-time features] | [adapter: Solid Cable/Redis/PostgreSQL/async] |
 | Action Text | [rich text editing] | [if Trix editor is used] |
-| Active Job | [background job framework] | [queue backend: Sidekiq/GoodJob/SolidQueue/etc.] |
+| Active Job | [background job framework] | [queue backend: Solid Queue/Sidekiq/GoodJob/etc.] |
 
 ### External Service Integrations
 

@@ -41,7 +41,7 @@ Plans execute autonomously. Checkpoints formalize interaction points where human
 <task type="auto">
   <name>Build responsive dashboard layout</name>
   <files>src/components/Dashboard.tsx, src/app/dashboard/page.tsx</files>
-  <action>Create dashboard with sidebar, header, and content area. Use Tailwind responsive classes for mobile.</action>
+  <action>Create dashboard with sidebar, header, and content area. Use responsive CSS with clamp() and media queries for mobile.</action>
   <verify>npm run build succeeds, no TypeScript errors</verify>
   <done>Dashboard component builds without errors</done>
 </task>
@@ -390,7 +390,6 @@ I'll verify: vercel whoami returns your account
 | Fly | `fly` | `launch`, `deploy`, `secrets set` | `fly auth login` |
 | Stripe | `stripe` + API | `listen`, `trigger`, API calls | API key in .env |
 | Supabase | `supabase` | `init`, `link`, `db push`, `gen types` | `supabase login` |
-| Upstash | `upstash` | `redis create`, `redis get` | `upstash auth login` |
 | PlanetScale | `pscale` | `database create`, `branch create` | `pscale auth login` |
 | GitHub | `gh` | `repo create`, `pr create`, `secret set` | `gh auth login` |
 | Node | `npm`/`pnpm` | `install`, `run build`, `test`, `run dev` | N/A |
@@ -517,7 +516,6 @@ timeout 30 bash -c 'until curl -s localhost:3000 > /dev/null 2>&1; do sleep 1; d
 | Deploy to Vercel | Yes (`vercel`) | YES |
 | Create Stripe webhook | Yes (API) | YES |
 | Write .env file | Yes (Write tool) | YES |
-| Create Upstash DB | Yes (`upstash`) | YES |
 | Run tests | Yes (`npm test`) | YES |
 | Start dev server | Yes (`npm run dev`) | YES |
 | Add env vars to Convex | Yes (`npx convex env set`) | YES |
@@ -557,24 +555,25 @@ timeout 30 bash -c 'until curl -s localhost:3000 > /dev/null 2>&1; do sleep 1; d
 
 <examples>
 
-### Example 1: Database Setup (No Checkpoint Needed)
+### Example 1: Background Job Setup (No Checkpoint Needed)
 
 ```xml
 <task type="auto">
-  <name>Create Upstash Redis database</name>
-  <files>.env</files>
+  <name>Configure Solid Queue for background jobs</name>
+  <files>config/queue.yml, config/recurring.yml, Gemfile</files>
   <action>
-    1. Run `upstash redis create myapp-cache --region us-east-1`
-    2. Capture connection URL from output
-    3. Write to .env: UPSTASH_REDIS_URL={url}
-    4. Verify connection with test command
+    1. Add `solid_queue` to Gemfile and run `bundle install`
+    2. Run `bin/rails solid_queue:install` to generate config
+    3. Configure queues in `config/queue.yml`
+    4. Set `config.active_job.queue_adapter = :solid_queue` in production.rb
+    5. Run `bin/rails db:migrate` for Solid Queue tables
   </action>
   <verify>
-    - upstash redis list shows database
-    - .env contains UPSTASH_REDIS_URL
-    - Test connection succeeds
+    - bin/rails runner "SolidQueue::Job.count" returns 0
+    - config/queue.yml exists with valid configuration
+    - Database tables created successfully
   </verify>
-  <done>Redis database created and configured</done>
+  <done>Solid Queue configured and ready for background jobs</done>
 </task>
 
 <!-- NO CHECKPOINT NEEDED - Claude automated everything and verified programmatically -->

@@ -146,11 +146,13 @@ Control which Claude models agents use via `/ariadna:set-profile`:
 
 ## Default settings
 
-With Ariadna you can create Ruby on Rails applications or add features to existing ones. By default, Ariadna is configured to generate Ruby on Rails applications taht follow the rails philosophy and best practices, but you can customise it to fit your needs.
+With Ariadna you can create Ruby on Rails applications or add features to existing ones. By default, Ariadna is configured to generate Ruby on Rails applications that follow the rails philosophy and best practices, but you can customise it to fit your needs.
 
 The default settings are heavily influenced by our experience building Ruby on Rails applications, and are designed to produce high-quality code that follows best practices. However, we understand that every project is different, and we encourage you to experiment with the settings to find what works best for you.
 
 We are firmly belivers in the [Rails is plenty](https://world.hey.com/jorge/a-vanilla-rails-stack-is-plenty-567a4708) philosophy, so our default settings are optimised for vanilla Ruby on Rails applications.
+
+We have taken plenty of inspiration from [Fizzy](https://www.fizzy.do/). If you are new to ruby on rails, we recommend you to check it out. It's a great resource for learning about the best practices and conventions of Ruby on Rails.
 
 ## Requirements
 

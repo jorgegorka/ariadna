@@ -1,14 +1,18 @@
-# Fizzy Rails Patterns and Best Practices
+# Rails Patterns and Best Practices
 
 **A Comprehensive Guide for Rails Developers**
 
-This documentation explains the patterns, conventions, and best practices used in the Fizzy Rails application. It's designed for developers who already know Ruby on Rails and need to understand how Fizzy structures and organizes code.
+This documentation explains the patterns, conventions, and best practices used in Rails application. It's designed for developers who already know Ruby on Rails and need to understand how to structure and organize code.
+
+It has been heavily inspired by the architecture and patterns of [Fizzy](https://www.fizzy.do/), a public-facing Trello clone built with Ruby on Rails. Fizzy is an excellent example of a well-architected Rails application, and this guide distills the key patterns and practices that make it successful.
+
+We stand on the shoulders of giants.
 
 ## Table of Contents
 
 - [Part 1: Foundation & Architecture](#part-1-foundation--architecture)
   - [1.0 The Vanilla Rails Philosophy](#10-the-vanilla-rails-philosophy)
-  - [1.1 Understanding Fizzy's Architecture](#11-understanding-fizzys-architecture)
+  - [1.1 Understanding Architecture](#11-understanding-fizzys-architecture)
   - [1.2 UUID Primary Keys & Fixtures](#12-uuid-primary-keys--fixtures)
 - [Part 2: Model Layer Patterns](#part-2-model-layer-patterns)
   - [2.1 Concern Architecture](#21-concern-architecture)
@@ -29,7 +33,7 @@ This documentation explains the patterns, conventions, and best practices used i
   - [4.4 Background Jobs: The _now/_later Pattern](#44-background-jobs-the-_now_later-pattern)
   - [4.5 Multi-Tenancy in Background Jobs](#45-multi-tenancy-in-background-jobs)
 - [Part 5: Coding Style Guide](#part-5-coding-style-guide)
-  - [5.1 Fizzy Coding Conventions](#51-fizzy-coding-conventions)
+  - [5.1 Coding Conventions](#51-fizzy-coding-conventions)
 - [Part 6: Common Tasks & Recipes](#part-6-common-tasks--recipes)
   - [6.1 Recipe: Adding a New State to Cards](#61-recipe-adding-a-new-state-to-cards)
   - [6.2 Recipe: Adding Event Tracking](#62-recipe-adding-event-tracking)
@@ -43,11 +47,11 @@ This documentation explains the patterns, conventions, and best practices used i
 
 # Part 1: Foundation & Architecture
 
-Before diving into specific patterns, you need to understand Fizzy's foundational architecture. These concepts underpin everything else in the application.
+Before diving into specific patterns, you need to understand the foundational architecture. These concepts underpin everything else in the application.
 
 ## 1.0 The Vanilla Rails Philosophy
 
-Fizzy's architecture is built on a single organizing principle: **place the domain model at the center of the application.** This idea comes from domain-driven design (Eric Evans, 2003) — the domain model is the heart of the system, and everything else exists to exercise it.
+Architecture is built on a single organizing principle: **place the domain model at the center of the application.** This idea comes from domain-driven design (Eric Evans, 2003) — the domain model is the heart of the system, and everything else exists to exercise it.
 
 ### Domain Model at the Center
 
@@ -75,7 +79,7 @@ This means `card.close` works the same whether called from a controller action, 
 
 ### No New Architectural Artifacts
 
-Fizzy doesn't introduce architectural layers beyond what Rails and Ruby provide. No service objects, no form objects, no interactors, no command pattern libraries. The building blocks are:
+It doesn't introduce architectural layers beyond what Rails and Ruby provide. No service objects, no form objects, no interactors, no command pattern libraries. The building blocks are:
 
 - **Models** (ActiveRecord and plain Ruby classes) — domain entities and operations
 - **Concerns** — organize model behavior into cohesive modules
@@ -87,7 +91,7 @@ When something doesn't fit in an entity, it becomes a plain Ruby object with a s
 
 ### Preference for Rails Defaults
 
-Fizzy leans toward the tools Rails ships with rather than replacing them:
+It leans toward the tools Rails ships with rather than replacing them:
 
 - **Minitest** over RSpec
 - **View templates** over view components
@@ -95,13 +99,13 @@ Fizzy leans toward the tools Rails ships with rather than replacing them:
 - **Concerns** over decorator libraries
 - **`Current`** over dependency injection frameworks
 
-This isn't about dogma — it's about reducing the number of concepts a developer needs to learn. When you open a Fizzy controller, you see standard Rails. The patterns are Rails patterns. The only thing that's distinctive is how seriously the team takes the domain model.
+This isn't about dogma — it's about reducing the number of concepts a developer needs to learn. When you open a controller, you see standard Rails. The patterns are Rails patterns. The only thing that's distinctive is how seriously the team takes the domain model.
 
-## 1.1 Understanding Fizzy's Architecture
+## 1.1 Understanding Architecture
 
 ### Domain Model Overview
 
-Fizzy's domain model follows a clear hierarchy:
+The domain model follows a clear hierarchy:
 
 ```
 Account (tenant/organization)
@@ -122,10 +126,10 @@ Account (tenant/organization)
 
 ### Multi-Tenancy Pattern
 
-Fizzy uses **URL path-based multi-tenancy** rather than subdomains or separate databases:
+It uses **URL path-based multi-tenancy** rather than subdomains or separate databases:
 
 ```
-https://fizzy.localhost:3006/{account_id}/boards/{board_id}
+https://localhost:3006/{account_id}/boards/{board_id}
                              └─────────┘
                               7+ digit ID extracted by middleware
 ```
@@ -147,7 +151,7 @@ https://fizzy.localhost:3006/{account_id}/boards/{board_id}
 
 ### The Current Context Pattern
 
-Fizzy uses `ActiveSupport::CurrentAttributes` to maintain thread-safe request state:
+It uses `ActiveSupport::CurrentAttributes` to maintain thread-safe request state:
 
 **File**: `app/models/current.rb`
 
@@ -197,7 +201,7 @@ end
 
 ### UUID Primary Keys
 
-Fizzy uses UUIDs (UUIDv7, base36-encoded to 25 characters) instead of auto-incrementing integers:
+It uses UUIDs (UUIDv7, base36-encoded to 25 characters) instead of auto-incrementing integers:
 
 **Why UUIDs:**
 - **Security**: No ID enumeration across tenants
@@ -245,11 +249,11 @@ end
 
 # Part 2: Model Layer Patterns
 
-This is where Fizzy's distinctive style shines. Models contain business logic and use concerns heavily to organize behavior.
+This is where distinctive style shines. Models contain business logic and use concerns heavily to organize behavior.
 
 ## 2.1 Concern Architecture
 
-Fizzy uses concerns extensively to compose model behavior. This is the most distinctive pattern in the codebase.
+It uses concerns extensively to compose model behavior. This is the most distinctive pattern in the codebase.
 
 ### Two Types of Concerns
 
@@ -351,7 +355,7 @@ end
 1. `extend ActiveSupport::Concern` - Required first line
 2. `included do` block - Code run when the concern is included (associations, scopes, callbacks)
 3. Public instance methods - The concern's API
-4. Private methods (if needed) - Indented per Fizzy style guide
+4. Private methods (if needed) - Indented per style guide
 
 ### Naming Conventions
 
@@ -570,7 +574,7 @@ This combination gives you the best of both worlds: concerns keep your model's A
 
 ## 2.2 Intention-Revealing APIs
 
-Fizzy emphasizes method names that read like business domain language. Models provide APIs that express intent clearly.
+It emphasizes method names that read like business domain language. Models provide APIs that express intent clearly.
 
 ### Boolean Query Methods
 
@@ -738,7 +742,7 @@ def reopen
 
 ## 2.3 Smart Association Defaults
 
-Fizzy uses lambda defaults on `belongs_to` associations to automatically propagate context. This reduces boilerplate and enforces multi-tenancy.
+It uses lambda defaults on `belongs_to` associations to automatically propagate context. This reduces boilerplate and enforces multi-tenancy.
 
 ### Basic Pattern
 
@@ -844,7 +848,7 @@ Every record automatically gets its `account_id` set, maintaining tenant isolati
 
 ## 2.4 Scopes That Tell Stories
 
-Scopes in Fizzy have descriptive names that express business concepts, not SQL operations. They're composable and chainable.
+Scopes have descriptive names that express business concepts, not SQL operations. They're composable and chainable.
 
 ### Naming Conventions
 
@@ -1137,7 +1141,7 @@ end
 
 ## 2.6 Why Not Service Objects
 
-Fizzy deliberately avoids service objects. This isn't a minor style preference — it's a core architectural decision rooted in domain-driven design principles.
+It deliberately avoids service objects. This isn't a minor style preference — it's a core architectural decision rooted in domain-driven design principles.
 
 ### Controllers Already Fill This Role
 
@@ -1177,7 +1181,6 @@ class SendBackToTriage
   end
 end
 
-# ✓ Fizzy approach: call the domain model directly
 @card.send_back_to_triage
 ```
 
@@ -1209,7 +1212,7 @@ When business logic lives in service objects instead of domain entities:
 - **Code reuse requires coupling between services** — service A calls service B calls service C
 - **You lose the benefits of object-oriented design** — encapsulation, polymorphism, cohesion
 
-Compare with Fizzy's approach where the domain model owns its behavior:
+Compare the approach where the domain model owns its behavior:
 
 **File**: `app/models/card/triageable.rb`
 
@@ -1273,11 +1276,11 @@ Does the operation act on a single entity's state?
 
 # Part 3: Domain-Specific Patterns
 
-Fizzy has several unique domain-specific features that follow consistent patterns.
+It has several unique domain-specific features that follow consistent patterns.
 
 ## 3.1 Event Tracking System
 
-Events are Fizzy's audit trail. Every significant action creates an event record that drives activity timelines, notifications, and webhooks.
+Events audit trail. Every significant action creates an event record that drives activity timelines, notifications, and webhooks.
 
 ### Why Events Matter
 
@@ -1461,7 +1464,7 @@ end
 
 ## 3.2 Storage Tracking Pattern
 
-Fizzy tracks file storage usage at the board and account level to enforce quotas. This pattern shows how to handle complex accounting across hierarchies.
+It tracks file storage usage at the board and account level to enforce quotas. This pattern shows how to handle complex accounting across hierarchies.
 
 ### Business Context
 
@@ -1589,7 +1592,7 @@ Follow the pattern:
 
 ## 3.3 Entropy System
 
-Fizzy's unique "entropy" feature automatically postpones stale cards to prevent infinite todo lists. This shows how to implement complex time-based business rules.
+The unique "entropy" feature automatically postpones stale cards to prevent infinite todo lists. This shows how to implement complex time-based business rules.
 
 ### Business Philosophy
 
@@ -1714,7 +1717,7 @@ The class method `Card.auto_postpone_all_due` is called hourly to process all el
 
 ## 3.4 Presenter Pattern
 
-Fizzy uses presenter classes to encapsulate complex view logic. Unlike typical Rails apps, presenters don't live in an `app/presenters/` directory—they live in `app/models/` organized by domain, aligning with Fizzy's "vanilla Rails" philosophy.
+It uses presenter classes to encapsulate complex view logic. Unlike typical Rails apps, presenters don't live in an `app/presenters/` directory—they live in `app/models/` organized by domain, aligning with "vanilla Rails" philosophy.
 
 ### Philosophy
 
@@ -2082,7 +2085,7 @@ class Event::DescriptionTest < ActiveSupport::TestCase
 end
 ```
 
-### Real Examples in Fizzy
+### Real Examples
 
 | Presenter | File | Purpose |
 |-----------|------|---------|
@@ -2093,7 +2096,7 @@ end
 
 ### Summary
 
-Fizzy's presenter pattern:
+Presenter pattern:
 - **Plain Ruby classes** in `app/models/` (no special directory)
 - **Domain-organized** (`User::Filtering`, not `FilteringPresenter`)
 - **Include ActionView helpers** when generating HTML
@@ -2107,11 +2110,11 @@ Fizzy's presenter pattern:
 
 # Part 4: Controller & Job Patterns
 
-Controllers and background jobs in Fizzy are extremely thin. They orchestrate, but delegate all business logic to models.
+Controllers and background jobs are extremely thin. They orchestrate, but delegate all business logic to models.
 
 ## 4.1 Thin Controllers with Rich Models
 
-Fizzy strictly follows the "thin controller, fat model" philosophy. Controllers have 3 responsibilities: setup, call model, respond.
+It strictly follows the "thin controller, fat model" philosophy. Controllers have 3 responsibilities: setup, call model, respond.
 
 ### The Pattern
 
@@ -2182,7 +2185,7 @@ def create
 end
 ```
 
-**✅ Fizzy pattern (model handles logic):**
+**✅ (model handles logic):**
 
 ```ruby
 def create
@@ -2212,7 +2215,7 @@ end
 
 ## 4.2 RESTful Resource Nesting
 
-Fizzy models all actions as RESTful resources, not custom routes. This is a core pattern from the style guide.
+In models all actions as RESTful resources, not custom routes. This is a core pattern from the style guide.
 
 ### The Pattern
 
@@ -2230,7 +2233,7 @@ resources :cards do
 end
 ```
 
-**✅ Fizzy pattern:**
+**✅ pattern:**
 
 ```ruby
 # routes.rb
@@ -2407,7 +2410,7 @@ end
 
 ## 4.4 Background Jobs: The _now/_later Pattern
 
-Fizzy has a strict naming convention for asynchronous operations. Jobs are ultra-thin and delegate everything to models.
+It has a strict naming convention for asynchronous operations. Jobs are ultra-thin and delegate everything to models.
 
 ### The Pattern
 
@@ -2556,12 +2559,12 @@ Jobs run outside HTTP requests:
 - Need to restore tenant context for queries
 - Easy to forget and cause bugs
 
-### Fizzy's Solution
+### Solution
 
 **File**: `config/initializers/active_job.rb`
 
 ```ruby
-module FizzyActiveJobExtensions
+module AppActiveJobExtensions
   extend ActiveSupport::Concern
 
   prepended do
@@ -2595,7 +2598,7 @@ module FizzyActiveJobExtensions
 end
 
 ActiveSupport.on_load(:active_job) do
-  prepend FizzyActiveJobExtensions  # ← Applied to ALL jobs
+  prepend AppActiveJobExtensions  # ← Applied to ALL jobs
 end
 ```
 
@@ -2678,19 +2681,19 @@ end
 
 ### Key Insight
 
-Multi-tenancy "just works" in jobs without thinking about it. This is one of Fizzy's most powerful patterns.
+Multi-tenancy "just works" in jobs without thinking about it. This is one of the most powerful patterns.
 
 ---
 
 # Part 5: Coding Style Guide
 
-Fizzy has specific code style conventions beyond standard Ruby/Rails style.
+It has specific code style conventions beyond standard Ruby/Rails style.
 
-## 5.1 Fizzy Coding Conventions
+## 5.1 Coding Conventions
 
 ### Conditional Returns (Expanded Conditionals Preferred)
 
-Fizzy prefers expanded conditionals over guard clauses:
+It prefers expanded conditionals over guard clauses:
 
 **❌ Avoid:**
 
@@ -2869,7 +2872,7 @@ def process!  # ← Not signaling danger vs non-bang version
 
 # Part 6: Common Tasks & Recipes
 
-Step-by-step guides for common development tasks in Fizzy.
+Step-by-step guides for common development tasks.
 
 ## 6.1 Recipe: Adding a New State to Cards
 
@@ -3342,7 +3345,7 @@ end
 
 ```ruby
 resources :cards do
-  resource :closure  # ← Fizzy pattern
+  resource :closure  
 end
 ```
 
@@ -3434,13 +3437,13 @@ Wrap related operations in transactions.
 
 # Conclusion
 
-This documentation covers the core patterns and practices used throughout the Fizzy Rails application:
+This documentation covers the core patterns and practices used throughout the Rails application:
 
 - **Foundation**: Multi-tenancy via Current context, UUID primary keys
 - **Models**: Concern-driven architecture, intention-revealing APIs, smart defaults
 - **Controllers**: Thin controllers that delegate to rich models
 - **Jobs**: Ultra-thin jobs following _now/_later pattern
-- **Style**: Fizzy-specific conventions for readable code
+- **Style**: specific conventions for readable code
 
 The key principle underlying all patterns: **business logic belongs in models, and everything else orchestrates that logic as simply as possible.**
 

@@ -49,18 +49,18 @@ Template for `.planning/codebase/INTEGRATIONS.md` - captures external service de
   - Service: [e.g., "`amazon` service in production, `local` in development"]
 
 **Caching:**
-- [Service] - [e.g., "Redis for fragment caching and sessions"]
-  - Gem: [e.g., "`redis` gem or Solid Cache"]
-  - Interface: [e.g., "`Rails.cache` with `redis_cache_store`"]
-  - Config: [e.g., "`config/environments/production.rb` cache store settings"]
+- [Service] - [e.g., "Solid Cache for database-backed caching" or "Redis for shared state caching"]
+  - Gem: [e.g., "`solid_cache` gem" or "`redis` gem"]
+  - Interface: [e.g., "`Rails.cache` with `solid_cache_store`" or "`redis_cache_store`"]
+  - Config: [e.g., "`config/cache.yml` for Solid Cache" or "`config/environments/production.rb` cache store settings"]
 
 ## Authentication & Identity
 
 **Auth Provider:**
-- [Approach] - [e.g., "Devise with database-backed sessions", "`has_secure_password` with custom auth"]
-  - Gem: [e.g., "`devise` gem"]
-  - Config: [e.g., "`config/initializers/devise.rb`"]
-  - Session management: [e.g., "cookie-based sessions", "Redis session store"]
+- [Approach] - [e.g., "Rails authentication generator with `Authentication` concern", "`has_secure_password` with custom auth"]
+  - Setup: [e.g., "`bin/rails generate authentication`"]
+  - Config: [e.g., "`app/controllers/concerns/authentication.rb`"]
+  - Session management: [e.g., "database-tracked sessions via `Session` model", "cookie-based sessions"]
 
 **OAuth Integrations:**
 - [Provider] - [e.g., "Google OAuth for sign-in"]
@@ -88,10 +88,10 @@ Template for `.planning/codebase/INTEGRATIONS.md` - captures external service de
 ## Background Jobs
 
 **Job Backend:**
-- [Service] - [e.g., "Sidekiq for background processing"]
-  - Gem: [e.g., "`sidekiq`"]
-  - Config: [e.g., "`config/sidekiq.yml`"]
-  - Dashboard: [e.g., "Sidekiq Web UI mounted at `/sidekiq` in `config/routes.rb`"]
+- [Service] - [e.g., "Solid Queue for database-backed background processing (Rails 8 default)" or "Sidekiq for high-throughput processing"]
+  - Gem: [e.g., "`solid_queue`" or "`sidekiq`"]
+  - Config: [e.g., "`config/queue.yml` for Solid Queue" or "`config/sidekiq.yml`"]
+  - Dashboard: [e.g., "Mission Control (`mission_control-jobs`) mounted at `/jobs`" or "Sidekiq Web UI at `/sidekiq`"]
   - Queues: [e.g., "default, mailers, backend"]
 
 ## CI/CD & Deployment
@@ -184,26 +184,26 @@ Template for `.planning/codebase/INTEGRATIONS.md` - captures external service de
   - Auth: `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` env vars
 
 **Caching:**
-- Redis - Fragment caching and Sidekiq job queue
-  - Gem: `redis` gem v5.x
-  - Interface: `Rails.cache` with `config.cache_store = :redis_cache_store`
-  - Config: `config/environments/production.rb` cache store, `REDIS_URL` env var
-  - Session store: Cookie-based (not Redis)
+- Solid Cache - Database-backed fragment caching (Rails 8 default)
+  - Gem: `solid_cache` gem
+  - Interface: `Rails.cache` with `config.cache_store = :solid_cache_store`
+  - Config: `config/cache.yml` for cache database, `config/environments/production.rb` cache store
+  - Session store: Cookie-based
 
 ## Authentication & Identity
 
 **Auth Provider:**
-- Devise - Email/password authentication with database-backed sessions
-  - Gem: `devise` gem v4.9
-  - Config: `config/initializers/devise.rb`
-  - Session management: Cookie-based sessions with CSRF protection
+- Rails authentication generator - Email/password authentication with database-tracked sessions
+  - Setup: `bin/rails generate authentication`
+  - Config: `app/controllers/concerns/authentication.rb`, `Session` and `User` models with `has_secure_password`
+  - Session management: Database-tracked sessions with CSRF protection
 
 **OAuth Integrations:**
 - Google OAuth - Social sign-in
   - Gem: `omniauth-google-oauth2`
   - Credentials: `Rails.application.credentials.google[:client_id]`, `Rails.application.credentials.google[:client_secret]`
   - Scopes: email, profile
-  - Callback: `config/routes.rb` via Devise OmniAuth routes
+  - Callback: `config/routes.rb` via OmniAuth routes
 
 ## Monitoring & Observability
 
@@ -226,12 +226,12 @@ Template for `.planning/codebase/INTEGRATIONS.md` - captures external service de
 ## Background Jobs
 
 **Job Backend:**
-- Sidekiq - Background job processing
-  - Gem: `sidekiq` gem v7.x
-  - Config: `config/sidekiq.yml`
-  - Dashboard: Sidekiq Web UI mounted at `/sidekiq` in `config/routes.rb` (admin-only)
+- Solid Queue - Database-backed background job processing (Rails 8 default)
+  - Gem: `solid_queue` gem
+  - Config: `config/queue.yml` for queue database and worker configuration
+  - Dashboard: Mission Control (`mission_control-jobs`) mounted at `/jobs` in `config/routes.rb` (admin-only)
   - Queues: default, mailers, backend (exports, heavy processing)
-  - Redis: Shares `REDIS_URL` with caching
+  - Recurring: `config/recurring.yml` for scheduled tasks
 
 ## CI/CD & Deployment
 
@@ -261,7 +261,6 @@ Template for `.planning/codebase/INTEGRATIONS.md` - captures external service de
 **Production:**
 - Secrets management: `config/credentials/production.yml.enc` via `rails credentials:edit --environment production`
 - Database: PostgreSQL on Render with daily backups
-- Redis: Managed Redis instance via Render
 
 ## Webhooks & Callbacks
 
@@ -302,7 +301,7 @@ Template for `.planning/codebase/INTEGRATIONS.md` - captures external service de
 - Performance issues (that's CONCERNS.md)
 
 **When filling this template:**
-- Check `Gemfile` for integration gems (`stripe`, `devise`, `sentry-rails`, `sidekiq`, `aws-sdk-s3`, etc.)
+- Check `Gemfile` for integration gems (`stripe`, `sentry-rails`, `solid_queue`, `aws-sdk-s3`, etc.)
 - Check `config/initializers/` for service configuration files
 - Check `config/credentials.yml.enc` structure (via `rails credentials:show` or reading initializers that reference credentials)
 - Check `config/storage.yml` for ActiveStorage service configuration

@@ -38,7 +38,7 @@ Template for `.planning/codebase/ARCHITECTURE.md` - captures conceptual code org
 
 **Services/POROs:** `app/services/` (or `app/models/` subdirectories) — [Service objects, form objects, query objects, presenters — list what's present and where they live]
 
-**Jobs:** `app/jobs/` — Asynchronous and background processing. ActiveJob classes [backed by Sidekiq / GoodJob / Solid Queue].
+**Jobs:** `app/jobs/` — Asynchronous and background processing. ActiveJob classes [backed by Solid Queue / Sidekiq / GoodJob].
 
 **Mailers:** `app/mailers/` — Transactional and notification emails via ActionMailer.
 
@@ -102,12 +102,12 @@ Template for `.planning/codebase/ARCHITECTURE.md` - captures conceptual code org
 **Background Job Flow:**
 
 1. Controller or model enqueues job via `perform_later`
-2. Job backend [Sidekiq/GoodJob/Solid Queue] picks up job
+2. Job backend [Solid Queue/Sidekiq/GoodJob] picks up job
 3. Job executes with access to full Rails environment
 4. Results persisted to database or notifications sent
 
 **State Management:**
-- [How state is handled: e.g., "PostgreSQL via ActiveRecord", "Redis for caching and sessions", "Kredis for structured Redis data"]
+- [How state is handled: e.g., "PostgreSQL via ActiveRecord", "Solid Cache for caching (database-backed)", "Redis for sessions or shared state", "Kredis for structured Redis data"]
 
 ## Background Job Patterns
 
@@ -119,7 +119,7 @@ Template for `.planning/codebase/ARCHITECTURE.md` - captures conceptual code org
 
 **Multi-Tenancy in Jobs:** [e.g., "Tenant context captured automatically on job creation via `Current.account`, serialized into job payload, restored on execution. No manual account passing needed"]
 
-**Queue Organization:** [e.g., "Queues: `default`, `backend` (exports, heavy processing), `webhooks` (external deliveries). Configured in Sidekiq/GoodJob"]
+**Queue Organization:** [e.g., "Queues: `default`, `backend` (exports, heavy processing), `webhooks` (external deliveries). Configured in config/queue.yml (Solid Queue) / Sidekiq / GoodJob"]
 
 **Retry Strategy:** [e.g., "`retry_on` for transient failures (network, timeouts), `discard_on` for permanent failures (record not found). Configured per-job"]
 
@@ -211,13 +211,13 @@ Template for `.planning/codebase/ARCHITECTURE.md` - captures conceptual code org
 - [Approach: e.g., "ActiveModel validations in models", "Strong parameters in controllers", "Form objects for complex input"]
 
 **Authentication:**
-- [Approach: e.g., "Devise with database-backed sessions", "has_secure_password with custom auth", "OmniAuth for OAuth"]
+- [Approach: e.g., "Rails authentication generator with `Authentication` concern", "has_secure_password with custom auth", "OmniAuth for OAuth"]
 
 **Authorization:**
 - [Approach: e.g., "Pundit policies", "CanCanCan abilities", "Custom `before_action` checks"]
 
 **Caching:**
-- [Approach: e.g., "Fragment caching in views", "Russian doll caching", "Rails.cache with Redis/Solid Cache"]
+- [Approach: e.g., "Fragment caching in views", "Russian doll caching", "Rails.cache with Solid Cache/Redis"]
 
 ---
 
@@ -255,7 +255,7 @@ Template for `.planning/codebase/ARCHITECTURE.md` - captures conceptual code org
 
 **Presenters:** `app/models/` subdirectories — Plain Ruby classes for complex view logic (`User::Filtering`, `Event::Description`, `User::DayTimeline`). No separate `app/presenters/` directory.
 
-**Jobs:** `app/jobs/` — Ultra-thin ActiveJob classes backed by Sidekiq. 3-6 lines each — delegate to model methods via `_now/_later` pattern.
+**Jobs:** `app/jobs/` — Ultra-thin ActiveJob classes backed by Solid Queue. 3-6 lines each — delegate to model methods via `_now/_later` pattern.
 
 **Mailers:** `app/mailers/` — ActionMailer classes for invitations, notifications, digests.
 
@@ -318,13 +318,13 @@ Template for `.planning/codebase/ARCHITECTURE.md` - captures conceptual code org
 
 1. Record created → `after_create_commit :notify_recipients_later`
 2. `_later` method enqueues `NotifyRecipientsJob` (account captured automatically)
-3. Sidekiq picks up job, restores `Current.account`
+3. Solid Queue picks up job, restores `Current.account`
 4. Job calls `record.notify_recipients` (synchronous model method)
 5. Model method handles all logic — notification creation, delivery
 
 **State Management:**
 - PostgreSQL for all persistent data via ActiveRecord
-- Redis for Sidekiq queues, caching, and session store
+- Solid Cache (database-backed) for fragment caching and Rails.cache
 - Turbo maintains UI state client-side (no server-side view state)
 
 ## Background Job Patterns
@@ -381,7 +381,7 @@ Template for `.planning/codebase/ARCHITECTURE.md` - captures conceptual code org
 
 **Background Jobs:**
 - Location: `app/jobs/`
-- Triggers: `perform_later` from app code, sidekiq-cron schedules
+- Triggers: `perform_later` from app code, recurring tasks via Solid Queue's config/recurring.yml
 - Responsibilities: Emails, imports, cleanup, notifications
 
 **Rake Tasks:**
@@ -417,8 +417,8 @@ Template for `.planning/codebase/ARCHITECTURE.md` - captures conceptual code org
 - Custom validators in `app/validators/`
 
 **Authentication:**
-- Devise with database-backed sessions
-- `authenticate_user!` filter on all non-public controllers
+- Rails authentication generator with `Authentication` concern and database-tracked sessions
+- `require_authentication` filter on all non-public controllers
 
 **Authorization:**
 - Pundit policies per resource
@@ -428,7 +428,7 @@ Template for `.planning/codebase/ARCHITECTURE.md` - captures conceptual code org
 **Caching:**
 - Fragment caching on project dashboard partials
 - Russian doll caching for nested task lists
-- `Rails.cache` backed by Redis for expensive queries
+- `Rails.cache` backed by Solid Cache for expensive queries
 
 ---
 

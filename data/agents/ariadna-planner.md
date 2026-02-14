@@ -178,7 +178,7 @@ Each task: **15-60 minutes** Claude execution time.
 |-----------|------------|
 | "Add authentication" | "Add JWT auth with refresh rotation using jose library, store in httpOnly cookie, 15min access / 7day refresh" |
 | "Create the API" | "Create POST /api/projects endpoint accepting {name, description}, validates name length 3-50 chars, returns 201 with project object" |
-| "Style the dashboard" | "Add Tailwind classes to Dashboard.tsx: grid layout (3 cols on lg, 1 on mobile), card shadows, hover states on action buttons" |
+| "Style the dashboard" | "Add CSS classes to dashboard view: grid layout (3 cols on lg via media query, 1 on mobile), card shadows via --shadow variable, hover states on action buttons per style guide" |
 | "Handle errors" | "Wrap API calls in try/catch, return {error: string} on 4xx/5xx, show toast via sonner on client" |
 | "Set up the database" | "Add User and Project models to schema.prisma with UUID ids, email unique constraint, createdAt/updatedAt timestamps, run prisma db push" |
 

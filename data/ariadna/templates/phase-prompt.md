@@ -388,7 +388,7 @@ Output: Working dashboard component.
 <task type="auto">
   <name>Task 1: Build Dashboard layout</name>
   <files>src/components/Dashboard.tsx</files>
-  <action>Create responsive grid with UserList and ProductList components. Use Tailwind for styling.</action>
+  <action>Create responsive grid with UserList and ProductList components. Use CSS custom properties and utility classes per the project's style guide.</action>
   <verify>npm run build succeeds</verify>
   <done>Dashboard renders without errors</done>
 </task>
