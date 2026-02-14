@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "ariadna"
+require "ariadna/tools/cli"
+
+Ariadna::Tools::CLI.run(ARGV)

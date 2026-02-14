@@ -1,0 +1,48 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "ariadna"
+require "ariadna/installer"
+
+command = ARGV.shift
+
+case command
+when "install"
+  global = ARGV.include?("--global") || ARGV.include?("-g")
+  local = ARGV.include?("--local") || ARGV.include?("-l")
+
+  unless global || local
+    warn "Usage: ariadna install --global   (install to ~/.claude/)"
+    warn "       ariadna install --local    (install to ./.claude/)"
+    exit 1
+  end
+
+  Ariadna::Installer.new(local: local).install
+when "uninstall"
+  require "ariadna/uninstaller"
+  global = ARGV.include?("--global") || ARGV.include?("-g")
+  local = ARGV.include?("--local") || ARGV.include?("-l")
+
+  unless global || local
+    warn "Usage: ariadna uninstall --global"
+    warn "       ariadna uninstall --local"
+    exit 1
+  end
+
+  Ariadna::Uninstaller.new(local: local).uninstall
+when "version", "--version", "-v"
+  puts "ariadna #{Ariadna::VERSION}"
+else
+  puts <<~HELP
+    Ariadna v#{Ariadna::VERSION} — Context engineering for Claude Code
+
+    Usage:
+      ariadna install --global    Install to ~/.claude/
+      ariadna install --local     Install to ./.claude/
+      ariadna uninstall --global  Remove from ~/.claude/
+      ariadna uninstall --local   Remove from ./.claude/
+      ariadna version             Show version
+
+    After install, use /ariadna:help in Claude Code.
+  HELP
+end
