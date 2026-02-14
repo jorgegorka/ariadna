@@ -2,10 +2,12 @@
 
 A meta-prompting and context engineering system for [Claude Code](https://docs.anthropic.com/en/docs/claude-code).
 
+It's a fork of [Get Shit Done](https://github.com/gsd-build/get-shit-done/tree/main) focused on creating Ruby on Rails applications.
+
 [![Gem Version](https://badge.fury.io/rb/ariadna.svg)](https://rubygems.org/gems/ariadna)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Ariadna provides structured planning, multi-agent orchestration, and verification workflows via Claude Code slash commands. It turns Claude Code into a disciplined project execution engine that plans before it builds, verifies after it ships, and tracks state across sessions.
+Ariadna provides structured planning, multi-agent orchestration, and verification workflows via Claude Code slash commands. It turns Claude Code into a disciplined project execution engine for Ruby on Rails that plans before it builds, verifies after it ships, and tracks state across sessions.
 
 ## Hierarchy Model
 
@@ -42,7 +44,7 @@ Repeat `plan-phase` / `execute-phase` for each phase. Use `/ariadna:progress` to
 
 1. You invoke a slash command (e.g., `/ariadna:execute-phase 1`)
 2. The command loads a workflow definition and gathers context via `ariadna-tools`
-3. An orchestrator spawns specialized agents (planner, executor, verifier) in parallel
+3. An orchestrator spawns specialised agents (planner, executor, verifier) in parallel
 4. Agents execute tasks, make atomic commits, and produce summaries
 5. Project state is updated in `.planning/STATE.md`
 
@@ -52,15 +54,15 @@ Repeat `plan-phase` / `execute-phase` for each phase. Use `/ariadna:progress` to
 
 | Command | Description |
 |---|---|
-| `/ariadna:new-project` | Initialize project: questioning, research, requirements, roadmap |
-| `/ariadna:map-codebase` | Analyze existing codebase before starting (brownfield projects) |
+| `/ariadna:new-project` | Initialise project: questioning, research, requirements, roadmap |
+| `/ariadna:map-codebase` | Analyse existing codebase before starting (brownfield projects) |
 
 ### Phase Planning
 
 | Command | Description |
 |---|---|
 | `/ariadna:discuss-phase <n>` | Capture your vision for a phase before planning |
-| `/ariadna:research-phase <n>` | Deep ecosystem research for specialized domains |
+| `/ariadna:research-phase <n>` | Deep ecosystem research for specialised domains |
 | `/ariadna:list-phase-assumptions <n>` | See Claude's intended approach before it plans |
 | `/ariadna:plan-phase <n>` | Create detailed execution plan |
 
@@ -142,10 +144,27 @@ Control which Claude models agents use via `/ariadna:set-profile`:
 | **balanced** (default) | Opus | Sonnet | Sonnet |
 | **budget** | Sonnet | Sonnet | Haiku |
 
+## Default settings
+
+With Ariadna you can create Ruby on Rails applications or add features to existing ones. By default, Ariadna is configured to generate Ruby on Rails applications taht follow the rails philosophy and best practices, but you can customise it to fit your needs.
+
+The default settings are heavily influenced by our experience building Ruby on Rails applications, and are designed to produce high-quality code that follows best practices. However, we understand that every project is different, and we encourage you to experiment with the settings to find what works best for you.
+
+We are firmly belivers in the [Rails is plenty](https://world.hey.com/jorge/a-vanilla-rails-stack-is-plenty-567a4708) philosophy, so our default settings are optimised for vanilla Ruby on Rails applications.
+
 ## Requirements
 
 - Ruby >= 3.1.0
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code)
+
+## Contributors
+
+- [Mario Alvarez](https://github.com/marioalna)
+- [Jorge Alvarez](https://github.com/jorgegorka)
+
+## Acknowledgements
+
+ - [GSD](https://gsd.build/) for inspiring the project and providing a solid foundation to build upon.
 
 ## License
 
