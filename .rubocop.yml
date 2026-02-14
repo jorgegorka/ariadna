@@ -10,7 +10,7 @@ Style/StringLiterals:
   EnforcedStyle: double_quotes
 
 Style/FrozenStringLiteralComment:
-  Enabled: true
+  EnforcedStyle: never
 
 Layout/LineLength:
   Max: 120

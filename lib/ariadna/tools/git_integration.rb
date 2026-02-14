@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 require "json"
 require_relative "output"
 require_relative "config_manager"

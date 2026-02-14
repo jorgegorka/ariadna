@@ -84,7 +84,6 @@ Three profiles (`quality`, `balanced`, `budget`) map agent types to Claude model
 
 ## Code Conventions
 
-- All Ruby files start with `# frozen_string_literal: true`
 - Double quotes for strings (RuboCop enforced)
 - Line length max 120, method length max 30, ABC size max 30
 - JSON output from tools via `Output.json(data, raw: raw)`, errors via `Output.error(message)`
