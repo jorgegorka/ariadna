@@ -1,3 +1,4 @@
+require "fileutils"
 require "json"
 require_relative "output"
 
