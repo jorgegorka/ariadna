@@ -1,6 +1,7 @@
 require "json"
 require "fileutils"
 require_relative "output"
+require_relative "frontmatter"
 
 module Ariadna
   module Tools
