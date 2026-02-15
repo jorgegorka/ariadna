@@ -362,7 +362,7 @@ Local modifications to guides and templates are backed up automatically during u
 
 Ariadna is configured to generate Ruby on Rails applications following the Rails philosophy and conventions. We believe in the [Rails is plenty](https://world.hey.com/jorge/a-vanilla-rails-stack-is-plenty-567a4708) approach — vanilla Rails with minimal dependencies.
 
-This project has taken inspiration from [Fizzy](https://www.fizzy.do/) and [Once Campfire](https://github.com/basecamp/once-campfire), both great resources for Ruby on Rails best practices. Remember that you can customise Ariadna by editing the guides installed to `~/.claude/guides/`.
+This project has taken inspiration from [Fizzy](https://www.fizzy.do/) and [Once Campfire](https://github.com/basecamp/once-campfire), both great resources for Ruby on Rails best practices. Remember that you can customise Ariadna by editing the guides installed at `~/.claude/guides/`.
 
 ## Requirements
 
