@@ -379,7 +379,7 @@ This project has taken inspiration from [Fizzy](https://www.fizzy.do/) and [Once
 - [GSD](https://gsd.build/) for inspiring the project and providing a solid foundation to build upon.
 - [37 Signals](https://37signals.com/) we stand on the shoulders of giants.
 - The [Ruby on Rails](https://rubyonrails.org/) community.
-- [Matz and the Ruby team](https://www.ruby-lang.org/en/people/) for creating such a wonderful language.
+- [Matz and the Ruby team](https://www.ruby-lang.org/en/about/) for creating such a wonderful language.
 
 ## License
 
