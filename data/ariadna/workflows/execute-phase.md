@@ -99,9 +99,23 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
    Pass paths only — executors read files themselves with their fresh 200k context.
    This keeps orchestrator context lean (~10-15%).
 
+   **Domain routing:** Read `domain` from each plan's frontmatter to determine which executor to spawn:
+
+   ```bash
+   DOMAIN=$(ariadna-tools frontmatter get "{phase_dir}/{plan_file}" --field domain)
+   DOMAIN_GUIDE=$(ariadna-tools frontmatter get "{phase_dir}/{plan_file}" --field domain_guide)
+   ```
+
+   | Domain | Executor Agent | Guide |
+   |--------|---------------|-------|
+   | `backend` | `ariadna-backend-executor` | `@~/.claude/guides/backend.md` |
+   | `frontend` | `ariadna-frontend-executor` | `@~/.claude/guides/frontend.md` |
+   | `testing` | `ariadna-test-executor` | `@~/.claude/guides/testing.md` |
+   | `general` or unset | `ariadna-executor` | (none) |
+
    ```
    Task(
-     subagent_type="ariadna-executor",
+     subagent_type="{executor_agent}",
      model="{executor_model}",
      prompt="
        <objective>
@@ -114,6 +128,8 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
        @~/.claude/ariadna/templates/summary.md
        @~/.claude/ariadna/references/checkpoints.md
        @~/.claude/ariadna/references/tdd.md
+       {If domain_guide is set:}
+       @~/.claude/guides/{domain_guide}
        </execution_context>
 
        <files_to_read>
@@ -169,6 +185,82 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
 6. **Execute checkpoint plans between waves** — see `<checkpoint_handling>`.
 
 7. **Proceed to next wave.**
+</step>
+
+<step name="team_execution">
+**Alternative to `execute_waves`.** Used when `team_execution` config is `true` OR `--team` flag is passed.
+
+**Decision gate:** Check config and flags:
+```bash
+TEAM_MODE=$(ariadna-tools config get execution.team 2>/dev/null || echo "false")
+```
+If `TEAM_MODE` is `true` OR `--team` flag present → use team execution. Otherwise → use wave-based `execute_waves` (default).
+
+**Team execution flow:**
+
+1. **Create team:**
+   ```
+   TeamCreate(team_name="phase-{N}-execution", description="Executing phase {N}")
+   ```
+
+2. **Create tasks from plans:** One `TaskCreate` per incomplete plan:
+   ```
+   TaskCreate(
+     subject="Execute plan {plan_id}: {objective}",
+     description="Execute {phase_dir}/{plan_file}. Domain: {domain}. Files: {files_modified}.",
+     activeForm="Executing plan {plan_id}"
+   )
+   ```
+   Set up dependencies using `addBlockedBy` matching plan `depends_on` fields.
+
+3. **Spawn domain executor agents:** One agent per unique domain in the plans:
+   ```
+   Task(
+     team_name="phase-{N}-execution",
+     name="{domain}-executor",
+     subagent_type="ariadna-{domain}-executor",
+     model="{executor_model}",
+     prompt="
+       You are a {domain} executor on team phase-{N}-execution.
+
+       <protocol>
+       1. Check TaskList for tasks assigned to you
+       2. Claim unblocked tasks via TaskUpdate(status='in_progress')
+       3. Read the plan file, execute all tasks, create SUMMARY.md
+       4. Mark task completed via TaskUpdate(status='completed')
+       5. Check TaskList for next available task
+       6. When no tasks remain, send message to team lead
+       </protocol>
+
+       <execution_context>
+       @~/.claude/ariadna/workflows/execute-plan.md
+       @~/.claude/ariadna/templates/summary.md
+       @~/.claude/guides/{domain_guide}
+       </execution_context>
+     "
+   )
+   ```
+   For `general` domain, use `ariadna-executor` as the subagent_type.
+
+4. **Assign tasks:** `TaskUpdate(owner="{domain}-executor")` for each task based on plan domain.
+
+5. **Monitor progress:** Orchestrator monitors via `TaskList`. When agents complete tasks:
+   - Newly unblocked tasks become available for assignment
+   - Assign unblocked tasks to idle agents of the matching domain
+   - Cross-domain handoffs: if a frontend task depends on a backend task, the frontend executor can read the backend SUMMARY.md for context
+
+6. **Handle checkpoints:** Same as wave-based — agent sends message to orchestrator, orchestrator presents checkpoint to user, spawns continuation agent.
+
+7. **Shutdown team:** When all tasks are complete:
+   ```
+   SendMessage(type="shutdown_request", recipient="{domain}-executor")
+   ```
+   for each spawned agent. After all agents shut down:
+   ```
+   TeamDelete()
+   ```
+
+**Conflict prevention:** File ownership is enforced by `files_modified` frontmatter — the planner ensures no overlap between concurrent plans assigned to different agents.
 </step>
 
 <step name="checkpoint_handling">

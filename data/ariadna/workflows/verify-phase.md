@@ -76,7 +76,7 @@ For each observable truth, determine if the codebase enables it.
 
 For each truth: identify supporting artifacts → check artifact status → check wiring → determine truth status.
 
-**Example:** Truth "User can see existing messages" depends on Chat.tsx (renders), /api/chat GET (provides), Message model (schema). If Chat.tsx is a stub or API returns hardcoded [] → FAILED. If all exist, are substantive, and connected → VERIFIED.
+**Example:** Truth "User can see existing messages" depends on app/views/chats/show.html.erb (renders), ChatsController#index (provides), Message model (app/models/message.rb) (schema). If the view is a stub or controller returns hardcoded [] → FAILED. If all exist, are substantive, and connected → VERIFIED.
 </step>
 
 <step name="verify_artifacts">
@@ -98,10 +98,10 @@ Parse JSON result: `{ all_passed, passed, total, artifacts: [{path, exists, issu
 
 **Level 3 — Wired (manual check for artifacts that pass Levels 1-2):**
 ```bash
-grep -r "import.*$artifact_name" src/ --include="*.ts" --include="*.tsx"  # IMPORTED
-grep -r "$artifact_name" src/ --include="*.ts" --include="*.tsx" | grep -v "import"  # USED
+grep -r "require.*$artifact_name\|$artifact_name" app/ --include="*.rb" --include="*.erb"  # REFERENCED
+grep -r "$artifact_name" app/ --include="*.rb" --include="*.erb" | grep -v "require"  # USED
 ```
-WIRED = imported AND used. ORPHANED = exists but not imported/used.
+WIRED = referenced AND used. ORPHANED = exists but not referenced/used.
 
 | Exists | Substantive | Wired | Status |
 |--------|-------------|-------|--------|
@@ -132,10 +132,10 @@ Parse JSON result: `{ all_verified, verified, total, links: [{from, to, via, ver
 
 | Pattern | Check | Status |
 |---------|-------|--------|
-| Component → API | fetch/axios call to API path, response used (await/.then/setState) | WIRED / PARTIAL (call but unused response) / NOT_WIRED |
-| API → Database | Prisma/DB query on model, result returned via res.json() | WIRED / PARTIAL (query but not returned) / NOT_WIRED |
-| Form → Handler | onSubmit with real implementation (fetch/axios/mutate/dispatch), not console.log/empty | WIRED / STUB (log-only/empty) / NOT_WIRED |
-| State → Render | useState variable appears in JSX (`{stateVar}` or `{stateVar.property}`) | WIRED / NOT_WIRED |
+| View → Controller | Turbo Frame/link_to pointing to controller action, response rendered | WIRED / PARTIAL (route exists but action empty) / NOT_WIRED |
+| Controller → Database | ActiveRecord query on model, result assigned to @instance_var | WIRED / PARTIAL (query but not assigned) / NOT_WIRED |
+| Form → Handler | form_with/form_for submitting to controller action with real implementation, not empty method | WIRED / STUB (empty action) / NOT_WIRED |
+| Instance Var → Render | @instance_var appears in ERB template (`<%= @var %>` or `<%= @var.attribute %>`) | WIRED / NOT_WIRED |
 
 Record status and evidence for each key link.
 </step>

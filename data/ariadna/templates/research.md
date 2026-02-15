@@ -73,9 +73,9 @@ The established libraries/tools for this domain:
 
 **Installation:**
 ```bash
-npm install [packages]
-# or
-yarn add [packages]
+bundle add [gems]
+# or add to Gemfile and run:
+bundle install
 ```
 </standard_stack>
 
@@ -84,7 +84,7 @@ yarn add [packages]
 
 ### Recommended Project Structure
 ```
-src/
+app/
 ├── [folder]/        # [purpose]
 ├── [folder]/        # [purpose]
 └── [folder]/        # [purpose]
@@ -94,16 +94,16 @@ src/
 **What:** [description]
 **When to use:** [conditions]
 **Example:**
-```typescript
-// [code example from Context7/official docs]
+```ruby
+# [code example from Context7/official docs]
 ```
 
 ### Pattern 2: [Pattern Name]
 **What:** [description]
 **When to use:** [conditions]
 **Example:**
-```typescript
-// [code example]
+```ruby
+# [code example]
 ```
 
 ### Anti-Patterns to Avoid
@@ -153,20 +153,20 @@ Problems that look simple but have existing solutions:
 Verified patterns from official sources:
 
 ### [Common Operation 1]
-```typescript
-// Source: [Context7/official docs URL]
+```ruby
+# Source: [Context7/official docs URL]
 [code]
 ```
 
 ### [Common Operation 2]
-```typescript
-// Source: [Context7/official docs URL]
+```ruby
+# Source: [Context7/official docs URL]
 [code]
 ```
 
 ### [Common Operation 3]
-```typescript
-// Source: [Context7/official docs URL]
+```ruby
+# Source: [Context7/official docs URL]
 [code]
 ```
 </code_examples>
@@ -249,20 +249,20 @@ Things that couldn't be fully resolved:
 ## Good Example
 
 ```markdown
-# Phase 3: 3D City Driving - Research
+# Phase 3: Background Job Processing - Research
 
 **Researched:** 2025-01-20
-**Domain:** Three.js 3D web game with driving mechanics
+**Domain:** Rails background jobs with Sidekiq and Redis
 **Confidence:** HIGH
 
 <research_summary>
 ## Summary
 
-Researched the Three.js ecosystem for building a 3D city driving game. The standard approach uses Three.js with React Three Fiber for component architecture, Rapier for physics, and drei for common helpers.
+Researched the Rails ecosystem for building a robust background job processing system. The standard approach uses Sidekiq with Redis for async job execution, Active Job as the adapter interface, and Sidekiq Pro/Enterprise features for critical workloads.
 
-Key finding: Don't hand-roll physics or collision detection. Rapier (via @react-three/rapier) handles vehicle physics, terrain collision, and city object interactions efficiently. Custom physics code leads to bugs and performance issues.
+Key finding: Don't hand-roll job retry logic, rate limiting, or queue prioritization. Sidekiq handles all of this out of the box with battle-tested implementations. Custom retry logic leads to silent failures and lost jobs.
 
-**Primary recommendation:** Use R3F + Rapier + drei stack. Start with vehicle controller from drei, add Rapier vehicle physics, build city with instanced meshes for performance.
+**Primary recommendation:** Use Sidekiq + Active Job + Redis stack. Configure job classes with proper retry policies, use Sidekiq's built-in web UI for monitoring, and implement dead letter queues for failed jobs.
 </research_summary>
 
 <standard_stack>
@@ -271,29 +271,29 @@ Key finding: Don't hand-roll physics or collision detection. Rapier (via @react-
 ### Core
 | Library | Version | Purpose | Why Standard |
 |---------|---------|---------|--------------|
-| three | 0.160.0 | 3D rendering | The standard for web 3D |
-| @react-three/fiber | 8.15.0 | React renderer for Three.js | Declarative 3D, better DX |
-| @react-three/drei | 9.92.0 | Helpers and abstractions | Solves common problems |
-| @react-three/rapier | 1.2.1 | Physics engine bindings | Best physics for R3F |
+| sidekiq | 7.2.0 | Background job processor | De facto standard for Rails async work |
+| redis | 5.1.0 | Job queue backend | Required by Sidekiq, fast in-memory store |
+| activejob | 7.1.0 | Job adapter interface | Rails built-in, framework integration |
+| sidekiq-cron | 1.12.0 | Recurring jobs | Cron-like scheduling without OS cron |
 
 ### Supporting
 | Library | Version | Purpose | When to Use |
 |---------|---------|---------|-------------|
-| @react-three/postprocessing | 2.16.0 | Visual effects | Bloom, DOF, motion blur |
-| leva | 0.9.35 | Debug UI | Tweaking parameters |
-| zustand | 4.4.7 | State management | Game state, UI state |
-| use-sound | 4.0.1 | Audio | Engine sounds, ambient |
+| sidekiq-failures | 1.0.4 | Failure tracking | Debugging failed jobs |
+| sidekiq-unique-jobs | 8.0.7 | Job deduplication | Preventing duplicate processing |
+| sidekiq-throttled | 1.3.0 | Rate limiting | API rate limits, external services |
+| sidekiq-batch | (Pro) | Job batching | Complex multi-step workflows |
 
 ### Alternatives Considered
 | Instead of | Could Use | Tradeoff |
 |------------|-----------|----------|
-| Rapier | Cannon.js | Cannon simpler but less performant for vehicles |
-| R3F | Vanilla Three | Vanilla if no React, but R3F DX is much better |
-| drei | Custom helpers | drei is battle-tested, don't reinvent |
+| Sidekiq | GoodJob | GoodJob uses Postgres (no Redis), but slower throughput |
+| Sidekiq | Solid Queue | Rails 8 default, but less mature ecosystem |
+| sidekiq-cron | whenever | whenever uses OS cron, harder to manage in containers |
 
 **Installation:**
 ```bash
-npm install three @react-three/fiber @react-three/drei @react-three/rapier zustand
+bundle add sidekiq redis sidekiq-cron
 ```
 </standard_stack>
 
@@ -302,75 +302,62 @@ npm install three @react-three/fiber @react-three/drei @react-three/rapier zusta
 
 ### Recommended Project Structure
 ```
-src/
-├── components/
-│   ├── Vehicle/          # Player car with physics
-│   ├── City/             # City generation and buildings
-│   ├── Road/             # Road network
-│   └── Environment/      # Sky, lighting, fog
-├── hooks/
-│   ├── useVehicleControls.ts
-│   └── useGameState.ts
-├── stores/
-│   └── gameStore.ts      # Zustand state
-└── utils/
-    └── cityGenerator.ts  # Procedural generation helpers
+app/
+├── jobs/
+│   ├── application_job.rb        # Base job with defaults
+│   ├── order_processing_job.rb   # Order workflow
+│   ├── email_delivery_job.rb     # Async email sending
+│   └── report_generation_job.rb  # Heavy computation
+├── services/
+│   ├── order_processor.rb        # Business logic (called by job)
+│   └── report_generator.rb       # Report logic (called by job)
+├── models/
+│   └── concerns/
+│       └── async_processable.rb  # Shared job-triggering concern
+config/
+├── sidekiq.yml                   # Queue config and concurrency
+└── initializers/
+    └── sidekiq.rb                # Redis connection, middleware
 ```
 
-### Pattern 1: Vehicle with Rapier Physics
-**What:** Use RigidBody with vehicle-specific settings, not custom physics
-**When to use:** Any ground vehicle
+### Pattern 1: Thin Job, Fat Service
+**What:** Jobs should only orchestrate; business logic lives in service objects
+**When to use:** Always - keeps jobs testable and logic reusable
 **Example:**
-```typescript
-// Source: @react-three/rapier docs
-import { RigidBody, useRapier } from '@react-three/rapier'
+```ruby
+# Source: Sidekiq best practices
+class OrderProcessingJob < ApplicationJob
+  queue_as :critical
+  retry_on StandardError, wait: :polynomially_longer, attempts: 5
 
-function Vehicle() {
-  const rigidBody = useRef()
-
-  return (
-    <RigidBody
-      ref={rigidBody}
-      type="dynamic"
-      colliders="hull"
-      mass={1500}
-      linearDamping={0.5}
-      angularDamping={0.5}
-    >
-      <mesh>
-        <boxGeometry args={[2, 1, 4]} />
-        <meshStandardMaterial />
-      </mesh>
-    </RigidBody>
-  )
-}
+  def perform(order_id)
+    order = Order.find(order_id)
+    OrderProcessor.new(order).call
+  end
+end
 ```
 
-### Pattern 2: Instanced Meshes for City
-**What:** Use InstancedMesh for repeated objects (buildings, trees, props)
-**When to use:** >100 similar objects
+### Pattern 2: Idempotent Jobs
+**What:** Jobs must be safe to run multiple times with the same arguments
+**When to use:** Every job - Sidekiq guarantees at-least-once delivery
 **Example:**
-```typescript
-// Source: drei docs
-import { Instances, Instance } from '@react-three/drei'
+```ruby
+# Source: Sidekiq wiki - Best Practices
+class ChargeCustomerJob < ApplicationJob
+  def perform(order_id)
+    order = Order.find(order_id)
+    return if order.charged?  # Idempotency guard
 
-function Buildings({ positions }) {
-  return (
-    <Instances limit={1000}>
-      <boxGeometry />
-      <meshStandardMaterial />
-      {positions.map((pos, i) => (
-        <Instance key={i} position={pos} scale={[1, Math.random() * 5 + 1, 1]} />
-      ))}
-    </Instances>
-  )
-}
+    PaymentGateway.charge(order)
+    order.update!(status: :charged)
+  end
+end
 ```
 
 ### Anti-Patterns to Avoid
-- **Creating meshes in render loop:** Create once, update transforms only
-- **Not using InstancedMesh:** Individual meshes for buildings kills performance
-- **Custom physics math:** Rapier handles it better, every time
+- **Passing complex objects as arguments:** Serialize IDs only, look up in perform
+- **Long-running jobs without heartbeats:** Break into smaller jobs or use batches
+- **Ignoring job failures:** Always configure dead set monitoring and alerting
 </architecture_patterns>
 
 <dont_hand_roll>
@@ -378,83 +365,80 @@ function Buildings({ positions }) {
 
 | Problem | Don't Build | Use Instead | Why |
 |---------|-------------|-------------|-----|
-| Vehicle physics | Custom velocity/acceleration | Rapier RigidBody | Wheel friction, suspension, collisions are complex |
-| Collision detection | Raycasting everything | Rapier colliders | Performance, edge cases, tunneling |
-| Camera follow | Manual lerp | drei CameraControls or custom with useFrame | Smooth interpolation, bounds |
-| City generation | Pure random placement | Grid-based with noise for variation | Random looks wrong, grid is predictable |
-| LOD | Manual distance checks | drei <Detailed> | Handles transitions, hysteresis |
+| Retry logic | Custom retry with sleep loops | Sidekiq retry with backoff | Handles edge cases, dead letter queue |
+| Rate limiting | Token bucket implementation | sidekiq-throttled | Thread-safe, Redis-backed, configurable |
+| Job scheduling | Custom cron with rake tasks | sidekiq-cron | Runs in-process, no OS dependency |
+| Job uniqueness | Database locks for dedup | sidekiq-unique-jobs | Handles race conditions, TTL expiry |
+| Job monitoring | Custom admin dashboard | Sidekiq Web UI | Real-time stats, retry/delete interface |
 
-**Key insight:** 3D game development has 40+ years of solved problems. Rapier implements proper physics simulation. drei implements proper 3D helpers. Fighting these leads to bugs that look like "game feel" issues but are actually physics edge cases.
+**Key insight:** Background job processing has decades of solved problems. Sidekiq implements proper job lifecycle management with retry, dead letters, and monitoring. Custom retry logic leads to silent job loss and data inconsistency.
 </dont_hand_roll>
 
 <common_pitfalls>
 ## Common Pitfalls
 
-### Pitfall 1: Physics Tunneling
-**What goes wrong:** Fast objects pass through walls
-**Why it happens:** Default physics step too large for velocity
-**How to avoid:** Use CCD (Continuous Collision Detection) in Rapier
-**Warning signs:** Objects randomly appearing outside buildings
+### Pitfall 1: Serializing ActiveRecord Objects
+**What goes wrong:** Jobs fail on deserialization when record changes or is deleted
+**Why it happens:** Passing full objects instead of IDs; object state is stale by execution time
+**How to avoid:** Always pass IDs, look up record in perform method, handle RecordNotFound
+**Warning signs:** Mysterious deserialization errors, stale data in job execution
 
-### Pitfall 2: Performance Death by Draw Calls
-**What goes wrong:** Game stutters with many buildings
-**Why it happens:** Each mesh = 1 draw call, hundreds of buildings = hundreds of calls
-**How to avoid:** InstancedMesh for similar objects, merge static geometry
-**Warning signs:** GPU bound, low FPS despite simple scene
+### Pitfall 2: No Idempotency Guards
+**What goes wrong:** Duplicate charges, duplicate emails, duplicate records
+**Why it happens:** Sidekiq guarantees at-least-once, not exactly-once delivery
+**How to avoid:** Check state before acting, use database unique constraints, use idempotency keys
+**Warning signs:** Duplicate records after retries, customer complaints about double charges
 
-### Pitfall 3: Vehicle "Floaty" Feel
-**What goes wrong:** Car doesn't feel grounded
-**Why it happens:** Missing proper wheel/suspension simulation
-**How to avoid:** Use Rapier vehicle controller or tune mass/damping carefully
-**Warning signs:** Car bounces oddly, doesn't grip corners
+### Pitfall 3: Queue Starvation
+**What goes wrong:** Low-priority jobs block critical jobs
+**Why it happens:** Single queue or misconfigured queue weights
+**How to avoid:** Separate queues by priority, configure weights in sidekiq.yml
+**Warning signs:** Critical jobs delayed, uneven queue depths
 </common_pitfalls>
 
 <code_examples>
 ## Code Examples
 
-### Basic R3F + Rapier Setup
-```typescript
-// Source: @react-three/rapier getting started
-import { Canvas } from '@react-three/fiber'
-import { Physics } from '@react-three/rapier'
+### Basic Sidekiq Configuration
+```ruby
+# Source: Sidekiq wiki - Getting Started
+# config/sidekiq.yml
+---
+:concurrency: 10
+:queues:
+  - [critical, 6]
+  - [default, 3]
+  - [low, 1]
 
-function Game() {
-  return (
-    <Canvas>
-      <Physics gravity={[0, -9.81, 0]}>
-        <Vehicle />
-        <City />
-        <Ground />
-      </Physics>
-    </Canvas>
-  )
-}
+# config/initializers/sidekiq.rb
+Sidekiq.configure_server do |config|
+  config.redis = { url: ENV.fetch("REDIS_URL", "redis://localhost:6379/0") }
+end
+
+Sidekiq.configure_client do |config|
+  config.redis = { url: ENV.fetch("REDIS_URL", "redis://localhost:6379/0") }
+end
 ```
 
-### Vehicle Controls Hook
-```typescript
-// Source: Community pattern, verified with drei docs
-import { useFrame } from '@react-three/fiber'
-import { useKeyboardControls } from '@react-three/drei'
+### Job with Error Handling
+```ruby
+# Source: Rails Active Job guide
+class ReportGenerationJob < ApplicationJob
+  queue_as :low
+  retry_on ActiveRecord::Deadlocked, wait: 5.seconds, attempts: 3
+  discard_on ActiveJob::DeserializationError
 
-function useVehicleControls(rigidBodyRef) {
-  const [, getKeys] = useKeyboardControls()
+  def perform(report_id)
+    report = Report.find(report_id)
+    report.update!(status: :processing)
 
-  useFrame(() => {
-    const { forward, back, left, right } = getKeys()
-    const body = rigidBodyRef.current
-    if (!body) return
-
-    const impulse = { x: 0, y: 0, z: 0 }
-    if (forward) impulse.z -= 10
-    if (back) impulse.z += 5
-
-    body.applyImpulse(impulse, true)
-
-    if (left) body.applyTorqueImpulse({ x: 0, y: 2, z: 0 }, true)
-    if (right) body.applyTorqueImpulse({ x: 0, y: -2, z: 0 }, true)
-  })
-}
+    result = ReportGenerator.new(report).call
+    report.update!(status: :completed, data: result)
+  rescue StandardError => e
+    report&.update!(status: :failed, error_message: e.message)
+    raise  # Re-raise so Sidekiq retry kicks in
+  end
+end
 ```
 </code_examples>
 
@@ -463,30 +447,30 @@ function useVehicleControls(rigidBodyRef) {
 
 | Old Approach | Current Approach | When Changed | Impact |
 |--------------|------------------|--------------|--------|
-| cannon-es | Rapier | 2023 | Rapier is faster, better maintained |
-| vanilla Three.js | React Three Fiber | 2020+ | R3F is now standard for React apps |
-| Manual InstancedMesh | drei <Instances> | 2022 | Simpler API, handles updates |
+| Delayed::Job | Sidekiq | 2015+ | Sidekiq is multithreaded, much faster |
+| Resque | Sidekiq | 2016+ | Sidekiq uses less memory, better maintained |
+| whenever gem | sidekiq-cron | 2020+ | No OS cron dependency, better for containers |
 
 **New tools/patterns to consider:**
-- **WebGPU:** Coming but not production-ready for games yet (2025)
-- **drei Gltf helpers:** <useGLTF.preload> for loading screens
+- **Solid Queue:** Rails 8 default queue backend, uses database instead of Redis
+- **Mission Control - Jobs:** Rails admin UI for Solid Queue
 
 **Deprecated/outdated:**
-- **cannon.js (original):** Use cannon-es fork or better, Rapier
-- **Manual raycasting for physics:** Just use Rapier colliders
+- **Delayed::Job:** Still works but single-threaded, much slower than Sidekiq
+- **Resque:** Fork-based model uses more memory; Sidekiq's thread model is better
 </sota_updates>
 
 <sources>
 ## Sources
 
 ### Primary (HIGH confidence)
-- /pmndrs/react-three-fiber - getting started, hooks, performance
-- /pmndrs/drei - instances, controls, helpers
-- /dimforge/rapier-js - physics setup, vehicle physics
+- Sidekiq wiki - getting started, best practices, configuration
+- Rails Active Job guide - adapter setup, callbacks, error handling
+- Redis documentation - connection pooling, persistence settings
 
 ### Secondary (MEDIUM confidence)
-- Three.js discourse "city driving game" threads - verified patterns against docs
-- R3F examples repository - verified code works
+- Sidekiq GitHub issues "job processing patterns" - verified patterns against wiki
+- Rails community guides on background jobs - verified code works
 
 ### Tertiary (LOW confidence - needs validation)
 - None - all findings verified
@@ -496,24 +480,24 @@ function useVehicleControls(rigidBodyRef) {
 ## Metadata
 
 **Research scope:**
-- Core technology: Three.js + React Three Fiber
-- Ecosystem: Rapier, drei, zustand
-- Patterns: Vehicle physics, instancing, city generation
-- Pitfalls: Performance, physics, feel
+- Core technology: Rails + Sidekiq
+- Ecosystem: Redis, Active Job, sidekiq-cron
+- Patterns: Thin jobs, idempotency, queue prioritization
+- Pitfalls: Serialization, retry safety, queue starvation
 
 **Confidence breakdown:**
-- Standard stack: HIGH - verified with Context7, widely used
-- Architecture: HIGH - from official examples
-- Pitfalls: HIGH - documented in discourse, verified in docs
-- Code examples: HIGH - from Context7/official sources
+- Standard stack: HIGH - verified with Sidekiq wiki, widely used
+- Architecture: HIGH - from official best practices
+- Pitfalls: HIGH - documented in wiki, verified in production
+- Code examples: HIGH - from official sources
 
 **Research date:** 2025-01-20
-**Valid until:** 2025-02-20 (30 days - R3F ecosystem stable)
+**Valid until:** 2025-02-20 (30 days - Sidekiq ecosystem stable)
 </metadata>
 
 ---
 
-*Phase: 03-city-driving*
+*Phase: 03-background-jobs*
 *Research completed: 2025-01-20*
 *Ready for planning: yes*
 ```

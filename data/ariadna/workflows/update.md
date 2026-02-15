@@ -1,5 +1,5 @@
 <purpose>
-Check for Ariadna updates via npm, display changelog for versions between installed and latest, obtain user confirmation, and execute clean installation with cache clearing.
+Check for Ariadna updates via RubyGems, display changelog for versions between installed and latest, obtain user confirmation, and execute clean installation with cache clearing.
 </purpose>
 
 <required_reading>
@@ -202,7 +202,7 @@ Run /ariadna:reapply-patches to merge your modifications into the new version.
 
 <success_criteria>
 - [ ] Installed version read correctly
-- [ ] Latest version checked via npm
+- [ ] Latest version checked via RubyGems
 - [ ] Update skipped if already current
 - [ ] Changelog fetched and displayed BEFORE update
 - [ ] Clean install warning shown

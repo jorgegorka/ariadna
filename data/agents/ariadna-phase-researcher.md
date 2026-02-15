@@ -211,7 +211,7 @@ Priority: Context7 > Official Docs > Official GitHub > Verified WebSearch > Unve
 
 **Installation:**
 \`\`\`bash
-npm install [packages]
+bundle add [gems]
 \`\`\`
 
 ## Architecture Patterns
@@ -228,7 +228,7 @@ src/
 **What:** [description]
 **When to use:** [conditions]
 **Example:**
-\`\`\`typescript
+\`\`\`ruby
 // Source: [Context7/official docs URL]
 [code]
 \`\`\`
@@ -257,7 +257,7 @@ src/
 Verified patterns from official sources:
 
 ### [Common Operation 1]
-\`\`\`typescript
+\`\`\`ruby
 // Source: [Context7/official docs URL]
 [code]
 \`\`\`
@@ -460,7 +460,7 @@ Research is complete when:
 
 Quality indicators:
 
-- **Specific, not vague:** "Three.js r160 with @react-three/fiber 8.15" not "use Three.js"
+- **Specific, not vague:** "Devise 4.9 with OmniAuth 2.1" not "use Devise"
 - **Verified, not assumed:** Findings cite Context7 or official docs
 - **Honest about gaps:** LOW confidence items flagged, unknowns admitted
 - **Actionable:** Planner could create tasks based on this research

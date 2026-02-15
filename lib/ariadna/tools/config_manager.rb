@@ -14,7 +14,9 @@ module Ariadna
         "research" => true,
         "plan_checker" => true,
         "verifier" => true,
-        "parallelization" => true
+        "parallelization" => true,
+        "execution_mode" => "vertical",
+        "team_execution" => false
       }.freeze
 
       def self.load_config(cwd = Dir.pwd)
@@ -58,7 +60,9 @@ module Ariadna
           "research" => nil_or.call(get.call("research", { section: "workflow", field: "research" }), DEFAULTS["research"]),
           "plan_checker" => nil_or.call(get.call("plan_checker", { section: "workflow", field: "plan_check" }), DEFAULTS["plan_checker"]),
           "verifier" => nil_or.call(get.call("verifier", { section: "workflow", field: "verifier" }), DEFAULTS["verifier"]),
-          "parallelization" => parallelization
+          "parallelization" => parallelization,
+          "execution_mode" => get.call("execution_mode", { section: "execution", field: "mode" }) || DEFAULTS["execution_mode"],
+          "team_execution" => nil_or.call(get.call("team_execution", { section: "execution", field: "team" }), DEFAULTS["team_execution"])
         }
       rescue JSON::ParserError
         DEFAULTS.dup
@@ -88,7 +92,9 @@ module Ariadna
             plan_check: true,
             verifier: true
           },
-          parallelization: true
+          parallelization: true,
+          execution_mode: "vertical",
+          team_execution: false
         }
 
         File.write(config_path, JSON.pretty_generate(defaults))

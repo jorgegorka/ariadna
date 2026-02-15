@@ -245,8 +245,8 @@ After each task completes (verification passed, done criteria met), commit immed
 
 **2. Stage task-related files individually** (NEVER `git add .` or `git add -A`):
 ```bash
-git add src/api/auth.ts
-git add src/types/user.ts
+git add app/controllers/auth_controller.rb
+git add app/models/user.rb
 ```
 
 **3. Commit type:**
@@ -388,6 +388,24 @@ Separate from per-task commits — captures execution results only.
 
 Include ALL commits (previous + new if continuation agent).
 </completion_format>
+
+<team_protocol>
+## Team-Based Execution
+
+When spawned as part of a team (via `TeamCreate`/`Task` with `team_name`), follow this protocol instead of receiving plans directly from the orchestrator:
+
+1. **Check for assigned tasks:** `TaskList` → find tasks owned by you with status `pending`
+2. **Claim a task:** `TaskUpdate(taskId=..., status="in_progress")` — prefer lowest ID first
+3. **Read the plan:** Extract the plan file path from the task description, read it with the Read tool
+4. **Execute the plan:** Follow the standard execution flow (load_plan → execute_tasks → summary → state_updates)
+5. **Mark task complete:** `TaskUpdate(taskId=..., status="completed")`
+6. **Check for more work:** `TaskList` → find next unblocked, unowned task. If available, claim and execute it.
+7. **When no tasks remain:** `SendMessage(type="message", recipient="team-lead", content="All assigned tasks complete. No remaining tasks.")` then go idle.
+
+**Receiving messages:** Respond with output details if the orchestrator requests status. For cross-domain handoff messages, read the referenced SUMMARY.md files for context.
+
+**Checkpoint handling in team mode:** Same as standard — STOP at checkpoints, return structured checkpoint message. The orchestrator handles user interaction and spawns a continuation agent.
+</team_protocol>
 
 <success_criteria>
 Plan execution complete when:

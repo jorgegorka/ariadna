@@ -40,15 +40,15 @@ Plans execute autonomously. Checkpoints formalize interaction points where human
 ```xml
 <task type="auto">
   <name>Build responsive dashboard layout</name>
-  <files>src/components/Dashboard.tsx, src/app/dashboard/page.tsx</files>
+  <files>app/views/dashboard/index.html.erb, app/controllers/dashboard_controller.rb</files>
   <action>Create dashboard with sidebar, header, and content area. Use responsive CSS with clamp() and media queries for mobile.</action>
-  <verify>npm run build succeeds, no TypeScript errors</verify>
+  <verify>bin/rails test succeeds, no errors</verify>
   <done>Dashboard component builds without errors</done>
 </task>
 
 <task type="auto">
   <name>Start dev server for verification</name>
-  <action>Run `npm run dev` in background, wait for "ready" message, capture port</action>
+  <action>Run `bin/dev` in background, wait for "Listening on" message, capture port</action>
   <verify>curl http://localhost:3000 returns 200</verify>
   <done>Dev server running at http://localhost:3000</done>
 </task>
@@ -126,28 +126,28 @@ Plans execute autonomously. Checkpoints formalize interaction points where human
 **Example: Auth Provider Selection**
 ```xml
 <task type="checkpoint:decision" gate="blocking">
-  <decision>Select authentication provider</decision>
+  <decision>Select authentication approach</decision>
   <context>
     Need user authentication for the app. Three solid options with different tradeoffs.
   </context>
   <options>
-    <option id="supabase">
-      <name>Supabase Auth</name>
-      <pros>Built-in with Supabase DB we're using, generous free tier, row-level security integration</pros>
-      <cons>Less customizable UI, tied to Supabase ecosystem</cons>
+    <option id="devise">
+      <name>Devise</name>
+      <pros>Most popular Rails auth gem, full-featured (registration, password reset, OAuth), well-maintained</pros>
+      <cons>Heavy dependency, opinionated, can be hard to customize deeply</cons>
     </option>
-    <option id="clerk">
-      <name>Clerk</name>
-      <pros>Beautiful pre-built UI, best developer experience, excellent docs</pros>
-      <cons>Paid after 10k MAU, vendor lock-in</cons>
+    <option id="has_secure_password">
+      <name>has_secure_password (built-in)</name>
+      <pros>No dependencies, full control, simple and lightweight, easy to understand</pros>
+      <cons>More manual setup, you build everything yourself (password reset, OAuth)</cons>
     </option>
-    <option id="nextauth">
-      <name>NextAuth.js</name>
-      <pros>Free, self-hosted, maximum control, widely adopted</pros>
-      <cons>More setup work, you manage security updates, UI is DIY</cons>
+    <option id="rodauth">
+      <name>Rodauth</name>
+      <pros>Security-focused, modular features, database-backed configuration, excellent 2FA</pros>
+      <cons>Smaller community than Devise, different conventions, steeper learning curve</cons>
     </option>
   </options>
-  <resume-signal>Select: supabase, clerk, or nextauth</resume-signal>
+  <resume-signal>Select: devise, has_secure_password, or rodauth</resume-signal>
 </task>
 ```
 
@@ -160,23 +160,23 @@ Plans execute autonomously. Checkpoints formalize interaction points where human
     Expected scale: 10k users, 1M records first year.
   </context>
   <options>
-    <option id="supabase">
-      <name>Supabase (Postgres)</name>
-      <pros>Full SQL, generous free tier, built-in auth, real-time subscriptions</pros>
-      <cons>Vendor lock-in for real-time features, less flexible than raw Postgres</cons>
+    <option id="postgresql">
+      <name>PostgreSQL</name>
+      <pros>Full SQL, excellent Rails support, JSONB columns, advanced indexing, industry standard</pros>
+      <cons>More setup than SQLite, requires running server</cons>
     </option>
-    <option id="planetscale">
-      <name>PlanetScale (MySQL)</name>
-      <pros>Serverless scaling, branching workflow, excellent DX</pros>
-      <cons>MySQL not Postgres, no foreign keys in free tier</cons>
+    <option id="sqlite">
+      <name>SQLite (with Litestack)</name>
+      <pros>Zero config, built into Rails 8 default, excellent for single-server deploys, fast</pros>
+      <cons>Single-writer limitation, not ideal for horizontal scaling</cons>
     </option>
-    <option id="convex">
-      <name>Convex</name>
-      <pros>Real-time by default, TypeScript-native, automatic caching</pros>
-      <cons>Newer platform, different mental model, less SQL flexibility</cons>
+    <option id="mysql">
+      <name>MySQL</name>
+      <pros>Widely deployed, good performance, familiar to many teams</pros>
+      <cons>Fewer advanced features than Postgres, less common in Rails ecosystem</cons>
     </option>
   </options>
-  <resume-signal>Select: supabase, planetscale, or convex</resume-signal>
+  <resume-signal>Select: postgresql, sqlite, or mysql</resume-signal>
 </task>
 ```
 </type>
@@ -236,31 +236,31 @@ Plans execute autonomously. Checkpoints formalize interaction points where human
 **Example: Authentication Gate (Dynamic Checkpoint)**
 ```xml
 <task type="auto">
-  <name>Deploy to Vercel</name>
-  <files>.vercel/, vercel.json</files>
-  <action>Run `vercel --yes` to deploy</action>
-  <verify>vercel ls shows deployment, curl returns 200</verify>
+  <name>Deploy with Kamal</name>
+  <files>config/deploy.yml, Dockerfile</files>
+  <action>Run `kamal deploy` to deploy</action>
+  <verify>kamal app details shows running, curl returns 200</verify>
 </task>
 
-<!-- If vercel returns "Error: Not authenticated", Claude creates checkpoint on the fly -->
+<!-- If kamal returns "SSH connection refused", Claude creates checkpoint on the fly -->
 
 <task type="checkpoint:human-action" gate="blocking">
-  <action>Authenticate Vercel CLI so I can continue deployment</action>
+  <action>Configure SSH access so I can continue deployment</action>
   <instructions>
-    I tried to deploy but got authentication error.
-    Run: vercel login
-    This will open your browser - complete the authentication flow.
+    I tried to deploy but got SSH connection error.
+    Add your SSH key to the server: ssh-copy-id root@your-server-ip
+    Or configure access in config/deploy.yml under `ssh`.
   </instructions>
-  <verification>vercel whoami returns your account email</verification>
-  <resume-signal>Type "done" when authenticated</resume-signal>
+  <verification>ssh root@your-server-ip exit connects successfully</verification>
+  <resume-signal>Type "done" when SSH access configured</resume-signal>
 </task>
 
-<!-- After authentication, Claude retries the deployment -->
+<!-- After SSH access configured, Claude retries the deployment -->
 
 <task type="auto">
-  <name>Retry Vercel deployment</name>
-  <action>Run `vercel --yes` (now authenticated)</action>
-  <verify>vercel ls shows deployment, curl returns 200</verify>
+  <name>Retry Kamal deployment</name>
+  <action>Run `kamal deploy` (now with SSH access)</action>
+  <verify>kamal app details shows running, curl returns 200</verify>
 </task>
 ```
 
@@ -309,25 +309,25 @@ How to verify:
 Progress: 2/6 tasks complete
 Task: Select authentication provider
 
-Decision: Which auth provider should we use?
+Decision: Which auth approach should we use?
 
 Context: Need user authentication. Three options with different tradeoffs.
 
 Options:
-  1. supabase - Built-in with our DB, free tier
-     Pros: Row-level security integration, generous free tier
-     Cons: Less customizable UI, ecosystem lock-in
+  1. devise - Full-featured auth gem, batteries included
+     Pros: Registration, password reset, OAuth support, well-maintained
+     Cons: Heavy dependency, opinionated, hard to customize deeply
 
-  2. clerk - Best DX, paid after 10k users
-     Pros: Beautiful pre-built UI, excellent documentation
-     Cons: Vendor lock-in, pricing at scale
+  2. has_secure_password - Built-in Rails, lightweight
+     Pros: No dependencies, full control, simple and easy to understand
+     Cons: More manual setup, build password reset and OAuth yourself
 
-  3. nextauth - Self-hosted, maximum control
-     Pros: Free, no vendor lock-in, widely adopted
-     Cons: More setup work, DIY security updates
+  3. rodauth - Security-focused, modular
+     Pros: Excellent 2FA, database-backed config, modular features
+     Cons: Smaller community, different conventions, steeper learning curve
 
 ────────────────────────────────────────────────────────
-→ YOUR ACTION: Select supabase, clerk, or nextauth
+→ YOUR ACTION: Select devise, has_secure_password, or rodauth
 ────────────────────────────────────────────────────────
 ```
 
@@ -338,17 +338,17 @@ Options:
 ╚═══════════════════════════════════════════════════════╝
 
 Progress: 3/8 tasks complete
-Task: Deploy to Vercel
+Task: Deploy with Kamal
 
-Attempted: vercel --yes
-Error: Not authenticated. Please run 'vercel login'
+Attempted: kamal deploy
+Error: SSH connection refused to root@your-server-ip
 
 What you need to do:
-  1. Run: vercel login
-  2. Complete browser authentication when it opens
+  1. Run: ssh-copy-id root@your-server-ip
+  2. Or configure SSH access in config/deploy.yml
   3. Return here when done
 
-I'll verify: vercel whoami returns your account
+I'll verify: ssh root@your-server-ip exit connects successfully
 
 ────────────────────────────────────────────────────────
 → YOUR ACTION: Type "done" when authenticated
@@ -385,16 +385,16 @@ I'll verify: vercel whoami returns your account
 
 | Service | CLI/API | Key Commands | Auth Gate |
 |---------|---------|--------------|-----------|
-| Vercel | `vercel` | `--yes`, `env add`, `--prod`, `ls` | `vercel login` |
+| Heroku | `heroku` | `create`, `config:set`, `ps`, `logs` | `heroku login` |
 | Railway | `railway` | `init`, `up`, `variables set` | `railway login` |
 | Fly | `fly` | `launch`, `deploy`, `secrets set` | `fly auth login` |
 | Stripe | `stripe` + API | `listen`, `trigger`, API calls | API key in .env |
 | Supabase | `supabase` | `init`, `link`, `db push`, `gen types` | `supabase login` |
 | PlanetScale | `pscale` | `database create`, `branch create` | `pscale auth login` |
 | GitHub | `gh` | `repo create`, `pr create`, `secret set` | `gh auth login` |
-| Node | `npm`/`pnpm` | `install`, `run build`, `test`, `run dev` | N/A |
+| Ruby/Rails | `bundle`/`rails` | `install`, `assets:precompile`, `test`, `server` | N/A |
 | Xcode | `xcodebuild` | `-project`, `-scheme`, `build`, `test` | N/A |
-| Convex | `npx convex` | `dev`, `deploy`, `env set`, `env get` | `npx convex login` |
+| Kamal | `kamal` | `setup`, `deploy`, `env push` | N/A |
 
 ## Environment Variable Automation
 
@@ -404,36 +404,36 @@ I'll verify: vercel whoami returns your account
 
 | Platform | CLI Command | Example |
 |----------|-------------|---------|
-| Convex | `npx convex env set` | `npx convex env set OPENAI_API_KEY sk-...` |
-| Vercel | `vercel env add` | `vercel env add STRIPE_KEY production` |
-| Railway | `railway variables set` | `railway variables set API_KEY=value` |
+| Rails credentials | `bin/rails credentials:edit` | `bin/rails credentials:edit --environment production` |
+| Kamal | `kamal env push` | `kamal env push` (reads from `.env` files) |
 | Fly | `fly secrets set` | `fly secrets set DATABASE_URL=...` |
-| Supabase | `supabase secrets set` | `supabase secrets set MY_SECRET=value` |
+| Railway | `railway variables set` | `railway variables set API_KEY=value` |
+| Heroku | `heroku config:set` | `heroku config:set STRIPE_KEY=value` |
 
 **Secret collection pattern:**
 ```xml
 <!-- WRONG: Asking user to add env vars in dashboard -->
 <task type="checkpoint:human-action">
-  <action>Add OPENAI_API_KEY to Convex dashboard</action>
-  <instructions>Go to dashboard.convex.dev → Settings → Environment Variables → Add</instructions>
+  <action>Add STRIPE_SECRET_KEY to Heroku dashboard</action>
+  <instructions>Go to heroku.com → Settings → Config Vars → Add</instructions>
 </task>
 
 <!-- RIGHT: Claude asks for value, then adds via CLI -->
 <task type="checkpoint:human-action">
-  <action>Provide your OpenAI API key</action>
+  <action>Provide your Stripe secret key</action>
   <instructions>
-    I need your OpenAI API key for Convex backend.
-    Get it from: https://platform.openai.com/api-keys
-    Paste the key (starts with sk-)
+    I need your Stripe secret key for payment processing.
+    Get it from: https://dashboard.stripe.com/apikeys
+    Paste the key (starts with sk_)
   </instructions>
-  <verification>I'll add it via `npx convex env set` and verify</verification>
+  <verification>I'll add it via `heroku config:set` and verify</verification>
   <resume-signal>Paste your API key</resume-signal>
 </task>
 
 <task type="auto">
-  <name>Configure OpenAI key in Convex</name>
-  <action>Run `npx convex env set OPENAI_API_KEY {user-provided-key}`</action>
-  <verify>`npx convex env get OPENAI_API_KEY` returns the key (masked)</verify>
+  <name>Configure Stripe key on Heroku</name>
+  <action>Run `heroku config:set STRIPE_SECRET_KEY={user-provided-key}`</action>
+  <verify>`heroku config:get STRIPE_SECRET_KEY` returns the key (masked)</verify>
 </task>
 ```
 
@@ -441,16 +441,14 @@ I'll verify: vercel whoami returns your account
 
 | Framework | Start Command | Ready Signal | Default URL |
 |-----------|---------------|--------------|-------------|
-| Next.js | `npm run dev` | "Ready in" or "started server" | http://localhost:3000 |
-| Vite | `npm run dev` | "ready in" | http://localhost:5173 |
-| Convex | `npx convex dev` | "Convex functions ready" | N/A (backend only) |
-| Express | `npm start` | "listening on port" | http://localhost:3000 |
+| Rails | `bin/rails server` | "Listening on" | http://localhost:3000 |
+| Rails (with Procfile) | `bin/dev` | "Listening on" | http://localhost:3000 |
 | Django | `python manage.py runserver` | "Starting development server" | http://localhost:8000 |
 
 **Server lifecycle:**
 ```bash
 # Run in background, capture PID
-npm run dev &
+bin/dev &
 DEV_SERVER_PID=$!
 
 # Wait for ready (max 30s)
@@ -465,14 +463,13 @@ timeout 30 bash -c 'until curl -s localhost:3000 > /dev/null 2>&1; do sleep 1; d
 
 | CLI | Auto-install? | Command |
 |-----|---------------|---------|
-| npm/pnpm/yarn | No - ask user | User chooses package manager |
-| vercel | Yes | `npm i -g vercel` |
+| bundle | No - ask user | User installs Ruby/Bundler |
 | gh (GitHub) | Yes | `brew install gh` (macOS) or `apt install gh` (Linux) |
-| stripe | Yes | `npm i -g stripe` |
-| supabase | Yes | `npm i -g supabase` |
-| convex | No - use npx | `npx convex` (no install needed) |
+| heroku | Yes | `brew tap heroku/brew && brew install heroku` |
 | fly | Yes | `brew install flyctl` or curl installer |
-| railway | Yes | `npm i -g @railway/cli` |
+| stripe | Yes | `brew install stripe/stripe-cli/stripe` |
+| redis | Yes | `brew install redis` (macOS) or `apt install redis-server` (Linux) |
+| postgresql | Yes | `brew install postgresql` (macOS) or `apt install postgresql` (Linux) |
 
 **Protocol:** Try command → "command not found" → auto-installable? → yes: install silently, retry → no: checkpoint asking user to install.
 
@@ -482,7 +479,7 @@ timeout 30 bash -c 'until curl -s localhost:3000 > /dev/null 2>&1; do sleep 1; d
 |---------|----------|
 | Server won't start | Check error, fix issue, retry (don't proceed to checkpoint) |
 | Port in use | Kill stale process or use alternate port |
-| Missing dependency | Run `npm install`, retry |
+| Missing dependency | Run `bundle install`, retry |
 | Build error | Fix the error first (bug, not checkpoint issue) |
 | Auth error | Create auth gate checkpoint |
 | Network timeout | Retry with backoff, then checkpoint if persistent |
@@ -513,13 +510,12 @@ timeout 30 bash -c 'until curl -s localhost:3000 > /dev/null 2>&1; do sleep 1; d
 
 | Action | Automatable? | Claude does it? |
 |--------|--------------|-----------------|
-| Deploy to Vercel | Yes (`vercel`) | YES |
+| Deploy to Fly.io | Yes (`fly deploy`) | YES |
 | Create Stripe webhook | Yes (API) | YES |
 | Write .env file | Yes (Write tool) | YES |
-| Run tests | Yes (`npm test`) | YES |
-| Start dev server | Yes (`npm run dev`) | YES |
-| Add env vars to Convex | Yes (`npx convex env set`) | YES |
-| Add env vars to Vercel | Yes (`vercel env add`) | YES |
+| Run tests | Yes (`bundle exec rake test`) | YES |
+| Start dev server | Yes (`bin/dev`) | YES |
+| Add env vars to Heroku | Yes (`heroku config:set`) | YES |
 | Seed database | Yes (CLI/API) | YES |
 | Click email verification link | No | NO |
 | Enter credit card with 3DS | No | NO |
@@ -533,7 +529,7 @@ timeout 30 bash -c 'until curl -s localhost:3000 > /dev/null 2>&1; do sleep 1; d
 
 **DO:**
 - Automate everything with CLI/API before checkpoint
-- Be specific: "Visit https://myapp.vercel.app" not "check deployment"
+- Be specific: "Visit https://myapp.fly.dev" not "check deployment"
 - Number verification steps
 - State expected outcomes: "You should see X"
 - Provide context: why this checkpoint exists
@@ -583,29 +579,29 @@ timeout 30 bash -c 'until curl -s localhost:3000 > /dev/null 2>&1; do sleep 1; d
 
 ```xml
 <task type="auto">
-  <name>Create user schema</name>
-  <files>src/db/schema.ts</files>
-  <action>Define User, Session, Account tables with Drizzle ORM</action>
-  <verify>npm run db:generate succeeds</verify>
+  <name>Create user model and migration</name>
+  <files>app/models/user.rb, db/migrate/xxx_create_users.rb</files>
+  <action>Generate User model with Devise or has_secure_password, run migration</action>
+  <verify>bin/rails db:migrate succeeds, User.count returns 0</verify>
 </task>
 
 <task type="auto">
-  <name>Create auth API routes</name>
-  <files>src/app/api/auth/[...nextauth]/route.ts</files>
-  <action>Set up NextAuth with GitHub provider, JWT strategy</action>
-  <verify>TypeScript compiles, no errors</verify>
+  <name>Create sessions controller and routes</name>
+  <files>app/controllers/sessions_controller.rb, config/routes.rb</files>
+  <action>Set up login/logout actions with session management</action>
+  <verify>bin/rails routes | grep session shows expected routes</verify>
 </task>
 
 <task type="auto">
-  <name>Create login UI</name>
-  <files>src/app/login/page.tsx, src/components/LoginButton.tsx</files>
-  <action>Create login page with GitHub OAuth button</action>
-  <verify>npm run build succeeds</verify>
+  <name>Create login view</name>
+  <files>app/views/sessions/new.html.erb</files>
+  <action>Create login page with email/password form</action>
+  <verify>bin/rails test succeeds</verify>
 </task>
 
 <task type="auto">
   <name>Start dev server for auth testing</name>
-  <action>Run `npm run dev` in background, wait for ready signal</action>
+  <action>Run `bin/dev` in background, wait for ready signal</action>
   <verify>curl http://localhost:3000 returns 200</verify>
   <done>Dev server running at http://localhost:3000</done>
 </task>
@@ -615,8 +611,8 @@ timeout 30 bash -c 'until curl -s localhost:3000 > /dev/null 2>&1; do sleep 1; d
   <what-built>Complete authentication flow - dev server running at http://localhost:3000</what-built>
   <how-to-verify>
     1. Visit: http://localhost:3000/login
-    2. Click "Sign in with GitHub"
-    3. Complete GitHub OAuth flow
+    2. Enter email and password
+    3. Click "Sign in"
     4. Verify: Redirected to /dashboard, user name displayed
     5. Refresh page: Session persists
     6. Click logout: Session cleared
@@ -634,21 +630,21 @@ timeout 30 bash -c 'until curl -s localhost:3000 > /dev/null 2>&1; do sleep 1; d
 <task type="checkpoint:human-verify" gate="blocking">
   <what-built>Dashboard component</what-built>
   <how-to-verify>
-    1. Run: npm run dev
+    1. Run: bin/dev
     2. Visit: http://localhost:3000/dashboard
     3. Check layout is correct
   </how-to-verify>
 </task>
 ```
 
-**Why bad:** Claude can run `npm run dev`. User should only visit URLs, not execute commands.
+**Why bad:** Claude can run `bin/dev`. User should only visit URLs, not execute commands.
 
 ### ✅ GOOD: Claude starts server, user visits
 
 ```xml
 <task type="auto">
   <name>Start dev server</name>
-  <action>Run `npm run dev` in background</action>
+  <action>Run `bin/dev` in background</action>
   <verify>curl localhost:3000 returns 200</verify>
 </task>
 
@@ -667,15 +663,15 @@ timeout 30 bash -c 'until curl -s localhost:3000 > /dev/null 2>&1; do sleep 1; d
 ```xml
 <!-- BAD: Asking user to deploy via dashboard -->
 <task type="checkpoint:human-action" gate="blocking">
-  <action>Deploy to Vercel</action>
-  <instructions>Visit vercel.com/new → Import repo → Click Deploy → Copy URL</instructions>
+  <action>Deploy to production</action>
+  <instructions>Visit hosting dashboard → Create app → Deploy → Copy URL</instructions>
 </task>
 
 <!-- GOOD: Claude deploys, user verifies -->
 <task type="auto">
-  <name>Deploy to Vercel</name>
-  <action>Run `vercel --yes`. Capture URL.</action>
-  <verify>vercel ls shows deployment, curl returns 200</verify>
+  <name>Deploy with Kamal</name>
+  <action>Run `kamal deploy`. Capture URL.</action>
+  <verify>kamal app details shows running, curl returns 200</verify>
 </task>
 
 <task type="checkpoint:human-verify">
@@ -689,20 +685,20 @@ timeout 30 bash -c 'until curl -s localhost:3000 > /dev/null 2>&1; do sleep 1; d
 
 ```xml
 <!-- BAD: Checkpoint after every task -->
-<task type="auto">Create schema</task>
+<task type="auto">Create model and migration</task>
 <task type="checkpoint:human-verify">Check schema</task>
-<task type="auto">Create API route</task>
-<task type="checkpoint:human-verify">Check API</task>
-<task type="auto">Create UI form</task>
-<task type="checkpoint:human-verify">Check form</task>
+<task type="auto">Create controller</task>
+<task type="checkpoint:human-verify">Check controller</task>
+<task type="auto">Create views</task>
+<task type="checkpoint:human-verify">Check views</task>
 
 <!-- GOOD: One checkpoint at end -->
-<task type="auto">Create schema</task>
-<task type="auto">Create API route</task>
-<task type="auto">Create UI form</task>
+<task type="auto">Create model and migration</task>
+<task type="auto">Create controller</task>
+<task type="auto">Create views</task>
 
 <task type="checkpoint:human-verify">
-  <what-built>Complete auth flow (schema + API + UI)</what-built>
+  <what-built>Complete auth flow (model + controller + views)</what-built>
   <how-to-verify>Test full flow: register, login, access protected page</how-to-verify>
   <resume-signal>Type "approved"</resume-signal>
 </task>
@@ -736,7 +732,7 @@ timeout 30 bash -c 'until curl -s localhost:3000 > /dev/null 2>&1; do sleep 1; d
 ```xml
 <task type="checkpoint:human-action">
   <action>Run database migrations</action>
-  <instructions>Run: npx prisma migrate deploy && npx prisma db seed</instructions>
+  <instructions>Run: bin/rails db:migrate && bin/rails db:seed</instructions>
 </task>
 ```
 

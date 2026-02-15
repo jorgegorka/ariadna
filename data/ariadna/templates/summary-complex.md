@@ -42,8 +42,8 @@ completed: YYYY-MM-DD
 3. **Task 3: [task name]** - `hash`
 
 ## Files Created/Modified
-- `path/to/file.ts` - What it does
-- `path/to/another.ts` - What it does
+- `path/to/file.rb` - What it does
+- `path/to/another.rb` - What it does
 
 ## Decisions Made
 [Key decisions with brief rationale]

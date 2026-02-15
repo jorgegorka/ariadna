@@ -78,12 +78,14 @@ must_haves:
     - "User can see existing messages"
     - "User can send a message"
   artifacts:
-    - path: "src/components/Chat.tsx"
-      provides: "Message list rendering"
+    - path: "app/controllers/chats_controller.rb"
+      provides: "Chat CRUD actions"
+    - path: "app/models/message.rb"
+      provides: "Message model with validations"
   key_links:
-    - from: "Chat.tsx"
-      to: "api/chat"
-      via: "fetch in useEffect"
+    - from: "chats_controller.rb"
+      to: "message.rb"
+      via: "Message.where in index action"
 ```
 
 **Option B: Derive from phase goal**
@@ -136,20 +138,20 @@ For each artifact in result:
 | true   | false        | ✗ STUB      |
 | false  | -            | ✗ MISSING   |
 
-**For wiring verification (Level 3)**, check imports/usage manually for artifacts that pass Levels 1-2:
+**For wiring verification (Level 3)**, check require/include/usage manually for artifacts that pass Levels 1-2:
 
 ```bash
-# Import check
-grep -r "import.*$artifact_name" "${search_path:-src/}" --include="*.ts" --include="*.tsx" 2>/dev/null | wc -l
+# Require/include check
+grep -r "require.*$artifact_name\|include $artifact_name\|extend $artifact_name" "${search_path:-app/}" --include="*.rb" 2>/dev/null | wc -l
 
-# Usage check (beyond imports)
-grep -r "$artifact_name" "${search_path:-src/}" --include="*.ts" --include="*.tsx" 2>/dev/null | grep -v "import" | wc -l
+# Usage check (beyond requires/includes)
+grep -r "$artifact_name" "${search_path:-app/}" --include="*.rb" --include="*.erb" 2>/dev/null | grep -v "require\|include\|extend" | wc -l
 ```
 
 **Wiring status:**
-- WIRED: Imported AND used
-- ORPHANED: Exists but not imported/used
-- PARTIAL: Imported but not used (or vice versa)
+- WIRED: Required/included AND used
+- ORPHANED: Exists but not required/included/used
+- PARTIAL: Required/included but not used (or vice versa)
 
 ### Final Artifact Status
 
@@ -179,41 +181,50 @@ For each link:
 
 **Fallback patterns** (if must_haves.key_links not defined in PLAN):
 
-### Pattern: Component → API
+### Pattern: Controller → Model
 
 ```bash
-grep -E "fetch\(['\"].*$api_path|axios\.(get|post).*$api_path" "$component" 2>/dev/null
-grep -A 5 "fetch\|axios" "$component" | grep -E "await|\.then|setData|setState" 2>/dev/null
+# Check controller queries the model and assigns instance variables
+grep -E "$model\.(find|where|all|create|update|destroy)" "$controller" 2>/dev/null
+grep -E "@\w+\s*=.*$model" "$controller" 2>/dev/null
+# Check result is rendered or used
+grep -E "render\|redirect_to\|respond_to" "$controller" 2>/dev/null
 ```
 
-Status: WIRED (call + response handling) | PARTIAL (call, no response use) | NOT_WIRED (no call)
+Status: WIRED (query + assignment + render) | PARTIAL (query but no render, or render without query) | NOT_WIRED (no model interaction)
 
-### Pattern: API → Database
+### Pattern: View → Controller
 
 ```bash
-grep -E "prisma\.$model|db\.$model|$model\.(find|create|update|delete)" "$route" 2>/dev/null
-grep -E "return.*json.*\w+|res\.json\(\w+" "$route" 2>/dev/null
+# Check view uses path helpers pointing to the controller
+grep -E "${resource}_path\|${resource}_url\|${resources}_path" "$view" 2>/dev/null
+# Check view references instance variables set by the controller
+grep -E "@${resource}\b\|@${resources}\b" "$view" 2>/dev/null
 ```
 
-Status: WIRED (query + result returned) | PARTIAL (query, static return) | NOT_WIRED (no query)
+Status: WIRED (path helpers + instance variable usage) | PARTIAL (one without the other) | NOT_WIRED (no references)
 
-### Pattern: Form → Handler
+### Pattern: Route → Controller Action
 
 ```bash
-grep -E "onSubmit=\{|handleSubmit" "$component" 2>/dev/null
-grep -A 10 "onSubmit.*=" "$component" | grep -E "fetch|axios|mutate|dispatch" 2>/dev/null
+# Check routes.rb defines the resource
+grep -E "resources?\s+:${resources}" config/routes.rb 2>/dev/null
+# Check controller has matching action methods
+grep -E "def (index|show|new|create|edit|update|destroy)" "$controller" 2>/dev/null
 ```
 
-Status: WIRED (handler + API call) | STUB (only logs/preventDefault) | NOT_WIRED (no handler)
+Status: WIRED (route defined + action methods exist) | PARTIAL (route exists, missing actions) | NOT_WIRED (no route)
 
-### Pattern: State → Render
+### Pattern: Model → Database
 
 ```bash
-grep -E "useState.*$state_var|\[$state_var," "$component" 2>/dev/null
-grep -E "\{.*$state_var.*\}|\{$state_var\." "$component" 2>/dev/null
+# Check model has associations/validations
+grep -E "(belongs_to|has_many|has_one|validates)" "$model" 2>/dev/null
+# Check migration creates the table
+grep -E "create_table\s+:${table_name}" db/migrate/*_create_${table_name}.rb 2>/dev/null
 ```
 
-Status: WIRED (state displayed) | NOT_WIRED (state exists, not rendered)
+Status: WIRED (associations + migration) | PARTIAL (model exists, no migration or vice versa) | NOT_WIRED (neither)
 
 ## Step 6: Check Requirements Coverage
 
@@ -253,15 +264,141 @@ Run anti-pattern detection on each file:
 # TODO/FIXME/placeholder comments
 grep -n -E "TODO|FIXME|XXX|HACK|PLACEHOLDER" "$file" 2>/dev/null
 grep -n -E "placeholder|coming soon|will be here" "$file" -i 2>/dev/null
+
+# Debug statements left in code
+grep -n -E "^\s*(puts |p |pp |print )" "$file" 2>/dev/null
+grep -n -E "binding\.(pry|irb)\b|debugger\b|byebug\b" "$file" 2>/dev/null
+
+# Unfinished implementations
+grep -n -E "raise\s+(NotImplementedError|\"TODO\"|'TODO')" "$file" 2>/dev/null
+
 # Empty implementations
-grep -n -E "return null|return \{\}|return \[\]|=> \{\}" "$file" 2>/dev/null
-# Console.log only implementations
-grep -n -B 2 -A 2 "console\.log" "$file" 2>/dev/null | grep -E "^\s*(const|function|=>)"
+grep -n -E "def \w+\s*;\s*end" "$file" 2>/dev/null
 ```
 
 Categorize: 🛑 Blocker (prevents goal) | ⚠️ Warning (incomplete) | ℹ️ Info (notable)
 
-## Step 8: Identify Human Verification Needs
+## Step 8: Security Scan
+
+Run security checks against changed files using the project's security guide.
+
+**Load the security guide:**
+@~/.claude/guides/security.md
+
+**Identify changed files** from SUMMARY.md key-files section or git diff (reuse list from Step 7 if available).
+
+**Map files to applicable check sections** using the Agent Check Protocol (Section 6.1):
+
+| Changed file pattern | Applicable sections |
+|---|---|
+| `app/models/**/*.rb` | 1.1 (SQL), 2.2 (mass assignment), 3.2 (IDOR), 4.1 (secrets), 4.3 (uploads) |
+| `app/controllers/**/*.rb` | 1.1d (unscoped find), 1.2e (content-type), 2.1 (CSRF), 2.2 (strong params), 2.3 (redirects), 3.1 (auth), 3.2 (authz) |
+| `app/views/**/*.erb` | 1.2 (XSS), 2.1b (CSRF tokens) |
+| `app/controllers/api/**/*.rb` | 5.2 (API security) |
+| `config/routes.rb` | 2.1c (GET state changes), 2.3 (redirects) |
+| `config/environments/**/*.rb` | 4.1c (secret key), 5.1a (SSL), 5.1b (CSP) |
+| `config/initializers/**/*.rb` | 3.3b (cookies), 4.2a (param filtering), 5.1 (headers) |
+| `db/migrate/**/*.rb` | 3.1b (password storage) |
+| `lib/**/*.rb` | 1.1b (raw SQL), 1.3 (command injection) |
+| `Gemfile` | 5.3a (vulnerable gems) |
+
+**Run applicable checks** using grep patterns from the Quick-Reference Checklist (Section 6.2):
+
+```bash
+# For each applicable CHECK, scan changed files with the guide's grep pattern
+# Example: CHECK 1.1a — No string interpolation in SQL
+grep -n -E '\.where\(["'"'"'].*#\{' "$file" 2>/dev/null
+
+# Example: CHECK 2.2a — Strong parameters
+grep -n -E 'params\.permit!' "$file" 2>/dev/null
+
+# Example: CHECK 3.2a — Scoped resource lookups
+grep -n -E '\b(Card|Board|User|Project)\.(find|find_by)\(params' "$file" 2>/dev/null
+```
+
+**Run automated tools** (if available):
+
+```bash
+# Dependency audit
+bundle audit check --update 2>/dev/null
+# Static analysis
+brakeman --no-pager -q 2>/dev/null
+```
+
+**Categorize findings by severity:**
+- **Critical:** Immediate exploitation risk (SQL injection, command injection, hardcoded secrets)
+- **High:** Significant risk requiring fix before release (XSS, CSRF bypass, IDOR, mass assignment)
+- **Medium:** Should be addressed but lower exploitation risk
+- **Low:** Best practice improvements
+
+**Critical or High findings force `gaps_found` status.**
+
+**Output structured findings:**
+
+```yaml
+security_findings:
+  - check: "1.1a"
+    name: "String interpolation in SQL"
+    severity: critical
+    file: "app/models/search.rb"
+    line: 23
+    detail: "User input interpolated in .where()"
+```
+
+## Step 9: Performance Scan
+
+Run performance checks against changed files using the project's performance guide.
+
+**Load the performance guide:**
+@~/.claude/guides/performance.md
+
+**Reuse changed files list** from Step 8.
+
+**Map files to applicable check sections** using the Agent Check Protocol (Section 7.1):
+
+| Changed file pattern | Applicable sections |
+|---|---|
+| `app/models/**/*.rb` | 1.1 (N+1), 1.2 (inefficient queries), 1.4 (query placement), 3.3 (caching), 4.1 (memory) |
+| `app/controllers/**/*.rb` | 1.1a (eager loading), 1.2b (exists?), 4.2 (background jobs), 5.1b (JSON), 5.2a (pagination) |
+| `app/views/**/*.erb` | 1.1a (N+1 in views), 1.1c (counter cache), 3.2 (fragment caching), 5.1a (collection rendering) |
+| `app/jobs/**/*.rb` | 1.3 (batch processing), 4.1 (memory) |
+| `db/migrate/**/*.rb` | 2.1 (missing indexes), 2.2 (index anti-patterns) |
+| `config/environments/production.rb` | 3.1 (cache store), 6.2 (production settings) |
+| `lib/**/*.rb` | 1.3 (batch processing), 4.1 (memory), 4.3 (object allocation) |
+
+**Run applicable checks** using grep patterns from the Quick-Reference Checklist (Section 7.2):
+
+```bash
+# Example: CHECK 1.1a — Eager load associations in loops
+grep -n -E '\.(includes|eager_load|preload)\b' "$file" 2>/dev/null
+
+# Example: CHECK 1.3a — find_each for large iterations
+grep -n -E '\.all\.each|\.where.*\.each[^_]' "$file" 2>/dev/null
+
+# Example: CHECK 4.2b — deliver_later for emails
+grep -n -E 'deliver_now' "$file" 2>/dev/null
+```
+
+**Categorize findings by severity:**
+- **High:** N+1 queries, missing indexes on foreign keys, unbatched large iterations, synchronous expensive work in request cycle
+- **Medium:** Missing pagination, inefficient queries, uncached expensive computations
+- **Low:** Missing memoization, string freezing, partial index opportunities
+
+**3+ High findings force `gaps_found` status** (individual High findings are warnings).
+
+**Output structured findings:**
+
+```yaml
+performance_findings:
+  - check: "1.1a"
+    name: "N+1 query — missing eager load"
+    severity: high
+    file: "app/controllers/boards_controller.rb"
+    line: 12
+    detail: "@boards = Board.all without .includes(:cards)"
+```
+
+## Step 10: Identify Human Verification Needs
 
 **Always needs human:** Visual appearance, user flow completion, real-time behavior, external service integration, performance feel, error message clarity.
 
@@ -277,17 +414,17 @@ Categorize: 🛑 Blocker (prevents goal) | ⚠️ Warning (incomplete) | ℹ️ 
 **Why human:** {Why can't verify programmatically}
 ```
 
-## Step 9: Determine Overall Status
+## Step 11: Determine Overall Status
 
-**Status: passed** — All truths VERIFIED, all artifacts pass levels 1-3, all key links WIRED, no blocker anti-patterns.
+**Status: passed** — All truths VERIFIED, all artifacts pass levels 1-3, all key links WIRED, no blocker anti-patterns, no Critical/High security findings, no excessive performance findings.
 
-**Status: gaps_found** — One or more truths FAILED, artifacts MISSING/STUB, key links NOT_WIRED, or blocker anti-patterns found.
+**Status: gaps_found** — One or more truths FAILED, artifacts MISSING/STUB, key links NOT_WIRED, blocker anti-patterns found, any Critical/High security findings, or 3+ High performance findings.
 
 **Status: human_needed** — All automated checks pass but items flagged for human verification.
 
-**Score:** `verified_truths / total_truths`
+**Score:** `verified_truths / total_truths | security: N critical, N high | performance: N high`
 
-## Step 10: Structure Gap Output (If Gaps Found)
+## Step 12: Structure Gap Output (If Gaps Found)
 
 Structure gaps in YAML frontmatter for `/ariadna:plan-phase --gaps`:
 
@@ -297,7 +434,7 @@ gaps:
     status: failed
     reason: "Brief explanation"
     artifacts:
-      - path: "src/path/to/file.tsx"
+      - path: "app/path/to/file.rb"
         issue: "What's wrong"
     missing:
       - "Specific thing to add/fix"
@@ -324,7 +461,7 @@ Create `.planning/phases/{phase_dir}/{phase}-VERIFICATION.md`:
 phase: XX-name
 verified: YYYY-MM-DDTHH:MM:SSZ
 status: passed | gaps_found | human_needed
-score: N/M must-haves verified
+score: N/M must-haves verified | security: N critical, N high | performance: N high
 re_verification: # Only if previous VERIFICATION.md existed
   previous_status: gaps_found
   previous_score: 2/5
@@ -337,10 +474,24 @@ gaps: # Only if status: gaps_found
     status: failed
     reason: "Why it failed"
     artifacts:
-      - path: "src/path/to/file.tsx"
+      - path: "app/path/to/file.rb"
         issue: "What's wrong"
     missing:
       - "Specific thing to add/fix"
+security_findings: # Only if security scan produced findings
+  - check: "1.1a"
+    name: "String interpolation in SQL"
+    severity: critical
+    file: "app/models/search.rb"
+    line: 23
+    detail: "User input interpolated in .where()"
+performance_findings: # Only if performance scan produced findings
+  - check: "1.1a"
+    name: "N+1 query — missing eager load"
+    severity: high
+    file: "app/controllers/boards_controller.rb"
+    line: 12
+    detail: "@boards = Board.all without .includes(:cards)"
 human_verification: # Only if status: human_needed
   - test: "What to do"
     expected: "What should happen"
@@ -385,6 +536,20 @@ human_verification: # Only if status: human_needed
 
 | File | Line | Pattern | Severity | Impact |
 | ---- | ---- | ------- | -------- | ------ |
+
+### Security Findings
+
+| Check | Name | Severity | File | Line | Detail |
+| ----- | ---- | -------- | ---- | ---- | ------ |
+
+**Security:** {N} findings ({critical} critical, {high} high, {medium} medium)
+
+### Performance Findings
+
+| Check | Name | Severity | File | Line | Detail |
+| ----- | ---- | -------- | ---- | ---- | ------ |
+
+**Performance:** {N} findings ({high} high, {medium} medium, {low} low)
 
 ### Human Verification Required
 
@@ -455,51 +620,93 @@ Automated checks passed. Awaiting human verification.
 
 <stub_detection_patterns>
 
-## React Component Stubs
+## Rails Controller Stubs
 
-```javascript
-// RED FLAGS:
-return <div>Component</div>
-return <div>Placeholder</div>
-return <div>{/* TODO */}</div>
-return null
-return <></>
+```ruby
+# RED FLAGS:
+# Empty actions:
+def show; end
+def index; end
 
-// Empty handlers:
-onClick={() => {}}
-onChange={() => console.log('clicked')}
-onSubmit={(e) => e.preventDefault()}  // Only prevents default
+# Actions that only render/redirect without logic:
+def show
+  redirect_to root_path
+end
+
+# head :ok without processing:
+def create
+  head :ok
+end
 ```
 
-## API Route Stubs
+## Rails Model Stubs
 
-```typescript
-// RED FLAGS:
-export async function POST() {
-  return Response.json({ message: "Not implemented" });
-}
+```ruby
+# RED FLAGS:
+# Empty class body:
+class Card < ApplicationRecord
+end
 
-export async function GET() {
-  return Response.json([]); // Empty array with no DB query
-}
+# Model with no validations/associations/scopes:
+class User < ApplicationRecord
+  # No validations, no associations, no scopes — likely a placeholder
+end
 ```
 
-## Wiring Red Flags
+## Rails View Stubs
 
-```typescript
-// Fetch exists but response ignored:
-fetch('/api/messages')  // No await, no .then, no assignment
+```ruby
+# RED FLAGS:
+# Placeholder text:
+<h1>Coming soon</h1>
+<p>This page is under construction</p>
 
-// Query exists but result not returned:
-await prisma.message.findMany()
-return Response.json({ ok: true })  // Returns static, not query result
+# Empty partials (0 bytes or whitespace only)
 
-// Handler only prevents default:
-onSubmit={(e) => e.preventDefault()}
+# Static content where dynamic expected:
+<%= "No data" %>  # Always shows "No data" regardless of state
+```
 
-// State exists but not rendered:
-const [messages, setMessages] = useState([])
-return <div>No messages</div>  // Always shows "no messages"
+## Rails Job Stubs
+
+```ruby
+# RED FLAGS:
+# Empty perform:
+def perform(*args); end
+
+# Perform that only logs:
+def perform(record)
+  Rails.logger.info("Processing #{record.id}")
+end
+
+# NotImplementedError:
+def perform(record)
+  raise NotImplementedError
+end
+```
+
+## Rails Wiring Red Flags
+
+```ruby
+# Unscoped finds (IDOR vulnerability + wiring smell):
+Card.find(params[:id])  # Should be Current.user.cards.find(...)
+
+# Missing before_action:
+class AdminController < ApplicationController
+  # No authentication/authorization before_action
+end
+
+# Routes without controller actions:
+resources :reports  # But ReportsController has no matching action methods
+
+# Assigned but unused instance variables:
+def index
+  @cards = Card.all
+  # But app/views/cards/index.html.erb doesn't reference @cards
+end
+
+# Declared but never-queried associations:
+has_many :comments  # But no code calls .comments anywhere
 ```
 
 </stub_detection_patterns>
@@ -514,8 +721,10 @@ return <div>No messages</div>  // Always shows "no messages"
 - [ ] All key links verified
 - [ ] Requirements coverage assessed (if applicable)
 - [ ] Anti-patterns scanned and categorized
+- [ ] Security scan completed (if applicable files changed)
+- [ ] Performance scan completed (if applicable files changed)
 - [ ] Human verification items identified
-- [ ] Overall status determined
+- [ ] Overall status determined (including security/performance findings)
 - [ ] Gaps structured in YAML frontmatter (if gaps_found)
 - [ ] Re-verification metadata included (if previous existed)
 - [ ] VERIFICATION.md created with complete report

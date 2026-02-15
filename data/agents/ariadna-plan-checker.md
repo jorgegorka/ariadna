@@ -160,17 +160,17 @@ issue:
 3. Verify tasks actually implement the wiring (not just artifact creation)
 
 **Red flags:**
-- Component created but not imported anywhere
-- API route created but component doesn't call it
-- Database model created but API doesn't query it
-- Form created but submit handler is missing or stub
+- View created but not rendered by any controller
+- Controller action created but view doesn't reference it
+- Database model created but controller doesn't query it
+- Form created but submit action is missing or stub
 
 **What to check:**
 ```
-Component -> API: Does action mention fetch/axios call?
-API -> Database: Does action mention Prisma/query?
-Form -> Handler: Does action mention onSubmit implementation?
-State -> Render: Does action mention displaying state?
+View -> Controller: Does action mention route/controller wiring?
+Controller -> Model: Does action mention ActiveRecord query?
+Form -> Action: Does action mention form_with submission?
+Instance var -> View: Does action mention rendering data?
 ```
 
 **Example issue:**
@@ -178,10 +178,10 @@ State -> Render: Does action mention displaying state?
 issue:
   dimension: key_links_planned
   severity: warning
-  description: "Chat.tsx created but no task wires it to /api/chat"
+  description: "chats/index.html.erb created but no task wires it to ChatsController"
   plan: "01"
-  artifacts: ["src/components/Chat.tsx", "src/app/api/chat/route.ts"]
-  fix_hint: "Add fetch call in Chat.tsx action or create wiring task"
+  artifacts: ["app/views/chats/index.html.erb", "app/controllers/chats_controller.rb"]
+  fix_hint: "Add turbo_frame or render call in view action or create wiring task"
 ```
 
 ## Dimension 5: Scope Sanity
@@ -244,7 +244,7 @@ issue:
   plan: "02"
   problematic_truths:
     - "JWT library installed"
-    - "Prisma schema updated"
+    - "Database migration run"
   fix_hint: "Reframe as user-observable: 'User can log in', 'Session persists'"
 ```
 
@@ -352,13 +352,13 @@ must_haves:
     - "User can log in with email/password"
     - "Invalid credentials return 401"
   artifacts:
-    - path: "src/app/api/auth/login/route.ts"
+    - path: "app/controllers/sessions_controller.rb"
       provides: "Login endpoint"
       min_lines: 30
   key_links:
-    - from: "src/components/LoginForm.tsx"
-      to: "/api/auth/login"
-      via: "fetch in onSubmit"
+    - from: "app/views/sessions/new.html.erb"
+      to: "SessionsController#create"
+      via: "form_with submission"
 ```
 
 Aggregate across plans for full picture of what phase delivers.
@@ -413,9 +413,9 @@ Validate: all referenced plans exist, no cycles, wave numbers consistent, no for
 For each key_link in must_haves: find source artifact task, check if action mentions the connection, flag missing wiring.
 
 ```
-key_link: Chat.tsx -> /api/chat via fetch
-Task 2 action: "Create Chat component with message list..."
-Missing: No mention of fetch/API call → Issue: Key link not planned
+key_link: app/views/chats/index.html.erb -> ChatsController#index via turbo_frame
+Task 2 action: "Create chat view with message list..."
+Missing: No mention of turbo_frame or controller wiring → Issue: Key link not planned
 ```
 
 ## Step 8: Assess Scope
@@ -433,7 +433,7 @@ Thresholds: 2-3 tasks/plan good, 4 warning, 5+ blocker (split required).
 
 **Artifacts:** map to truths, reasonable min_lines, list expected exports/content.
 
-**Key_links:** connect dependent artifacts, specify method (fetch, Prisma, import), cover critical wiring.
+**Key_links:** connect dependent artifacts, specify method (form_with, ActiveRecord, render), cover critical wiring.
 
 ## Step 10: Determine Overall Status
 
@@ -453,18 +453,18 @@ Severities: `blocker` (must fix), `warning` (should fix), `info` (suggestions).
 ```
 Tasks: 5
 Files modified: 12
-  - prisma/schema.prisma
-  - src/app/api/auth/login/route.ts
-  - src/app/api/auth/logout/route.ts
-  - src/app/api/auth/refresh/route.ts
-  - src/middleware.ts
-  - src/lib/auth.ts
-  - src/lib/jwt.ts
-  - src/components/LoginForm.tsx
-  - src/components/LogoutButton.tsx
-  - src/app/login/page.tsx
-  - src/app/dashboard/page.tsx
-  - src/types/auth.ts
+  - db/migrate/xxx_create_users.rb
+  - app/controllers/sessions_controller.rb
+  - app/controllers/application_controller.rb
+  - app/models/user.rb
+  - app/models/concerns/authenticatable.rb
+  - app/helpers/sessions_helper.rb
+  - app/views/sessions/new.html.erb
+  - app/views/shared/_logout_button.html.erb
+  - app/views/dashboards/show.html.erb
+  - config/routes.rb
+  - test/controllers/sessions_controller_test.rb
+  - test/models/user_test.rb
 ```
 
 5 tasks exceeds 2-3 target, 12 files is high, auth is complex domain → quality degradation risk.
@@ -479,7 +479,7 @@ issue:
     tasks: 5
     files: 12
     estimated_context: "~80%"
-  fix_hint: "Split into: 01 (schema + API), 02 (middleware + lib), 03 (UI components)"
+  fix_hint: "Split into: 01 (migrations + models), 02 (controllers + routes), 03 (views + helpers)"
 ```
 
 </examples>

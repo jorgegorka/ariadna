@@ -39,7 +39,7 @@ Your job: Explore thoroughly, then write document(s) directly. Return confirmati
 
 **What this means for your output:**
 
-1. **File paths are critical** - The planner/executor needs to navigate directly to files. `src/services/user.ts` not "the user service"
+1. **File paths are critical** - The planner/executor needs to navigate directly to files. `app/services/user_service.rb` not "the user service"
 
 2. **Patterns matter more than lists** - Show HOW things are done (code examples) not just WHAT exists
 
@@ -55,7 +55,7 @@ Your job: Explore thoroughly, then write document(s) directly. Return confirmati
 Include enough detail to be useful as reference. A 200-line TESTING.md with real patterns is more valuable than a 74-line summary.
 
 **Always include file paths:**
-Vague descriptions like "UserService handles users" are not actionable. Always include actual file paths formatted with backticks: `src/services/user.ts`. This allows Claude to navigate directly to relevant code.
+Vague descriptions like "UserService handles users" are not actionable. Always include actual file paths formatted with backticks: `app/services/user_service.rb`. This allows Claude to navigate directly to relevant code.
 
 **Write current state only:**
 Describe only what IS, never what WAS or what you considered. No temporal language.
@@ -82,53 +82,53 @@ Explore the codebase thoroughly for your focus area.
 **For tech focus:**
 ```bash
 # Package manifests
-ls package.json requirements.txt Cargo.toml go.mod pyproject.toml 2>/dev/null
-cat package.json 2>/dev/null | head -100
+ls Gemfile Gemfile.lock 2>/dev/null
+cat Gemfile 2>/dev/null | head -100
 
 # Config files (list only - DO NOT read .env contents)
-ls -la *.config.* tsconfig.json .nvmrc .python-version 2>/dev/null
+ls -la config/application.rb config/database.yml config/routes.rb 2>/dev/null
 ls .env* 2>/dev/null  # Note existence only, never read contents
 
-# Find SDK/API imports
-grep -r "import.*stripe\|import.*supabase\|import.*aws\|import.*@" src/ --include="*.ts" --include="*.tsx" 2>/dev/null | head -50
+# Find gem/API requires
+grep -r "require.*stripe\|require.*aws\|include.*" app/ lib/ --include="*.rb" 2>/dev/null | head -50
 ```
 
 **For arch focus:**
 ```bash
 # Directory structure
-find . -type d -not -path '*/node_modules/*' -not -path '*/.git/*' | head -50
+find . -type d -not -path '*/vendor/bundle/*' -not -path '*/.git/*' | head -50
 
 # Entry points
-ls src/index.* src/main.* src/app.* src/server.* app/page.* 2>/dev/null
+ls config/application.rb config/routes.rb app/controllers/application_controller.rb 2>/dev/null
 
-# Import patterns to understand layers
-grep -r "^import" src/ --include="*.ts" --include="*.tsx" 2>/dev/null | head -100
+# Require/include patterns to understand layers
+grep -r "require\|include\|extend" app/ lib/ --include="*.rb" 2>/dev/null | head -100
 ```
 
 **For quality focus:**
 ```bash
 # Linting/formatting config
-ls .eslintrc* .prettierrc* eslint.config.* biome.json 2>/dev/null
-cat .prettierrc 2>/dev/null
+ls .rubocop.yml .rubocop_todo.yml 2>/dev/null
+cat .rubocop.yml 2>/dev/null
 
 # Test files and config
-ls jest.config.* vitest.config.* 2>/dev/null
-find . -name "*.test.*" -o -name "*.spec.*" | head -30
+ls test/test_helper.rb spec/spec_helper.rb spec/rails_helper.rb 2>/dev/null
+find . -name "*_test.rb" -o -name "*_spec.rb" | head -30
 
 # Sample source files for convention analysis
-ls src/**/*.ts 2>/dev/null | head -10
+ls app/**/*.rb 2>/dev/null | head -10
 ```
 
 **For concerns focus:**
 ```bash
 # TODO/FIXME comments
-grep -rn "TODO\|FIXME\|HACK\|XXX" src/ --include="*.ts" --include="*.tsx" 2>/dev/null | head -50
+grep -rn "TODO\|FIXME\|HACK\|XXX" app/ lib/ --include="*.rb" --include="*.erb" 2>/dev/null | head -50
 
 # Large files (potential complexity)
-find src/ -name "*.ts" -o -name "*.tsx" | xargs wc -l 2>/dev/null | sort -rn | head -20
+find app/ lib/ -name "*.rb" -o -name "*.erb" | xargs wc -l 2>/dev/null | sort -rn | head -20
 
 # Empty returns/stubs
-grep -rn "return null\|return \[\]\|return {}" src/ --include="*.ts" --include="*.tsx" 2>/dev/null | head -30
+grep -rn "return nil\|return \[\]\|return {}" app/ lib/ --include="*.rb" 2>/dev/null | head -30
 ```
 
 Read key files identified during exploration. Use Glob and Grep liberally.
@@ -499,7 +499,7 @@ Ready for orchestrator summary.
 **When to Comment:**
 - [Guidelines observed]
 
-**JSDoc/TSDoc:**
+**YARD/RDoc:**
 - [Usage pattern]
 
 ## Function Design
@@ -560,7 +560,7 @@ Ready for orchestrator summary.
 ## Test Structure
 
 **Suite Organization:**
-```typescript
+```ruby
 [Show actual pattern from codebase]
 ```
 
@@ -574,7 +574,7 @@ Ready for orchestrator summary.
 **Framework:** [Tool]
 
 **Patterns:**
-```typescript
+```ruby
 [Show actual mocking pattern from codebase]
 ```
 
@@ -587,7 +587,7 @@ Ready for orchestrator summary.
 ## Fixtures and Factories
 
 **Test Data:**
-```typescript
+```ruby
 [Show pattern from codebase]
 ```
 
@@ -617,12 +617,12 @@ Ready for orchestrator summary.
 ## Common Patterns
 
 **Async Testing:**
-```typescript
+```ruby
 [Pattern]
 ```
 
 **Error Testing:**
-```typescript
+```ruby
 [Pattern]
 ```
 

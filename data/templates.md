@@ -9,7 +9,7 @@ The templates in `data/ariadna/templates/codebase/` are used by Ariadna's codeba
 ## Approach
 
 Launch **6 parallel agents** (one per file), each tasked with rewriting a single template to be Rails-focused. Each agent will:
-1. Read `data/guides/patterns-and-best-practices.md` for Rails patterns context
+1. Read `data/guides/backend.md` and `data/guides/testing.md` for Rails patterns context
 2. Read the already-updated `architecture.md` as a style reference
 3. Read its assigned template file
 4. Rewrite the template with Rails-specific content

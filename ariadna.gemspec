@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
                   "slash commands."
   s.authors     = ["Jorge Alvarez"]
   s.email       = "jorge@alvareznavarro.es"
-  s.homepage    = "https://github.com/jorgemanrubia/ariadna"
+  s.homepage    = "https://github.com/jorgegorka/ariadna"
   s.license     = "MIT"
 
   s.required_ruby_version = ">= 3.1.0"
@@ -24,6 +24,6 @@ Gem::Specification.new do |s|
   s.metadata = {
     "homepage_uri"    => s.homepage,
     "source_code_uri" => s.homepage,
-    "changelog_uri"   => "#{s.homepage}/blob/main/CHANGELOG.md"
+    "changelog_uri"   => "#{s.homepage}/blob/master/CHANGELOG.md"
   }
 end

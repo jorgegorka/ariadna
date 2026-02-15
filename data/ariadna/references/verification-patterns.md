@@ -39,10 +39,9 @@ grep -E "\[.*\]|<.*>|\{.*\}" "$file"  # Template brackets left in
 **Empty or trivial implementations:**
 ```bash
 # Functions that do nothing
-grep -E "return null|return undefined|return \{\}|return \[\]|return nil" "$file"
+grep -E "return nil|return \{\}|return \[\]" "$file"
 grep -E "pass$|\.\.\.|\bnothing\b|raise NotImplementedError" "$file"
-grep -E "console\.(log|warn|error).*only" "$file"  # Log-only functions
-grep -E "puts.*only|Rails\.logger\.(info|debug).*only" "$file"  # Ruby log-only
+grep -E "puts.*only|Rails\.logger\.(info|debug).*only" "$file"  # Log-only functions
 ```
 
 **Hardcoded values where dynamic expected:**
@@ -55,197 +54,142 @@ grep -E "\\\$\d+\.\d{2}|\d+ items" "$file"  # Hardcoded display values
 
 </stub_detection>
 
-<react_components>
-
-## React/Next.js Components
-
-**Existence check:**
-```bash
-# File exists and exports component
-[ -f "$component_path" ] && grep -E "export (default |)function|export const.*=.*\(" "$component_path"
-```
-
-**Substantive check:**
-```bash
-# Returns actual JSX, not placeholder
-grep -E "return.*<" "$component_path" | grep -v "return.*null" | grep -v "placeholder" -i
-
-# Has meaningful content (not just wrapper div)
-grep -E "<[A-Z][a-zA-Z]+|className=|onClick=|onChange=" "$component_path"
-
-# Uses props or state (not static)
-grep -E "props\.|useState|useEffect|useContext|\{.*\}" "$component_path"
-```
-
-**Stub patterns specific to React:**
-```javascript
-// RED FLAGS - These are stubs:
-return <div>Component</div>
-return <div>Placeholder</div>
-return <div>{/* TODO */}</div>
-return <p>Coming soon</p>
-return null
-return <></>
-
-// Also stubs - empty handlers:
-onClick={() => {}}
-onChange={() => console.log('clicked')}
-onSubmit={(e) => e.preventDefault()}  // Only prevents default, does nothing
-```
-
-**Wiring check:**
-```bash
-# Component imports what it needs
-grep -E "^import.*from" "$component_path"
-
-# Props are actually used (not just received)
-# Look for destructuring or props.X usage
-grep -E "\{ .* \}.*props|\bprops\.[a-zA-Z]+" "$component_path"
-
-# API calls exist (for data-fetching components)
-grep -E "fetch\(|axios\.|useSWR|useQuery|getServerSideProps|getStaticProps" "$component_path"
-```
-
-**Functional verification (human required):**
-- Does the component render visible content?
-- Do interactive elements respond to clicks?
-- Does data load and display?
-- Do error states show appropriately?
-
-</react_components>
-
 <api_routes>
 
-## API Routes (Next.js App Router / Express / etc.)
+## Rails Controllers and API Endpoints
 
 **Existence check:**
 ```bash
-# Route file exists
-[ -f "$route_path" ]
+# Controller file exists and defines class
+[ -f "$controller_path" ] && grep -E "class.*Controller < Application" "$controller_path"
 
-# Exports HTTP method handlers (Next.js App Router)
-grep -E "export (async )?(function|const) (GET|POST|PUT|PATCH|DELETE)" "$route_path"
+# Expected actions are defined
+grep -E "def (index|show|create|update|destroy|new|edit)" "$controller_path"
 
-# Or Express-style handlers
-grep -E "\.(get|post|put|patch|delete)\(" "$route_path"
+# Route exists in config/routes.rb
+grep -E "resources :$resource_name|get.*$controller_name|post.*$controller_name" config/routes.rb
 ```
 
 **Substantive check:**
 ```bash
 # Has actual logic, not just return statement
-wc -l "$route_path"  # More than 10-15 lines suggests real implementation
+wc -l "$controller_path"  # More than 10-15 lines suggests real implementation
 
-# Interacts with data source
-grep -E "prisma\.|db\.|mongoose\.|sql|query|find|create|update|delete" "$route_path" -i
+# Interacts with models (ActiveRecord)
+grep -E "$model_name\.(find|where|create|new|update|destroy|all|first|last)" "$controller_path"
 
 # Has error handling
-grep -E "try|catch|throw|error|Error" "$route_path"
+grep -E "rescue|rescue_from|begin|raise" "$controller_path"
 
 # Returns meaningful response
-grep -E "Response\.json|res\.json|res\.send|return.*\{" "$route_path" | grep -v "message.*not implemented" -i
+grep -E "render json:|render|redirect_to|respond_to" "$controller_path" | grep -v "not implemented" -i
 ```
 
-**Stub patterns specific to API routes:**
-```typescript
-// RED FLAGS - These are stubs:
-export async function POST() {
-  return Response.json({ message: "Not implemented" })
-}
+**Stub patterns specific to Rails controllers:**
+```ruby
+# RED FLAGS - These are stubs:
+def create
+  render json: { message: "Not implemented" }
+end
 
-export async function GET() {
-  return Response.json([])  // Empty array with no DB query
-}
+def index
+  render json: []  # Empty array with no DB query
+end
 
-export async function PUT() {
-  return new Response()  // Empty response
-}
+def update
+  head :ok  # Empty response, no persistence
+end
 
-// Console log only:
-export async function POST(req) {
-  console.log(await req.json())
-  return Response.json({ ok: true })
-}
+# Log only:
+def create
+  Rails.logger.info(params.inspect)
+  render json: { ok: true }
+end
 ```
 
 **Wiring check:**
 ```bash
-# Imports database/service clients
-grep -E "^import.*prisma|^import.*db|^import.*client" "$route_path"
+# Uses strong parameters
+grep -E "def .*_params|params\.require|params\.permit" "$controller_path"
 
-# Actually uses request body (for POST/PUT)
-grep -E "req\.json\(\)|req\.body|request\.json\(\)" "$route_path"
+# Actually uses request params (for create/update)
+grep -E "params\[|params\.require|params\.permit" "$controller_path"
 
-# Validates input (not just trusting request)
-grep -E "schema\.parse|validate|zod|yup|joi" "$route_path"
+# Has validations via model or inline
+grep -E "validates|valid\?|errors|ActiveModel" "$controller_path"
 ```
 
 **Functional verification (human or automated):**
-- Does GET return real data from database?
-- Does POST actually create a record?
+- Does index return real data from database?
+- Does create actually persist a record?
 - Does error response have correct status code?
-- Are auth checks actually enforced?
+- Are auth checks actually enforced (before_action)?
 
 </api_routes>
 
 <database_schema>
 
-## Database Schema (Prisma / Drizzle / SQL)
+## Database Schema (ActiveRecord Migrations / schema.rb)
 
 **Existence check:**
 ```bash
 # Schema file exists
-[ -f "prisma/schema.prisma" ] || [ -f "drizzle/schema.ts" ] || [ -f "src/db/schema.sql" ]
+[ -f "db/schema.rb" ] || [ -f "db/structure.sql" ]
 
-# Model/table is defined
-grep -E "^model $model_name|CREATE TABLE $table_name|export const $table_name" "$schema_path"
+# Table is defined in schema
+grep -E "create_table.*\"$table_name\"|create_table.*:$table_name" db/schema.rb
+
+# Migration exists for this table
+ls db/migrate/*_create_$table_name* 2>/dev/null
 ```
 
 **Substantive check:**
 ```bash
-# Has expected fields (not just id)
-grep -A 20 "model $model_name" "$schema_path" | grep -E "^\s+\w+\s+\w+"
+# Has expected columns (not just id and timestamps)
+grep -A 30 "create_table.*$table_name" db/schema.rb | grep -E "t\.\w+"
 
-# Has relationships if expected
-grep -E "@relation|REFERENCES|FOREIGN KEY" "$schema_path"
+# Has relationships (foreign keys)
+grep -E "foreign_key.*$table_name\|add_foreign_key.*$table_name\|references.*$table_name" db/schema.rb
 
-# Has appropriate field types (not all String)
-grep -A 20 "model $model_name" "$schema_path" | grep -E "Int|DateTime|Boolean|Float|Decimal|Json"
+# Has appropriate column types (not all string)
+grep -A 30 "create_table.*$table_name" db/schema.rb | grep -E "t\.(integer|datetime|boolean|float|decimal|jsonb|text|bigint)"
 ```
 
-**Stub patterns specific to schemas:**
-```prisma
-// RED FLAGS - These are stubs:
-model User {
-  id String @id
-  // TODO: add fields
-}
+**Stub patterns specific to ActiveRecord:**
+```ruby
+# RED FLAGS - These are stubs:
+create_table :users do |t|
+  # TODO: add columns
+  t.timestamps
+end
 
-model Message {
-  id        String @id
-  content   String  // Only one real field
-}
+create_table :messages do |t|
+  t.string :content  # Only one real column
+  t.timestamps
+end
 
-// Missing critical fields:
-model Order {
-  id     String @id
-  // No: userId, items, total, status, createdAt
-}
+# Missing critical columns:
+create_table :orders do |t|
+  # No: user reference, items, total, status
+  t.timestamps
+end
 ```
 
 **Wiring check:**
 ```bash
 # Migrations exist and are applied
-ls prisma/migrations/ 2>/dev/null | wc -l  # Should be > 0
-npx prisma migrate status 2>/dev/null | grep -v "pending"
+bin/rails db:migrate:status 2>/dev/null | grep -E "up|down"
 
-# Client is generated
-[ -d "node_modules/.prisma/client" ]
+# No pending migrations
+bin/rails db:migrate:status 2>/dev/null | grep -c "down"  # Should be 0
 ```
 
 **Functional verification:**
 ```bash
 # Can query the table (automated)
-npx prisma db execute --stdin <<< "SELECT COUNT(*) FROM $table_name"
+bin/rails dbconsole <<< "SELECT COUNT(*) FROM $table_name"
+# Or via runner
+bin/rails runner "puts $model_name.count"
 ```
 
 </database_schema>
@@ -485,51 +429,71 @@ grep -r "$service_name\.new\|$service_name\.call\|$service_name\.()" --include="
 
 <hooks_utilities>
 
-## Custom Hooks and Utilities
+## Rails Helpers, Concerns, and Utility Modules
 
 **Existence check:**
 ```bash
-# File exists and exports function
-[ -f "$hook_path" ] && grep -E "export (default )?(function|const)" "$hook_path"
+# Helper file exists and defines module
+[ -f "$helper_path" ] && grep -E "module.*Helper" "$helper_path"
+
+# Or concern exists
+[ -f "$concern_path" ] && grep -E "module.*|extend ActiveSupport::Concern" "$concern_path"
+
+# Or service object exists
+[ -f "$service_path" ] && grep -E "class " "$service_path"
 ```
 
 **Substantive check:**
 ```bash
-# Hook uses React hooks (for custom hooks)
-grep -E "useState|useEffect|useCallback|useMemo|useRef|useContext" "$hook_path"
+# Helper has real methods (not empty)
+grep -E "def " "$helper_path" | wc -l  # Should be > 0
 
-# Has meaningful return value
-grep -E "return \{|return \[" "$hook_path"
+# Concern has meaningful behavior (not just empty included block)
+grep -A 5 "included do" "$concern_path" | grep -E "validates|has_many|belongs_to|scope|before_action"
 
 # More than trivial length
-[ $(wc -l < "$hook_path") -gt 10 ]
+[ $(wc -l < "$helper_path") -gt 10 ]
 ```
 
-**Stub patterns specific to hooks:**
-```typescript
-// RED FLAGS - These are stubs:
-export function useAuth() {
-  return { user: null, login: () => {}, logout: () => {} }
-}
+**Stub patterns specific to helpers/concerns:**
+```ruby
+# RED FLAGS - These are stubs:
+module AuthHelper
+  def current_user
+    nil  # Always returns nil
+  end
 
-export function useCart() {
-  const [items, setItems] = useState([])
-  return { items, addItem: () => console.log('add'), removeItem: () => {} }
-}
+  def authenticate!
+    # TODO: implement
+  end
+end
 
-// Hardcoded return:
-export function useUser() {
-  return { name: "Test User", email: "test@example.com" }
-}
+module Authenticatable
+  extend ActiveSupport::Concern
+
+  included do
+    # Nothing here
+  end
+end
+
+# Hardcoded return:
+module UserHelper
+  def user_display_name
+    "Test User"  # Hardcoded, not from model
+  end
+end
 ```
 
 **Wiring check:**
 ```bash
-# Hook is actually imported somewhere
-grep -r "import.*$hook_name" src/ --include="*.tsx" --include="*.ts" | grep -v "$hook_path"
+# Helper is included in a controller or view
+grep -r "include.*$helper_name\|helper.*$helper_name" app/ --include="*.rb"
 
-# Hook is actually called
-grep -r "$hook_name()" src/ --include="*.tsx" --include="*.ts" | grep -v "$hook_path"
+# Concern is included in a model or controller
+grep -r "include.*$concern_name" app/models/ app/controllers/ --include="*.rb" | grep -v "$concern_path"
+
+# Service is instantiated or called somewhere
+grep -r "$service_name\.new\|$service_name\.call" app/ lib/ --include="*.rb" | grep -v "$service_path"
 ```
 
 </hooks_utilities>
@@ -570,10 +534,11 @@ NEXT_PUBLIC_API_URL=http://localhost:3000  # Still pointing to localhost in prod
 **Wiring check:**
 ```bash
 # Variable is actually used in code
-grep -r "process\.env\.$VAR_NAME|env\.$VAR_NAME" src/ --include="*.ts" --include="*.tsx"
+grep -r "ENV\[\"$VAR_NAME\"\]\|ENV\.fetch(\"$VAR_NAME\")\|ENV\['$VAR_NAME'\]" app/ lib/ config/ --include="*.rb"
 
-# Variable is in validation schema (if using zod/etc for env)
-grep -E "$VAR_NAME" src/env.ts src/env.mjs 2>/dev/null
+# Variable is in credentials or application config
+grep -E "$VAR_NAME" config/credentials.yml.enc 2>/dev/null  # Encrypted, check via `bin/rails credentials:show`
+grep -E "$VAR_NAME" config/application.yml config/settings.yml 2>/dev/null
 ```
 
 </environment_config>
@@ -584,121 +549,34 @@ grep -E "$VAR_NAME" src/env.ts src/env.mjs 2>/dev/null
 
 Wiring verification checks that components actually communicate. This is where most stubs hide.
 
-### Pattern: Component → API
+### Pattern: View → Controller
 
-**Check:** Does the component actually call the API?
+**Check:** Does the view actually submit data to the correct controller action?
 
 ```bash
-# Find the fetch/axios call
-grep -E "fetch\(['\"].*$api_path|axios\.(get|post).*$api_path" "$component_path"
+# Find form actions pointing to controller
+grep -E "form_with\|form_for\|form_tag\|url:.*_path\|action:.*_path" "$view_path"
 
-# Verify it's not commented out
-grep -E "fetch\(|axios\." "$component_path" | grep -v "^.*//.*fetch"
+# Verify link_to / button_to targets exist
+grep -E "link_to.*_path\|button_to.*_path" "$view_path"
 
-# Check the response is used
-grep -E "await.*fetch|\.then\(|setData|setState" "$component_path"
+# Check Turbo Frame/Stream targets (Hotwire)
+grep -E "turbo_frame_tag\|turbo_stream" "$view_path"
 ```
 
 **Red flags:**
-```typescript
-// Fetch exists but response ignored:
-fetch('/api/messages')  // No await, no .then, no assignment
+```erb
+<%# Form exists but points nowhere: %>
+<%= form_with url: "#" do |f| %>
 
-// Fetch in comment:
-// fetch('/api/messages').then(r => r.json()).then(setMessages)
+<%# Link to undefined route: %>
+<%= link_to "Show", "/undefined_path" %>
 
-// Fetch to wrong endpoint:
-fetch('/api/message')  // Typo - should be /api/messages
+<%# Form action commented out: %>
+<%# form_with model: @user do |f| %>
 ```
 
-### Pattern: API → Database
-
-**Check:** Does the API route actually query the database?
-
-```bash
-# Find the database call
-grep -E "prisma\.$model|db\.query|Model\.find" "$route_path"
-
-# Verify it's awaited
-grep -E "await.*prisma|await.*db\." "$route_path"
-
-# Check result is returned
-grep -E "return.*json.*data|res\.json.*result" "$route_path"
-```
-
-**Red flags:**
-```typescript
-// Query exists but result not returned:
-await prisma.message.findMany()
-return Response.json({ ok: true })  // Returns static, not query result
-
-// Query not awaited:
-const messages = prisma.message.findMany()  // Missing await
-return Response.json(messages)  // Returns Promise, not data
-```
-
-### Pattern: Form → Handler
-
-**Check:** Does the form submission actually do something?
-
-```bash
-# Find onSubmit handler
-grep -E "onSubmit=\{|handleSubmit" "$component_path"
-
-# Check handler has content
-grep -A 10 "onSubmit.*=" "$component_path" | grep -E "fetch|axios|mutate|dispatch"
-
-# Verify not just preventDefault
-grep -A 5 "onSubmit" "$component_path" | grep -v "only.*preventDefault" -i
-```
-
-**Red flags:**
-```typescript
-// Handler only prevents default:
-onSubmit={(e) => e.preventDefault()}
-
-// Handler only logs:
-const handleSubmit = (data) => {
-  console.log(data)
-}
-
-// Handler is empty:
-onSubmit={() => {}}
-```
-
-### Pattern: State → Render
-
-**Check:** Does the component render state, not hardcoded content?
-
-```bash
-# Find state usage in JSX
-grep -E "\{.*messages.*\}|\{.*data.*\}|\{.*items.*\}" "$component_path"
-
-# Check map/render of state
-grep -E "\.map\(|\.filter\(|\.reduce\(" "$component_path"
-
-# Verify dynamic content
-grep -E "\{[a-zA-Z_]+\." "$component_path"  # Variable interpolation
-```
-
-**Red flags:**
-```tsx
-// Hardcoded instead of state:
-return <div>
-  <p>Message 1</p>
-  <p>Message 2</p>
-</div>
-
-// State exists but not rendered:
-const [messages, setMessages] = useState([])
-return <div>No messages</div>  // Always shows "no messages"
-
-// Wrong state rendered:
-const [messages, setMessages] = useState([])
-return <div>{otherData.map(...)}</div>  // Uses different data
-```
-
-### Pattern: Rails Controller → Model
+### Pattern: Controller → Model
 
 **Check:** Does the controller actually query/persist via the model?
 
@@ -706,7 +584,7 @@ return <div>{otherData.map(...)}</div>  // Uses different data
 # Find model usage in controller
 grep -E "$model_name\.(find|where|create|new|update|destroy|all|first|last)" "$controller_path"
 
-# Verify result is assigned
+# Verify result is assigned to instance variable
 grep -E "@$instance_var.*=.*$model_name\." "$controller_path"
 
 # Check result is used in response
@@ -731,6 +609,71 @@ def create
   @user = User.create  # No params
   redirect_to @user
 end
+```
+
+### Pattern: Form → Controller Action
+
+**Check:** Does the form submission actually trigger persistence?
+
+```bash
+# Find form_with targeting a model or URL
+grep -E "form_with.*model:|form_with.*url:" "$view_path"
+
+# Check controller action has strong params and saves
+grep -A 10 "def create\|def update" "$controller_path" | grep -E "\.save\|\.create\|\.update"
+
+# Verify redirect or render after save
+grep -A 15 "def create\|def update" "$controller_path" | grep -E "redirect_to\|render"
+```
+
+**Red flags:**
+```ruby
+# Controller action doesn't save:
+def create
+  @user = User.new(user_params)
+  # Missing: @user.save
+  redirect_to users_path
+end
+
+# Action only logs:
+def create
+  Rails.logger.info(params.inspect)
+  render json: { ok: true }
+end
+
+# Empty action:
+def create
+  head :ok
+end
+```
+
+### Pattern: Instance Variable → View
+
+**Check:** Does the view render data from instance variables, not hardcoded content?
+
+```bash
+# Find instance variable usage in view
+grep -E "@$instance_var\b" "$view_path"
+
+# Check iteration over collections
+grep -E "@$collection\.each\|@$collection\.map" "$view_path"
+
+# Verify dynamic content (ERB interpolation)
+grep -E "<%=.*@" "$view_path"
+```
+
+**Red flags:**
+```erb
+<%# Hardcoded instead of from instance var: %>
+<p>Message 1</p>
+<p>Message 2</p>
+
+<%# Instance var exists but not rendered: %>
+<%# Controller sets @messages but view shows: %>
+<p>No messages</p>
+
+<%# Wrong variable rendered: %>
+<% @other_data.each do |item| %>  <%# Should be @messages %>
 ```
 
 ### Pattern: Rails Model → Database
@@ -768,40 +711,15 @@ grep -E "@[a-z_]+\." "$service_path" | grep -v "def initialize"
 
 For each artifact type, run through this checklist:
 
-### Component Checklist
-- [ ] File exists at expected path
-- [ ] Exports a function/const component
-- [ ] Returns JSX (not null/empty)
-- [ ] No placeholder text in render
-- [ ] Uses props or state (not static)
-- [ ] Event handlers have real implementations
-- [ ] Imports resolve correctly
-- [ ] Used somewhere in the app
-
-### API Route Checklist
-- [ ] File exists at expected path
-- [ ] Exports HTTP method handlers
-- [ ] Handlers have more than 5 lines
-- [ ] Queries database or service
-- [ ] Returns meaningful response (not empty/placeholder)
-- [ ] Has error handling
-- [ ] Validates input
-- [ ] Called from frontend
-
-### Schema Checklist
-- [ ] Model/table defined
-- [ ] Has all expected fields
-- [ ] Fields have appropriate types
-- [ ] Relationships defined if needed
-- [ ] Migrations exist and applied
-- [ ] Client generated
-
-### Hook/Utility Checklist
-- [ ] File exists at expected path
-- [ ] Exports function
-- [ ] Has meaningful implementation (not empty returns)
-- [ ] Used somewhere in the app
-- [ ] Return values consumed
+### Rails View Checklist
+- [ ] File exists at expected path (`app/views/`)
+- [ ] Renders dynamic content via instance variables (not hardcoded)
+- [ ] No placeholder text in output
+- [ ] Forms use `form_with` pointing to valid routes
+- [ ] Partials exist if referenced (`render partial:`)
+- [ ] Turbo frames/streams wired correctly (if using Hotwire)
+- [ ] Layout references resolve
+- [ ] Used by at least one controller action
 
 ### Rails Controller Checklist
 - [ ] File exists at expected path
@@ -830,12 +748,6 @@ For each artifact type, run through this checklist:
 - [ ] Error handling present
 - [ ] Dependencies injected or required
 
-### Wiring Checklist (JS)
-- [ ] Component → API: fetch/axios call exists and uses response
-- [ ] API → Database: query exists and result returned
-- [ ] Form → Handler: onSubmit calls API/mutation
-- [ ] State → Render: state variables appear in JSX
-
 ### Wiring Checklist (Ruby/Rails)
 - [ ] Controller → Model: actions query/persist, results assigned to instance vars
 - [ ] Model → Database: validations match schema constraints, associations valid
@@ -863,11 +775,11 @@ check_stubs() {
   [ "$stubs" -gt 0 ] && echo "STUB_PATTERNS: $stubs in $file"
 }
 
-# 3. Check wiring (component calls API)
+# 3. Check wiring (view references controller, controller uses model)
 check_wiring() {
-  local component="$1"
-  local api_path="$2"
-  grep -q "$api_path" "$component" && echo "WIRED: $component → $api_path" || echo "NOT_WIRED: $component → $api_path"
+  local source="$1"
+  local target="$2"
+  grep -q "$target" "$source" && echo "WIRED: $source → $target" || echo "NOT_WIRED: $source → $target"
 }
 
 # 4. Check substantive (more than N lines, has expected patterns)

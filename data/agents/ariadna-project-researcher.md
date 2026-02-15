@@ -260,11 +260,11 @@ Based on research, suggested phase structure:
 ## Installation
 
 \`\`\`bash
-# Core
-npm install [packages]
+# Core gems
+bundle add [gems]
 
-# Dev dependencies
-npm install -D [packages]
+# Or add to Gemfile directly
+gem "[name]", "~> [version]"
 \`\`\`
 
 ## Sources
@@ -352,7 +352,7 @@ Defer: [Feature]: [reason]
 **What:** [description]
 **When:** [conditions]
 **Example:**
-\`\`\`typescript
+\`\`\`ruby
 [code]
 \`\`\`
 

@@ -123,12 +123,12 @@ skipped: [N]
   reason: "User reported: works but doesn't show until I refresh the page"
   severity: major
   test: 2
-  root_cause: "useEffect in CommentList.tsx missing commentCount dependency"
+  root_cause: "after_commit in Comment model not invalidating counter cache"
   artifacts:
-    - path: "src/components/CommentList.tsx"
-      issue: "useEffect missing dependency"
+    - path: "app/models/comment.rb"
+      issue: "after_commit not invalidating counter cache"
   missing:
-    - "Add commentCount to useEffect dependency array"
+    - "Add counter cache invalidation to after_commit callback"
   debug_session: ".planning/debug/comment-not-refreshing.md"
 ```
 
@@ -236,12 +236,12 @@ skipped: 0
   reason: "User reported: works but doesn't show until I refresh the page"
   severity: major
   test: 2
-  root_cause: "useEffect in CommentList.tsx missing commentCount dependency"
+  root_cause: "after_commit in Comment model not invalidating counter cache"
   artifacts:
-    - path: "src/components/CommentList.tsx"
-      issue: "useEffect missing dependency"
+    - path: "app/models/comment.rb"
+      issue: "after_commit not invalidating counter cache"
   missing:
-    - "Add commentCount to useEffect dependency array"
+    - "Add counter cache invalidation to after_commit callback"
   debug_session: ".planning/debug/comment-not-refreshing.md"
 ```
 </good_example>

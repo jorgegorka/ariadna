@@ -11,7 +11,7 @@ Template for `.planning/phases/XX-name/{phase}-{plan}-SUMMARY.md` - phase comple
 phase: XX-name
 plan: YY
 subsystem: [primary category: auth, payments, ui, api, database, infra, testing, etc.]
-tags: [searchable tech: jwt, stripe, react, postgres, prisma]
+tags: [searchable tech: jwt, stripe, rails, postgres, activerecord]
 
 # Dependency graph
 requires:
@@ -73,8 +73,8 @@ Each task was committed atomically:
 _Note: TDD tasks may have multiple commits (test → feat → refactor)_
 
 ## Files Created/Modified
-- `path/to/file.ts` - What it does
-- `path/to/another.ts` - What it does
+- `path/to/file.rb` - What it does
+- `path/to/another.rb` - What it does
 
 ## Decisions Made
 [Key decisions with brief rationale, or "None - followed plan as specified"]
@@ -149,8 +149,8 @@ None - no external service configuration required.
 The one-liner MUST be substantive:
 
 **Good:**
-- "JWT auth with refresh rotation using jose library"
-- "Prisma schema with User, Session, and Product models"
+- "JWT auth with refresh rotation using jwt gem"
+- "ActiveRecord schema with User, Session, and Product models"
 - "Dashboard with real-time metrics via Server-Sent Events"
 
 **Bad:**
@@ -166,7 +166,7 @@ The one-liner should tell someone what actually shipped.
 ```markdown
 # Phase 1: Foundation Summary
 
-**JWT auth with refresh rotation using jose library, Prisma User model, and protected API middleware**
+**JWT auth with refresh rotation using jwt gem, ActiveRecord User model, and before_action authentication**
 
 ## Performance
 
@@ -183,14 +183,13 @@ The one-liner should tell someone what actually shipped.
 - Refresh token rotation on each request
 
 ## Files Created/Modified
-- `prisma/schema.prisma` - User and Session models
-- `src/app/api/auth/login/route.ts` - Login endpoint
-- `src/app/api/auth/logout/route.ts` - Logout endpoint
-- `src/middleware.ts` - Protected route checks
-- `src/lib/auth.ts` - JWT helpers using jose
+- `db/migrate/20250115_create_users_and_sessions.rb` - User and Session migrations
+- `app/controllers/sessions_controller.rb` - Login/logout endpoints
+- `app/controllers/concerns/authenticatable.rb` - Protected route checks
+- `app/services/jwt_service.rb` - JWT helpers using jwt gem
 
 ## Decisions Made
-- Used jose instead of jsonwebtoken (ESM-native, Edge-compatible)
+- Used jwt gem for token generation (well-maintained, pure Ruby)
 - 15-min access tokens with 7-day refresh tokens
 - Storing refresh tokens in database for revocation capability
 
@@ -201,17 +200,17 @@ The one-liner should tell someone what actually shipped.
 **1. [Rule 2 - Missing Critical] Added password hashing with bcrypt**
 - **Found during:** Task 2 (Login endpoint implementation)
 - **Issue:** Plan didn't specify password hashing - storing plaintext would be critical security flaw
-- **Fix:** Added bcrypt hashing on registration, comparison on login with salt rounds 10
-- **Files modified:** src/app/api/auth/login/route.ts, src/lib/auth.ts
+- **Fix:** Added has_secure_password to User model with bcrypt
+- **Files modified:** app/controllers/sessions_controller.rb, app/services/jwt_service.rb
 - **Verification:** Password hash test passes, plaintext never stored
 - **Committed in:** abc123f (Task 2 commit)
 
-**2. [Rule 3 - Blocking] Installed missing jose dependency**
+**2. [Rule 3 - Blocking] Installed missing jwt dependency**
 - **Found during:** Task 4 (JWT token generation)
-- **Issue:** jose package not in package.json, import failing
-- **Fix:** Ran `npm install jose`
-- **Files modified:** package.json, package-lock.json
-- **Verification:** Import succeeds, build passes
+- **Issue:** jwt gem not in Gemfile, require failing
+- **Fix:** Ran `bundle add jwt`
+- **Files modified:** Gemfile, Gemfile.lock
+- **Verification:** Require succeeds, tests pass
 - **Committed in:** def456g (Task 4 commit)
 
 ---

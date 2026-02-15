@@ -54,10 +54,10 @@ Gap: Integration Phase 1→3 (Auth not passed to API calls)
 Gap: Flow "View dashboard" broken at data fetch
 
 → Phase 6: "Wire Dashboard to API"
-  - Add fetch to Dashboard.tsx
-  - Include auth header in fetch
-  - Handle response, update state
-  - Render user data
+  - Add controller action for dashboard data
+  - Include authentication before_action
+  - Load data into @instance_vars
+  - Render user data in ERB view
 ```
 
 ## 4. Determine Phase Numbers
@@ -180,25 +180,25 @@ gap:
   description: "User sees their data"
   reason: "Dashboard exists but doesn't fetch from API"
   missing:
-    - "useEffect with fetch to /api/user/data"
-    - "State for user data"
-    - "Render user data in JSX"
+    - "Turbo Frame with controller action for /dashboards/show"
+    - "Instance variables for user data"
+    - "Render user data in ERB"
 
 becomes:
 
 phase: "Wire Dashboard Data"
 tasks:
   - name: "Add data fetching"
-    files: [src/components/Dashboard.tsx]
-    action: "Add useEffect that fetches /api/user/data on mount"
+    files: [app/views/dashboards/show.html.erb, app/controllers/dashboards_controller.rb]
+    action: "Add Turbo Frame that loads user data via controller action"
 
-  - name: "Add state management"
-    files: [src/components/Dashboard.tsx]
-    action: "Add useState for userData, loading, error states"
+  - name: "Add data loading"
+    files: [app/controllers/dashboards_controller.rb]
+    action: "Load user data into @user_data, handle loading and error states"
 
   - name: "Render user data"
-    files: [src/components/Dashboard.tsx]
-    action: "Replace placeholder with userData.map rendering"
+    files: [app/views/dashboards/show.html.erb]
+    action: "Replace placeholder with @user_data rendering in ERB partial"
 ```
 
 **Integration gap → Tasks:**
@@ -214,15 +214,15 @@ gap:
 
 becomes:
 
-phase: "Add Auth to Dashboard API Calls"
+phase: "Add Auth to Dashboard Actions"
 tasks:
-  - name: "Add auth header to fetches"
-    files: [src/components/Dashboard.tsx, src/lib/api.ts]
-    action: "Include Authorization header with token in all API calls"
+  - name: "Add authentication to controller"
+    files: [app/controllers/dashboards_controller.rb, app/services/api_client.rb]
+    action: "Add before_action :authenticate_user! and include auth token in API calls"
 
   - name: "Handle 401 responses"
-    files: [src/lib/api.ts]
-    action: "Add interceptor to refresh token or redirect to login on 401"
+    files: [app/services/api_client.rb]
+    action: "Add error handling to refresh token or redirect to login on 401"
 ```
 
 **Flow gap → Tasks:**

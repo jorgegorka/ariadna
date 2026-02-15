@@ -104,7 +104,7 @@ Calculate milestone statistics:
 ```bash
 git log --oneline --grep="feat(" | head -20
 git diff --stat FIRST_COMMIT..LAST_COMMIT | tail -1
-find . -name "*.swift" -o -name "*.ts" -o -name "*.py" | xargs wc -l 2>/dev/null
+find . -name "*.rb" -o -name "*.erb" -o -name "*.rake" | xargs wc -l 2>/dev/null
 git log --format="%ai" FIRST_COMMIT | tail -1
 git log --format="%ai" LAST_COMMIT | head -1
 ```
@@ -277,8 +277,8 @@ Real-time sync that feels instant.
 
 ## Context
 
-Shipped v1.0 with 2,400 LOC TypeScript.
-Tech stack: Next.js, Supabase, Canvas API.
+Shipped v1.0 with 2,400 LOC Ruby.
+Tech stack: Rails, PostgreSQL, Canvas API.
 Initial user testing showed demand for shape tools.
 ```
 

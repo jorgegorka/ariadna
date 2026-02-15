@@ -1,7 +1,7 @@
 ---
 name: ariadna:execute-phase
 description: Execute all plans in a phase with wave-based parallelization
-argument-hint: "<phase-number> [--gaps-only]"
+argument-hint: "<phase-number> [--gaps-only] [--team]"
 allowed-tools:
   - Read
   - Write
@@ -12,11 +12,21 @@ allowed-tools:
   - Task
   - TodoWrite
   - AskUserQuestion
+  - TeamCreate
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
+  - TeamDelete
 ---
 <objective>
-Execute all plans in a phase using wave-based parallel execution.
+Execute all plans in a phase using wave-based parallel execution or team-based execution.
 
 Orchestrator stays lean: discover plans, analyze dependencies, group into waves, spawn subagents, collect results. Each subagent loads the full execute-plan context and handles its own plan.
+
+**Execution modes:**
+- **Wave mode (default):** Sequential waves of parallel `Task()` spawns. Standard for most phases.
+- **Team mode (`--team` flag or `team_execution: true` in config):** Creates a team with domain-specialized executor agents that coordinate via shared task list. Better for large phases with domain-split plans.
 
 Context budget: ~15% orchestrator, 100% fresh per subagent.
 </objective>
@@ -31,6 +41,7 @@ Phase: $ARGUMENTS
 
 **Flags:**
 - `--gaps-only` — Execute only gap closure plans (plans with `gap_closure: true` in frontmatter). Use after verify-work creates fix plans.
+- `--team` — Use team-based execution with domain-specialized agents instead of wave-based execution.
 
 @.planning/ROADMAP.md
 @.planning/STATE.md
@@ -38,5 +49,7 @@ Phase: $ARGUMENTS
 
 <process>
 Execute the execute-phase workflow from @~/.claude/ariadna/workflows/execute-phase.md end-to-end.
-Preserve all workflow gates (wave execution, checkpoint handling, verification, state updates, routing).
+Preserve all workflow gates (wave/team execution, checkpoint handling, verification, state updates, routing).
+
+**Mode selection:** If `--team` flag is present or `team_execution: true` in config, use the `team_execution` step. Otherwise use the standard `execute_waves` step.
 </process>

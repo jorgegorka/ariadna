@@ -81,16 +81,16 @@ Each task gets its own commit immediately after completion.
 
 ```bash
 # Standard task
-git add src/api/auth.ts src/types/user.ts
+git add app/controllers/sessions_controller.rb app/models/user.rb
 git commit -m "feat(08-02): create user registration endpoint
 
-- POST /auth/register validates email and password
+- POST /register validates email and password
 - Checks for duplicate users
 - Returns JWT token on success
 "
 
 # TDD task - RED phase
-git add src/__tests__/jwt.test.ts
+git add test/services/jwt_service_test.rb
 git commit -m "test(07-02): add failing test for JWT generation
 
 - Tests token contains user ID claim
@@ -99,10 +99,10 @@ git commit -m "test(07-02): add failing test for JWT generation
 "
 
 # TDD task - GREEN phase
-git add src/utils/jwt.ts
+git add app/services/jwt_service.rb
 git commit -m "feat(07-02): implement JWT generation
 
-- Uses jose library for signing
+- Uses jwt gem for signing
 - Includes user ID and expiry claims
 - Signs with HS256 algorithm
 "
@@ -162,7 +162,7 @@ ariadna-tools commit "wip: [phase-name] paused at task [X]/[Y]" --files .plannin
 a7f2d1 feat(checkout): Stripe payments with webhook verification
 3e9c4b feat(products): catalog with search, filters, and pagination
 8a1b2c feat(auth): JWT with refresh rotation using jose
-5c3d7e feat(foundation): Next.js 15 + Prisma + CSS scaffold
+5c3d7e feat(foundation): Rails 8 + PostgreSQL + CSS scaffold
 2f4a8d docs: initialize ecommerce-app (5 phases)
 ```
 
@@ -184,15 +184,15 @@ a7f2d1 feat(checkout): Stripe payments with webhook verification
 5y6z7a docs(02-02): complete token refresh plan
 8b9c0d feat(02-02): implement refresh token rotation
 1e2f3g test(02-02): add failing test for token refresh
-4h5i6j docs(02-01): complete JWT setup plan
+4h5i6j docs(02-01): complete session setup plan
 7k8l9m feat(02-01): add JWT generation and validation
-0n1o2p chore(02-01): install jose library
+0n1o2p chore(02-01): add jwt gem to Gemfile
 
 # Phase 01 - Foundation
 3q4r5s docs(01-01): complete scaffold plan
 6t7u8v feat(01-01): configure global styles and CSS layers
-9w0x1y feat(01-01): set up Prisma with database
-2z3a4b feat(01-01): create Next.js 15 project
+9w0x1y feat(01-01): set up PostgreSQL with ActiveRecord
+2z3a4b feat(01-01): create Rails 8 project
 
 # Initialization
 5c6d7e docs: initialize ecommerce-app (5 phases)

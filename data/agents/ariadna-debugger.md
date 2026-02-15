@@ -111,8 +111,8 @@ A good hypothesis can be proven wrong. If you can't design an experiment to disp
 - "There's a race condition somewhere"
 
 **Good (falsifiable):**
-- "User state is reset because component remounts when route changes"
-- "API call completes after unmount, causing state update on unmounted component"
+- "User state is lost because session expires between requests"
+- "Background job completes after redirect, updating stale record"
 - "Two async operations modify same array without locking, causing data loss"
 
 **The difference:** Specificity. Good hypotheses make specific, testable claims.
@@ -177,32 +177,33 @@ Don't fall in love with your first hypothesis. Generate alternatives.
 
 **Strong inference:** Design experiments that differentiate between competing hypotheses.
 
-```javascript
-// Problem: Form submission fails intermittently
-// Competing hypotheses: network timeout, validation, race condition, rate limiting
+```ruby
+# app/controllers/orders_controller.rb
+class OrdersController < ApplicationController
+  def create
+    Rails.logger.debug "=== ORDER CREATE DEBUG ==="
+    Rails.logger.debug "Params: #{params.inspect}"
+    Rails.logger.debug "Current user: #{current_user&.id}"
 
-try {
-  console.log('[1] Starting validation');
-  const validation = await validate(formData);
-  console.log('[1] Validation passed:', validation);
+    @order = current_user.orders.build(order_params)
+    Rails.logger.debug "Order valid? #{@order.valid?}"
+    Rails.logger.debug "Errors: #{@order.errors.full_messages}" unless @order.valid?
 
-  console.log('[2] Starting submission');
-  const response = await api.submit(formData);
-  console.log('[2] Response received:', response.status);
+    if @order.save
+      Rails.logger.debug "Order saved: #{@order.id}"
+      redirect_to @order, notice: "Order created successfully"
+    else
+      Rails.logger.debug "Save failed: #{@order.errors.full_messages}"
+      render :new, status: :unprocessable_entity
+    end
+  end
 
-  console.log('[3] Updating UI');
-  updateUI(response);
-  console.log('[3] Complete');
-} catch (error) {
-  console.log('[ERROR] Failed at stage:', error);
-}
+  private
 
-// Observe results:
-// - Fails at [2] with timeout → Network
-// - Fails at [1] with validation error → Validation
-// - Succeeds but [3] has wrong data → Race condition
-// - Fails at [2] with 429 status → Rate limiting
-// One experiment, differentiates four hypotheses.
+  def order_params
+    params.require(:order).permit(:product_id, :quantity, :notes)
+  end
+end
 ```
 
 ## Hypothesis Testing Pitfalls
@@ -266,19 +267,21 @@ Often you'll spot the bug mid-explanation: "Wait, I never verified that B return
 5. Bug is now obvious in stripped-down code
 
 **Example:**
-```jsx
-// Start: 500-line React component with 15 props, 8 hooks, 3 contexts
-// End after stripping:
-function MinimalRepro() {
-  const [count, setCount] = useState(0);
+```ruby
+# Minimal reproduction of callback loop
+# test/models/order_test.rb
+require "test_helper"
 
-  useEffect(() => {
-    setCount(count + 1); // Bug: infinite loop, missing dependency array
-  });
-
-  return <div>{count}</div>;
-}
-// The bug was hidden in complexity. Minimal reproduction made it obvious.
+class OrderCallbackTest < ActiveSupport::TestCase
+  test "updating status does not trigger infinite callback loop" do
+    order = orders(:pending)
+    # This triggers the bug: after_update calls recalculate_total,
+    # which updates the record, triggering after_update again
+    assert_nothing_raised do
+      order.update!(status: "confirmed")
+    end
+  end
+end
 ```
 
 ## Working Backwards
@@ -311,7 +314,7 @@ Trace backwards:
 
 **Time-based (worked, now doesn't):**
 - What changed in code since it worked?
-- What changed in environment? (Node version, OS, dependencies)
+- What changed in environment? (Ruby version, OS, dependencies)
 - What changed in data?
 - What changed in configuration?
 
@@ -327,7 +330,7 @@ Trace backwards:
 **Example:** Works locally, fails in CI
 ```
 Differences:
-- Node version: Same ✓
+- Ruby version: Same ✓
 - Environment variables: Same ✓
 - Timezone: Different! ✗
 
@@ -342,23 +345,21 @@ FOUND: Date comparison logic assumes local timezone
 
 **Add visibility before changing behavior:**
 
-```javascript
-// Strategic logging (useful):
-console.log('[handleSubmit] Input:', { email, password: '***' });
-console.log('[handleSubmit] Validation result:', validationResult);
-console.log('[handleSubmit] API response:', response);
+```ruby
+# Strategic logging placement
+Rails.logger.debug ">>> Method entry: #{__method__}"
+Rails.logger.debug ">>> Params: #{params.inspect}"
+Rails.logger.debug ">>> Current state: #{@record.attributes}"
 
-// Assertion checks:
-console.assert(user !== null, 'User is null!');
-console.assert(user.id !== undefined, 'User ID is undefined!');
+# Conditional breakpoints with logging
+Rails.logger.debug ">>> BREAKPOINT: Unexpected nil value for user" if @user.nil?
 
-// Timing measurements:
-console.time('Database query');
-const result = await db.query(sql);
-console.timeEnd('Database query');
-
-// Stack traces at key points:
-console.log('[updateUser] Called from:', new Error().stack);
+# Execution flow tracking
+Rails.logger.tagged("OrderFlow") do
+  Rails.logger.debug "Step 1: Validating order"
+  Rails.logger.debug "Step 2: Processing payment"
+  Rails.logger.debug "Step 3: Sending confirmation"
+end
 ```
 
 **Workflow:** Add logging -> Run code -> Observe output -> Form hypothesis -> Then make changes.
@@ -375,12 +376,14 @@ console.log('[updateUser] Called from:', new Error().stack);
 5. When bug returns, you found the culprit
 
 **Example:** Some middleware breaks requests, but you have 8 middleware functions
-```javascript
-app.use(helmet()); // Uncomment, test → works
-app.use(cors()); // Uncomment, test → works
-app.use(compression()); // Uncomment, test → works
-app.use(bodyParser.json({ limit: '50mb' })); // Uncomment, test → BREAKS
-// FOUND: Body size limit too high causes memory issues
+```ruby
+# config/application.rb
+config.middleware.insert_before 0, Rack::Cors do
+  allow do
+    origins "*"
+    resource "*", headers: :any, methods: [:get, :post, :put, :delete, :options]
+  end
+end
 ```
 
 ## Git Bisect
@@ -465,7 +468,7 @@ A fix is verified when ALL of these are true:
 ## Environment Verification
 
 **Differences to consider:**
-- Environment variables (`NODE_ENV=development` vs `production`)
+- Environment variables (`RAILS_ENV=development` vs `RAILS_ENV=production`)
 - Dependencies (different package versions, system libraries)
 - Data (volume, quality, edge cases)
 - Network (latency, reliability, firewalls)
@@ -483,34 +486,39 @@ A fix is verified when ALL of these are true:
 ```bash
 # Repeated execution
 for i in {1..100}; do
-  npm test -- specific-test.js || echo "Failed on run $i"
+  bundle exec ruby -Itest test/specific_test.rb || echo "Failed on run $i"
 done
 ```
 
 If it fails even once, it's not fixed.
 
 **Stress testing (parallel):**
-```javascript
-// Run many instances in parallel
-const promises = Array(50).fill().map(() =>
-  processData(testInput)
-);
-const results = await Promise.all(promises);
-// All results should be correct
+```ruby
+# Stress testing with threads
+results = []
+threads = 10.times.map do |i|
+  Thread.new do
+    results << OrderService.new(user).process_order(product)
+  end
+end
+threads.each(&:join)
+assert_equal 10, results.compact.size
 ```
 
 **Race condition testing:**
-```javascript
-// Add random delays to expose timing bugs
-async function testWithRandomTiming() {
-  await randomDelay(0, 100);
-  triggerAction1();
-  await randomDelay(0, 100);
-  triggerAction2();
-  await randomDelay(0, 100);
-  verifyResult();
-}
-// Run this 1000 times
+```ruby
+# Race condition detection
+order = orders(:pending)
+threads = 5.times.map do
+  Thread.new do
+    order.reload
+    order.update!(quantity: order.quantity + 1)
+  end
+end
+threads.each(&:join)
+order.reload
+# If no race condition, quantity should have increased by 5
+assert_equal original_quantity + 5, order.quantity
 ```
 
 ## Test-First Debugging
@@ -524,26 +532,25 @@ async function testWithRandomTiming() {
 - Forces you to understand the bug precisely
 
 **Process:**
-```javascript
-// 1. Write test that reproduces bug
-test('should handle undefined user data gracefully', () => {
-  const result = processUserData(undefined);
-  expect(result).toBe(null); // Currently throws error
-});
+```ruby
+# Write the failing test first
+# test/services/discount_calculator_test.rb
+require "test_helper"
 
-// 2. Verify test fails (confirms it reproduces bug)
-// ✗ TypeError: Cannot read property 'name' of undefined
+class DiscountCalculatorTest < ActiveSupport::TestCase
+  test "applies percentage discount correctly" do
+    calculator = DiscountCalculator.new(base_price: 100.0)
+    result = calculator.apply(discount_type: :percentage, value: 15)
+    assert_equal 85.0, result.final_price
+    assert_equal 15.0, result.discount_amount
+  end
 
-// 3. Fix the code
-function processUserData(user) {
-  if (!user) return null; // Add defensive check
-  return user.name;
-}
-
-// 4. Verify test passes
-// ✓ should handle undefined user data gracefully
-
-// 5. Test is now regression protection forever
+  test "does not allow discount exceeding total" do
+    calculator = DiscountCalculator.new(base_price: 50.0)
+    result = calculator.apply(discount_type: :fixed, value: 75)
+    assert_equal 0.0, result.final_price
+  end
+end
 ```
 
 ## Verification Checklist
@@ -653,7 +660,7 @@ The cost of insufficient verification: bug returns, user frustration, emergency 
 
 **Web Search:**
 - Use exact error messages in quotes: `"Cannot read property 'map' of undefined"`
-- Include version: `"react 18 useEffect behavior"`
+- Include version: `"rails 8 turbo stream behavior"`
 - Add "github issue" for known bugs
 
 **Context7 MCP:**
@@ -990,8 +997,8 @@ INIT=$(ariadna-tools state load)
 
 Stage and commit code changes (NEVER `git add -A` or `git add .`):
 ```bash
-git add src/path/to/fixed-file.ts
-git add src/path/to/other-file.ts
+git add app/path/to/fixed_file.rb
+git add app/path/to/other_file.rb
 git commit -m "fix: {brief description}
 
 Root cause: {root_cause}"

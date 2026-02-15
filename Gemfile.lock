@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    ariadna (0.1.0)
+    ariadna (1.1.1)
 
 GEM
   remote: https://rubygems.org/
@@ -59,7 +59,7 @@ DEPENDENCIES
 
 CHECKSUMS
   ansi (1.5.0) sha256=5408253274e33d9d27d4a98c46d2998266fd51cba58a7eb9d08f50e57ed23592
-  ariadna (0.1.0)
+  ariadna (1.1.1)
   ast (2.4.3) sha256=954615157c1d6a382bc27d690d973195e79db7f55e9765ac7c481c60bdb4d383
   builder (3.3.0) sha256=497918d2f9dca528fdca4b88d84e4ef4387256d984b8154e9d5d3fe5a9c8835f
   json (2.18.1) sha256=fe112755501b8d0466b5ada6cf50c8c3f41e897fa128ac5d263ec09eedc9f986

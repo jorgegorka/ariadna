@@ -77,4 +77,25 @@ class FrontmatterTest < Minitest::Test
     body = Ariadna::Tools::Frontmatter.body(content)
     assert_equal "# Just text", body
   end
+
+  def test_extract_domain_fields
+    content = "---\nphase: 03-features\nplan: 01\ntype: execute\ndomain: backend\ndomain_guide: backend.md\n---\n\n# Body"
+    fm = Ariadna::Tools::Frontmatter.extract(content)
+    assert_equal "backend", fm["domain"]
+    assert_equal "backend.md", fm["domain_guide"]
+  end
+
+  def test_plan_validates_with_domain_field
+    dir = Dir.mktmpdir
+    plan_content = "---\nphase: 03-features\nplan: 01\ntype: execute\ndomain: backend\n---\n\n# Body"
+    plan_path = File.join(dir, "test-plan.md")
+    File.write(plan_path, plan_content)
+
+    fm = Ariadna::Tools::Frontmatter.extract(plan_content)
+    required = Ariadna::Tools::Frontmatter::SCHEMAS["plan"]
+    missing = required.reject { |f| fm.key?(f) }
+    assert_empty missing, "Plan with domain field should pass validation"
+  ensure
+    FileUtils.rm_rf(dir)
+  end
 end

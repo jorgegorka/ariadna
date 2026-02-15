@@ -11,7 +11,7 @@ Template for `.planning/phases/XX-name/{phase}-VERIFICATION.md` — phase goal v
 phase: XX-name
 verified: YYYY-MM-DDTHH:MM:SSZ
 status: passed | gaps_found | human_needed
-score: N/M must-haves verified
+score: N/M must-haves verified | security: N critical, N high | performance: N high
 ---
 
 # Phase {X}: {Name} Verification Report
@@ -36,9 +36,9 @@ score: N/M must-haves verified
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `src/components/Chat.tsx` | Message list component | ✓ EXISTS + SUBSTANTIVE | Exports ChatList, renders Message[], no stubs |
-| `src/app/api/chat/route.ts` | Message CRUD | ✗ STUB | File exists but POST returns placeholder |
-| `prisma/schema.prisma` | Message model | ✓ EXISTS + SUBSTANTIVE | Model defined with all fields |
+| `app/controllers/chats_controller.rb` | Chat CRUD actions | ✓ EXISTS + SUBSTANTIVE | Defines index, show, create actions with model queries |
+| `app/models/message.rb` | Message model | ✗ STUB | File exists but empty class body, no validations |
+| `db/migrate/20250115_create_messages.rb` | Messages table | ✓ EXISTS + SUBSTANTIVE | Creates table with content, user_id, chat_id columns |
 
 **Artifacts:** {N}/{M} verified
 
@@ -46,9 +46,9 @@ score: N/M must-haves verified
 
 | From | To | Via | Status | Details |
 |------|----|----|--------|---------|
-| Chat.tsx | /api/chat | fetch in useEffect | ✓ WIRED | Line 23: `fetch('/api/chat')` with response handling |
-| ChatInput | /api/chat POST | onSubmit handler | ✗ NOT WIRED | onSubmit only calls console.log |
-| /api/chat POST | database | prisma.message.create | ✗ NOT WIRED | Returns hardcoded response, no DB call |
+| chats_controller.rb | message.rb | Message.where in index | ✓ WIRED | Line 8: `@messages = Message.where(chat_id: @chat.id)` |
+| chats/index.html.erb | chats_controller.rb | @messages + chat_path | ✗ NOT WIRED | View uses @messages but controller doesn't set it in show |
+| routes.rb | chats_controller.rb | resources :chats | ✗ NOT WIRED | Route defined but controller missing `create` action |
 
 **Wiring:** {N}/{M} connections verified
 
@@ -66,11 +66,29 @@ score: N/M must-haves verified
 
 | File | Line | Pattern | Severity | Impact |
 |------|------|---------|----------|--------|
-| src/app/api/chat/route.ts | 12 | `// TODO: implement` | ⚠️ Warning | Indicates incomplete |
-| src/components/Chat.tsx | 45 | `return <div>Placeholder</div>` | 🛑 Blocker | Renders no content |
-| src/hooks/useChat.ts | - | File missing | 🛑 Blocker | Expected hook doesn't exist |
+| app/models/message.rb | 12 | `# TODO: add validations` | ⚠️ Warning | Indicates incomplete |
+| app/controllers/chats_controller.rb | 8 | `def show; end` | 🛑 Blocker | Empty action |
+| app/jobs/message_broadcast_job.rb | - | File missing | 🛑 Blocker | Expected job doesn't exist |
 
 **Anti-patterns:** {N} found ({blockers} blockers, {warnings} warnings)
+
+## Security Findings
+
+| Check | Name | Severity | File | Line | Detail |
+|-------|------|----------|------|------|--------|
+| 3.2a | Unscoped find | Critical | app/controllers/chats_controller.rb | 15 | `Message.find(params[:id])` without user scoping |
+| 2.2a | Strong parameters | High | app/controllers/chats_controller.rb | 28 | Missing strong parameter filtering |
+
+**Security:** {N} findings ({critical} critical, {high} high, {medium} medium)
+
+## Performance Findings
+
+| Check | Name | Severity | File | Line | Detail |
+|-------|------|----------|------|------|--------|
+| 1.1a | N+1 query | High | app/controllers/chats_controller.rb | 10 | `@messages = Message.all` without `.includes(:user)` |
+| 5.2a | Missing pagination | High | app/controllers/chats_controller.rb | 10 | Unbounded `.all` without `.page` or `.limit` |
+
+**Performance:** {N} findings ({high} high, {medium} medium, {low} low)
 
 ## Human Verification Required
 
@@ -162,9 +180,14 @@ None — all verifiable items checked programmatically.
 ## Guidelines
 
 **Status values:**
-- `passed` — All must-haves verified, no blockers
-- `gaps_found` — One or more critical gaps found
+- `passed` — All must-haves verified, no blockers, no Critical/High security findings, no excessive performance findings
+- `gaps_found` — One or more critical gaps found, or any Critical/High security findings, or 3+ High performance findings
 - `human_needed` — Automated checks pass but human verification required
+
+**Security/Performance impact on status:**
+- Any Critical or High security finding forces `gaps_found` regardless of other checks
+- 3+ High performance findings forces `gaps_found`; individual High findings are warnings
+- Medium and Low findings are informational and do not affect status
 
 **Evidence types:**
 - For EXISTS: "File at path, exports X"
@@ -192,7 +215,7 @@ None — all verifiable items checked programmatically.
 phase: 03-chat
 verified: 2025-01-15T14:30:00Z
 status: gaps_found
-score: 2/5 must-haves verified
+score: 2/5 must-haves verified | security: 1 critical, 1 high | performance: 2 high
 ---
 
 # Phase 3: Chat Interface Verification Report
@@ -207,11 +230,11 @@ score: 2/5 must-haves verified
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
-| 1 | User can see existing messages | ✗ FAILED | Component renders placeholder, not message data |
-| 2 | User can type a message | ✓ VERIFIED | Input field exists with onChange handler |
-| 3 | User can send a message | ✗ FAILED | onSubmit handler is console.log only |
-| 4 | Sent message appears in list | ✗ FAILED | No state update after send |
-| 5 | Messages persist across refresh | ? UNCERTAIN | Can't verify - send doesn't work |
+| 1 | User can see existing messages | ✗ FAILED | Controller index action returns empty, view renders static text |
+| 2 | User can type a message | ✓ VERIFIED | form_with in view with text_area for content |
+| 3 | User can send a message | ✗ FAILED | create action only calls `head :ok`, no model interaction |
+| 4 | Sent message appears in list | ✗ FAILED | No Turbo Stream or redirect after create |
+| 5 | Messages persist across refresh | ? UNCERTAIN | Can't verify — create doesn't save to database |
 
 **Score:** 1/5 truths verified
 
@@ -219,10 +242,10 @@ score: 2/5 must-haves verified
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `src/components/Chat.tsx` | Message list component | ✗ STUB | Returns `<div>Chat will be here</div>` |
-| `src/components/ChatInput.tsx` | Message input | ✓ EXISTS + SUBSTANTIVE | Form with input, submit button, handlers |
-| `src/app/api/chat/route.ts` | Message CRUD | ✗ STUB | GET returns [], POST returns { ok: true } |
-| `prisma/schema.prisma` | Message model | ✓ EXISTS + SUBSTANTIVE | Message model with id, content, userId, createdAt |
+| `app/controllers/chats_controller.rb` | Chat CRUD actions | ✗ STUB | index assigns @messages but show/create are `head :ok` |
+| `app/views/chats/index.html.erb` | Message list view | ✓ EXISTS + SUBSTANTIVE | Iterates @messages, renders form_with for new message |
+| `app/models/message.rb` | Message model | ✗ STUB | Empty class body — no validations, no associations |
+| `db/migrate/20250115_create_messages.rb` | Messages table | ✓ EXISTS + SUBSTANTIVE | Creates table with content, user_id, chat_id, timestamps |
 
 **Artifacts:** 2/4 verified
 
@@ -230,10 +253,10 @@ score: 2/5 must-haves verified
 
 | From | To | Via | Status | Details |
 |------|----|----|--------|---------|
-| Chat.tsx | /api/chat GET | fetch | ✗ NOT WIRED | No fetch call in component |
-| ChatInput | /api/chat POST | onSubmit | ✗ NOT WIRED | Handler only logs, doesn't fetch |
-| /api/chat GET | database | prisma.message.findMany | ✗ NOT WIRED | Returns hardcoded [] |
-| /api/chat POST | database | prisma.message.create | ✗ NOT WIRED | Returns { ok: true }, no DB call |
+| chats_controller.rb | message.rb | Message.where in index | ✗ NOT WIRED | Index assigns `@messages = []` (hardcoded empty) |
+| chats/index.html.erb | chats_controller.rb | @messages + form_with | ✗ PARTIAL | View uses @messages but controller doesn't query |
+| routes.rb | chats_controller.rb | resources :chats | ✗ PARTIAL | Routes defined but create action is stub |
+| message.rb | database | belongs_to + migration | ✗ NOT WIRED | Model has no associations, migration exists |
 
 **Wiring:** 0/4 connections verified
 
@@ -241,9 +264,9 @@ score: 2/5 must-haves verified
 
 | Requirement | Status | Blocking Issue |
 |-------------|--------|----------------|
-| CHAT-01: User can send message | ✗ BLOCKED | API POST is stub |
-| CHAT-02: User can view messages | ✗ BLOCKED | Component is placeholder |
-| CHAT-03: Messages persist | ✗ BLOCKED | No database integration |
+| CHAT-01: User can send message | ✗ BLOCKED | create action is stub |
+| CHAT-02: User can view messages | ✗ BLOCKED | Controller returns hardcoded empty |
+| CHAT-03: Messages persist | ✗ BLOCKED | No database integration in controller |
 
 **Coverage:** 0/3 requirements satisfied
 
@@ -251,11 +274,29 @@ score: 2/5 must-haves verified
 
 | File | Line | Pattern | Severity | Impact |
 |------|------|---------|----------|--------|
-| src/components/Chat.tsx | 8 | `<div>Chat will be here</div>` | 🛑 Blocker | No actual content |
-| src/app/api/chat/route.ts | 5 | `return Response.json([])` | 🛑 Blocker | Hardcoded empty |
-| src/app/api/chat/route.ts | 12 | `// TODO: save to database` | ⚠️ Warning | Incomplete |
+| app/controllers/chats_controller.rb | 12 | `def create; head :ok; end` | 🛑 Blocker | No-op action |
+| app/models/message.rb | 1 | Empty class body | 🛑 Blocker | No validations or associations |
+| app/controllers/chats_controller.rb | 5 | `# TODO: query messages` | ⚠️ Warning | Incomplete |
 
 **Anti-patterns:** 3 found (2 blockers, 1 warning)
+
+## Security Findings
+
+| Check | Name | Severity | File | Line | Detail |
+|-------|------|----------|------|------|--------|
+| 3.2a | Unscoped find | Critical | app/controllers/chats_controller.rb | 8 | `Chat.find(params[:id])` without user scoping |
+| 2.2a | Missing strong params | High | app/controllers/chats_controller.rb | 12 | create action has no strong parameter filtering |
+
+**Security:** 2 findings (1 critical, 1 high, 0 medium)
+
+## Performance Findings
+
+| Check | Name | Severity | File | Line | Detail |
+|-------|------|----------|------|------|--------|
+| 1.1a | Missing eager load | High | app/controllers/chats_controller.rb | 5 | @messages query (once wired) will N+1 on user association |
+| 5.2a | Missing pagination | High | app/controllers/chats_controller.rb | 5 | Unbounded query without .page or .limit |
+
+**Performance:** 2 findings (2 high, 0 medium, 0 low)
 
 ## Human Verification Required
 
@@ -265,44 +306,52 @@ None needed until automated gaps are fixed.
 
 ### Critical Gaps (Block Progress)
 
-1. **Chat component is placeholder**
-   - Missing: Actual message list rendering
-   - Impact: Users see "Chat will be here" instead of messages
-   - Fix: Implement Chat.tsx to fetch and render messages
+1. **Controller actions are stubs**
+   - Missing: Model queries in index, create logic in create
+   - Impact: Users see empty page, message submission does nothing
+   - Fix: Wire controller actions to Message model
 
-2. **API routes are stubs**
-   - Missing: Database integration in GET and POST
-   - Impact: No data persistence, no real functionality
-   - Fix: Wire prisma calls in route handlers
+2. **Message model is empty**
+   - Missing: Validations, associations (belongs_to :chat, belongs_to :user)
+   - Impact: No data integrity, no association traversal
+   - Fix: Add validations and associations to Message model
 
-3. **No wiring between frontend and backend**
-   - Missing: fetch calls in components
-   - Impact: Even if API worked, UI wouldn't call it
-   - Fix: Add useEffect fetch in Chat, onSubmit fetch in ChatInput
+3. **No wiring between controller and model**
+   - Missing: Message.where/create calls in controller
+   - Impact: Even with model fixed, controller wouldn't use it
+   - Fix: Wire controller index to Message.where, create to Message.create
+
+### Non-Critical Gaps (Can Defer)
+
+1. **Security: Unscoped find**
+   - Issue: Chat.find(params[:id]) allows IDOR
+   - Impact: Users could access other users' chats
+   - Recommendation: Fix now — scope through Current.user
 
 ## Recommended Fix Plans
 
-### 03-04-PLAN.md: Implement Chat API
+### 03-04-PLAN.md: Wire Chat Model
 
-**Objective:** Wire API routes to database
+**Objective:** Make Message model functional with validations and associations
 
 **Tasks:**
-1. Implement GET /api/chat with prisma.message.findMany
-2. Implement POST /api/chat with prisma.message.create
-3. Verify: API returns real data, POST creates records
+1. Add belongs_to :chat, belongs_to :user associations to Message
+2. Add content presence validation and length constraint
+3. Verify: Message.create with valid/invalid data behaves correctly
 
 **Estimated scope:** Small
 
 ---
 
-### 03-05-PLAN.md: Implement Chat UI
+### 03-05-PLAN.md: Wire Chat Controller
 
-**Objective:** Wire Chat component to API
+**Objective:** Connect controller actions to Message model
 
 **Tasks:**
-1. Implement Chat.tsx with useEffect fetch and message rendering
-2. Wire ChatInput onSubmit to POST /api/chat
-3. Verify: Messages display, new messages appear after send
+1. Wire index action: `@messages = @chat.messages.includes(:user).order(created_at: :asc)`
+2. Wire create action: `Message.create(message_params)` with strong params and Turbo Stream response
+3. Scope Chat.find through Current.user to fix IDOR
+4. Verify: Messages display, new messages appear after send
 
 **Estimated scope:** Small
 
@@ -313,6 +362,8 @@ None needed until automated gaps are fixed.
 **Verification approach:** Goal-backward (derived from phase goal)
 **Must-haves source:** 03-01-PLAN.md frontmatter
 **Automated checks:** 2 passed, 8 failed
+**Security checks:** 2 findings (1 critical, 1 high)
+**Performance checks:** 2 findings (2 high)
 **Human checks required:** 0 (blocked by automated failures)
 **Total verification time:** 2 min
 

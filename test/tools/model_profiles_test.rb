@@ -31,9 +31,19 @@ class ModelProfilesTest < Minitest::Test
       ariadna-research-synthesizer ariadna-debugger
       ariadna-codebase-mapper ariadna-verifier
       ariadna-plan-checker ariadna-integration-checker
+      ariadna-backend-executor ariadna-frontend-executor
+      ariadna-test-executor
     ]
     expected.each do |agent|
       refute_nil Ariadna::Tools::ModelProfiles::PROFILES[agent], "Missing profile for #{agent}"
+    end
+  end
+
+  def test_domain_executor_profiles
+    %w[ariadna-backend-executor ariadna-frontend-executor ariadna-test-executor].each do |agent|
+      assert_equal "opus", Ariadna::Tools::ModelProfiles.resolve_model(agent, "quality")
+      assert_equal "sonnet", Ariadna::Tools::ModelProfiles.resolve_model(agent, "balanced")
+      assert_equal "sonnet", Ariadna::Tools::ModelProfiles.resolve_model(agent, "budget")
     end
   end
 end

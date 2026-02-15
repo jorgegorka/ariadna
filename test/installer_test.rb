@@ -43,6 +43,27 @@ class InstallerTest < Minitest::Test
     assert File.directory?(File.join(@tmpdir, "ariadna", "references")), "references/ should exist"
   end
 
+  def test_fresh_install_creates_guides
+    installer = Ariadna::Installer.new(target_dir: @tmpdir)
+    installer.install
+
+    guides_dir = File.join(@tmpdir, "guides")
+    assert File.directory?(guides_dir), "guides/ should exist"
+    assert File.exist?(File.join(guides_dir, "backend.md")), "backend.md should exist"
+    assert File.exist?(File.join(guides_dir, "frontend.md")), "frontend.md should exist"
+    assert File.exist?(File.join(guides_dir, "testing.md")), "testing.md should exist"
+  end
+
+  def test_guides_included_in_manifest
+    installer = Ariadna::Installer.new(target_dir: @tmpdir)
+    installer.install
+
+    manifest = JSON.parse(File.read(File.join(@tmpdir, Ariadna::Installer::MANIFEST_NAME)))
+    guide_entries = manifest["files"].keys.select { |k| k.start_with?("guides/") }
+    refute_empty guide_entries, "manifest should include guide entries"
+    assert guide_entries.any? { |k| k.include?("backend.md") }, "manifest should include backend.md"
+  end
+
   def test_fresh_install_writes_version
     installer = Ariadna::Installer.new(target_dir: @tmpdir)
     installer.install

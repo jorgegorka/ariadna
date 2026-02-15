@@ -35,7 +35,7 @@ completed: YYYY-MM-DD
 2. **Task 2: [task name]** - `hash`
 
 ## Files Created/Modified
-- `path/to/file.ts` - What it does
+- `path/to/file.rb` - What it does
 
 ## Next Phase Readiness
 [Ready for next phase]

@@ -152,7 +152,11 @@ The default settings are heavily influenced by our experience building Ruby on R
 
 We are firmly belivers in the [Rails is plenty](https://world.hey.com/jorge/a-vanilla-rails-stack-is-plenty-567a4708) philosophy, so our default settings are optimised for vanilla Ruby on Rails applications.
 
-We have taken plenty of inspiration from [Fizzy](https://www.fizzy.do/). If you are new to ruby on rails, we recommend you to check it out. It's a great resource for learning about the best practices and conventions of Ruby on Rails.
+This project has taken plenty of inspiration from [Fizzy](https://www.fizzy.do/). If you are new to ruby on rails, we recommend you to check it out. It's a great resource for learning about the best practices and conventions of Ruby on Rails.
+
+### Customisation
+
+The best way to customise Ariadna with your preferred technology, patterns and best practices is to update the guides available in `data/guides/`.
 
 ## Requirements
 

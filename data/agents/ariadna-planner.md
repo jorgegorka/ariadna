@@ -118,7 +118,7 @@ Discovery is MANDATORY unless you can prove current context exists.
 - Action: Full research with DISCOVERY.md
 
 **Depth indicators:**
-- Level 2+: New library not in package.json, external API, "choose/select/evaluate" in description
+- Level 2+: New library not in Gemfile, external API, "choose/select/evaluate" in description
 - Level 3: "architecture/design/system", multiple external services, data modeling, auth design
 
 For niche domains (3D, games, audio, shaders, ML), suggest `/ariadna:research-phase` before plan-phase.
@@ -132,15 +132,15 @@ For niche domains (3D, games, audio, shaders, ML), suggest `/ariadna:research-ph
 Every task has four required fields:
 
 **<files>:** Exact file paths created or modified.
-- Good: `src/app/api/auth/login/route.ts`, `prisma/schema.prisma`
+- Good: `app/controllers/sessions_controller.rb`, `db/migrate/xxx_create_users.rb`
 - Bad: "the auth files", "relevant components"
 
 **<action>:** Specific implementation instructions, including what to avoid and WHY.
-- Good: "Create POST endpoint accepting {email, password}, validates using bcrypt against User table, returns JWT in httpOnly cookie with 15-min expiry. Use jose library (not jsonwebtoken - CommonJS issues with Edge runtime)."
+- Good: "Create SessionsController#create accepting {email, password}, validates using has_secure_password against User model, sets session[:user_id] on success, returns 200 with user JSON."
 - Bad: "Add authentication", "Make login work"
 
 **<verify>:** How to prove the task is complete.
-- Good: `npm test` passes, `curl -X POST /api/auth/login` returns 200 with Set-Cookie header
+- Good: `bundle exec rake test` passes, `curl -X POST /api/auth/login` returns 200 with Set-Cookie header
 - Bad: "It works", "Looks good"
 
 **<done>:** Acceptance criteria - measurable state of completion.
@@ -176,17 +176,17 @@ Each task: **15-60 minutes** Claude execution time.
 
 | TOO VAGUE | JUST RIGHT |
 |-----------|------------|
-| "Add authentication" | "Add JWT auth with refresh rotation using jose library, store in httpOnly cookie, 15min access / 7day refresh" |
-| "Create the API" | "Create POST /api/projects endpoint accepting {name, description}, validates name length 3-50 chars, returns 201 with project object" |
+| "Add authentication" | "Add session-based auth using has_secure_password, store session in cookie, add before_action :authenticate_user! to ApplicationController" |
+| "Create the API" | "Create POST /projects endpoint in ProjectsController#create accepting {name, description}, validates name length 3-50 chars, returns 201 with project JSON" |
 | "Style the dashboard" | "Add CSS classes to dashboard view: grid layout (3 cols on lg via media query, 1 on mobile), card shadows via --shadow variable, hover states on action buttons per style guide" |
-| "Handle errors" | "Wrap API calls in try/catch, return {error: string} on 4xx/5xx, show toast via sonner on client" |
-| "Set up the database" | "Add User and Project models to schema.prisma with UUID ids, email unique constraint, createdAt/updatedAt timestamps, run prisma db push" |
+| "Handle errors" | "Add rescue_from in ApplicationController, render JSON errors on 4xx/5xx, show flash messages on server-rendered pages" |
+| "Set up the database" | "Add User and Project models with UUID primary keys, email unique constraint, timestamps, run rails db:migrate" |
 
 **Test:** Could a different Claude instance execute without asking clarifying questions? If not, add specificity.
 
 ## TDD Detection
 
-**Heuristic:** Can you write `expect(fn(input)).toBe(output)` before writing `fn`?
+**Heuristic:** Can you write `assert_equal expected, fn(input)` before writing `fn`?
 - Yes → Create a dedicated TDD plan (type: tdd)
 - No → Standard task in standard plan
 
@@ -200,7 +200,7 @@ Each task: **15-60 minutes** Claude execution time.
 
 For tasks involving external services, identify human-required configuration:
 
-External service indicators: New SDK (`stripe`, `@sendgrid/mail`, `twilio`, `openai`), webhook handlers, OAuth integration, `process.env.SERVICE_*` patterns.
+External service indicators: New gem (`stripe`, `sendgrid-ruby`, `twilio-ruby`, `ruby-openai`), webhook handlers, OAuth integration, `ENV["SERVICE_*"]` patterns.
 
 For each external service, determine:
 1. **Env vars needed** — What secrets from dashboards?
@@ -223,11 +223,11 @@ Record in `user_setup` frontmatter. Only include what Claude literally cannot do
 **Example with 6 tasks:**
 
 ```
-Task A (User model): needs nothing, creates src/models/user.ts
-Task B (Product model): needs nothing, creates src/models/product.ts
-Task C (User API): needs Task A, creates src/api/users.ts
-Task D (Product API): needs Task B, creates src/api/products.ts
-Task E (Dashboard): needs Task C + D, creates src/components/Dashboard.tsx
+Task A (User model): needs nothing, creates app/models/user.rb
+Task B (Product model): needs nothing, creates app/models/product.rb
+Task C (User API): needs Task A, creates app/controllers/users_controller.rb
+Task D (Product API): needs Task B, creates app/controllers/products_controller.rb
+Task E (Dashboard): needs Task C + D, creates app/views/dashboards/show.html.erb
 Task F (Verify UI): checkpoint:human-verify, needs Task E
 
 Graph:
@@ -244,7 +244,7 @@ Wave analysis:
 
 ## Vertical Slices vs Horizontal Layers
 
-**Vertical slices (PREFER):**
+**Vertical slices (PREFER for standard mode):**
 ```
 Plan 01: User feature (model + API + UI)
 Plan 02: Product feature (model + API + UI)
@@ -252,7 +252,7 @@ Plan 03: Order feature (model + API + UI)
 ```
 Result: All three run parallel (Wave 1)
 
-**Horizontal layers (AVOID):**
+**Horizontal layers (AVOID in standard mode):**
 ```
 Plan 01: Create User model, Product model, Order model
 Plan 02: Create User API, Product API, Order API
@@ -264,21 +264,96 @@ Result: Fully sequential (02 needs 01, 03 needs 02)
 
 **When horizontal layers necessary:** Shared foundation required (auth before protected features), genuine type dependencies, infrastructure setup.
 
+**When domain-split works:** Large phases with clear backend/frontend/testing separation where domain-expert agents provide better results. See `<domain_split_mode>` below.
+
 ## File Ownership for Parallel Execution
 
 Exclusive file ownership prevents conflicts:
 
 ```yaml
 # Plan 01 frontmatter
-files_modified: [src/models/user.ts, src/api/users.ts]
+files_modified: [app/models/user.rb, app/controllers/users_controller.rb]
 
 # Plan 02 frontmatter (no overlap = parallel)
-files_modified: [src/models/product.ts, src/api/products.ts]
+files_modified: [app/models/product.rb, app/controllers/products_controller.rb]
 ```
 
 No overlap → can run parallel. File in multiple plans → later plan depends on earlier.
 
 </dependency_graph>
+
+<domain_split_mode>
+
+## Domain-Split Planning
+
+**Activation:** When `--domain-split` flag is passed OR config `execution_mode: "domain-split"`.
+
+**Alternative to vertical slices.** Instead of grouping by feature (model+API+UI per feature), group by domain expertise:
+
+- **backend** — models, concerns, controllers, jobs, migrations, config, mailers
+- **frontend** — views, presenters, Stimulus controllers, CSS, ERB templates, Turbo streams
+- **testing** — test files, fixtures, test helpers
+- **general** — files that don't fit a single domain (default)
+
+### Domain Assignment Rules
+
+| File Pattern | Domain |
+|-------------|--------|
+| `app/models/`, `app/controllers/`, `app/jobs/`, `app/mailers/`, `db/migrate/`, `config/` | backend |
+| `app/views/`, `app/presenters/`, `app/javascript/`, `app/assets/`, `*.css`, `*.scss` | frontend |
+| `test/`, `spec/`, `fixtures/` | testing |
+| Mixed or unclear | general |
+
+### Wave Ordering for Domain-Split
+
+```
+Wave 1: backend plans (models, controllers, jobs)
+Wave 2: frontend plans (views, presenters, Stimulus) — depends on backend
+         testing plans for backend-only code — can parallel with frontend
+Wave 3: testing plans for frontend + integration — depends on frontend
+```
+
+Backend goes first because frontend depends on models/controllers. Testing for backend-only code can run in parallel with frontend since both depend only on backend.
+
+### Domain-Split Plan Format
+
+Each plan gets `domain` and `domain_guide` frontmatter:
+
+```yaml
+---
+phase: 03-features
+plan: 01
+type: execute
+wave: 1
+depends_on: []
+files_modified: [app/models/user.rb, app/controllers/users_controller.rb]
+autonomous: true
+domain: backend
+domain_guide: backend.md
+---
+```
+
+### When to Use Domain-Split
+
+**Use domain-split when:**
+- Phase has 5+ plans spanning backend, frontend, and testing
+- Domain-specific guides exist and would improve executor output
+- Team execution mode is enabled (`team_execution: true`)
+
+**Use vertical slices when:**
+- Phase has 1-4 plans
+- Features are self-contained with minimal cross-domain dependencies
+- Standard wave-based execution is sufficient
+
+### Self-check for Domain-Split Plans
+
+- [ ] Every plan has `domain` field (backend, frontend, testing, or general)
+- [ ] Backend plans are in earlier waves than frontend plans that depend on them
+- [ ] Testing plans have correct `depends_on` for the code they test
+- [ ] No file appears in plans from different domains in the same wave
+- [ ] `domain_guide` is set when a matching guide exists
+
+</domain_split_mode>
 
 <scope_estimation>
 
@@ -346,6 +421,8 @@ depends_on: []              # Plan IDs this plan requires
 files_modified: []          # Files this plan touches
 autonomous: true            # false if plan has checkpoints
 user_setup: []              # Human-required setup (omit if empty)
+domain: general             # Optional: backend, frontend, testing, general
+domain_guide: ~             # Optional: guide filename (e.g., backend.md)
 
 must_haves:
   truths: []                # Observable behaviors
@@ -371,7 +448,7 @@ Output: [Artifacts created]
 @.planning/STATE.md
 
 # Only reference prior plan SUMMARYs if genuinely needed
-@path/to/relevant/source.ts
+@path/to/relevant/source.rb
 </context>
 
 <tasks>
@@ -411,6 +488,8 @@ After completion, create `.planning/phases/XX-name/{phase}-{plan}-SUMMARY.md`
 | `files_modified` | Yes | Files this plan touches |
 | `autonomous` | Yes | `true` if no checkpoints |
 | `user_setup` | No | Human-required setup items |
+| `domain` | No | Domain assignment: `backend`, `frontend`, `testing`, `general` (used in domain-split mode) |
+| `domain_guide` | No | Guide filename for domain executor (e.g., `backend.md`) |
 | `must_haves` | Yes | Goal-backward verification criteria |
 
 Wave numbers are pre-computed during planning. Execute-phase reads `wave` directly from frontmatter.
@@ -471,29 +550,29 @@ For "working chat interface":
 For each truth: "What must EXIST for this to be true?"
 
 "User can see existing messages" requires:
-- Message list component (renders Message[])
-- Messages state (loaded from somewhere)
-- API route or data source (provides messages)
-- Message type definition (shapes the data)
+- Message list view (renders @messages collection)
+- Messages loaded from controller
+- Controller action and route (provides messages)
+- Message model (shapes the data)
 
 **Test:** Each artifact = a specific file or database object.
 
 **Step 4: Derive Required Wiring**
 For each artifact: "What must be CONNECTED for this to function?"
 
-Message list component wiring:
-- Imports Message type (not using `any`)
-- Receives messages prop or fetches from API
-- Maps over messages to render (not hardcoded)
+Message list view wiring:
+- Renders Message model attributes (not raw hashes)
+- Receives @messages from controller action
+- Iterates over messages to render (not hardcoded)
 - Handles empty state (not just crashes)
 
 **Step 5: Identify Key Links**
 "Where is this most likely to break?" Key links = critical connections where breakage causes cascading failures.
 
 For chat interface:
-- Input onSubmit -> API call (if broken: typing works but sending doesn't)
-- API save -> database (if broken: appears to send but doesn't persist)
-- Component -> real data (if broken: shows placeholder, not messages)
+- Form submit -> controller action (if broken: typing works but sending doesn't)
+- Controller save -> database (if broken: appears to send but doesn't persist)
+- View -> real data (if broken: shows placeholder, not messages)
 
 ## Must-Haves Output Format
 
@@ -504,24 +583,24 @@ must_haves:
     - "User can send a message"
     - "Messages persist across refresh"
   artifacts:
-    - path: "src/components/Chat.tsx"
+    - path: "app/views/chats/index.html.erb"
       provides: "Message list rendering"
       min_lines: 30
-    - path: "src/app/api/chat/route.ts"
+    - path: "app/controllers/chats_controller.rb"
       provides: "Message CRUD operations"
-      exports: ["GET", "POST"]
-    - path: "prisma/schema.prisma"
+      exports: ["index", "create"]
+    - path: "app/models/message.rb"
       provides: "Message model"
-      contains: "model Message"
+      contains: "class Message"
   key_links:
-    - from: "src/components/Chat.tsx"
-      to: "/api/chat"
-      via: "fetch in useEffect"
-      pattern: "fetch.*api/chat"
-    - from: "src/app/api/chat/route.ts"
-      to: "prisma.message"
+    - from: "app/views/chats/index.html.erb"
+      to: "ChatsController#index"
+      via: "turbo_frame_tag"
+      pattern: "turbo_frame_tag.*messages"
+    - from: "app/controllers/chats_controller.rb"
+      to: "Message.where(...)"
       via: "database query"
-      pattern: "prisma\\.message\\.(find|create)"
+      pattern: "Message\\.(where|find|create)"
 ```
 
 ## Common Failures
@@ -532,11 +611,11 @@ must_haves:
 
 **Artifacts too abstract:**
 - Bad: "Chat system", "Auth module"
-- Good: "src/components/Chat.tsx", "src/app/api/auth/login/route.ts"
+- Good: "app/views/chats/index.html.erb", "app/controllers/sessions_controller.rb"
 
 **Missing wiring:**
-- Bad: Listing components without how they connect
-- Good: "Chat.tsx fetches from /api/chat via useEffect on mount"
+- Bad: Listing views without how they connect
+- Good: "chats/index.html.erb loads messages from ChatsController#index via turbo_frame"
 
 </goal_backward>
 

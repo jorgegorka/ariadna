@@ -18,7 +18,7 @@ Debug files use the `.planning/debug/` path (hidden directory with leading dot).
 UAT tells us WHAT is broken (symptoms). Debug agents find WHY (root cause). plan-phase --gaps then creates targeted fixes based on actual causes, not guesses.
 
 Without diagnosis: "Comment doesn't refresh" → guess at fix → maybe wrong
-With diagnosis: "Comment doesn't refresh" → "useEffect missing dependency" → precise fix
+With diagnosis: "Comment doesn't refresh" → "after_commit callback not invalidating cache" → precise fix
 </core_principle>
 
 <process>
@@ -144,13 +144,13 @@ For each gap in the Gaps section, add artifacts and missing fields:
   reason: "User reported: works but doesn't show until I refresh the page"
   severity: major
   test: 2
-  root_cause: "useEffect in CommentList.tsx missing commentCount dependency"
+  root_cause: "after_commit callback in Comment model not triggering cache invalidation"
   artifacts:
-    - path: "src/components/CommentList.tsx"
-      issue: "useEffect missing dependency"
+    - path: "app/models/comment.rb"
+      issue: "after_commit callback not invalidating cache"
   missing:
-    - "Add commentCount to useEffect dependency array"
-    - "Trigger re-render when new comment added"
+    - "Add after_commit callback to invalidate comment cache"
+    - "Broadcast cache update via Turbo Stream"
   debug_session: .planning/debug/comment-not-refreshing.md
 ```
 
@@ -173,9 +173,9 @@ Display:
 
 | Gap (Truth) | Root Cause | Files |
 |-------------|------------|-------|
-| Comment appears immediately | useEffect missing dependency | CommentList.tsx |
-| Reply button positioned correctly | CSS flex order incorrect | ReplyButton.tsx |
-| Delete removes comment | API missing auth header | api/comments.ts |
+| Comment appears immediately | after_commit callback not invalidating cache | app/models/comment.rb |
+| Reply button positioned correctly | CSS flex order incorrect | app/views/comments/_reply_form.html.erb |
+| Delete removes comment | missing authorization check | app/controllers/comments_controller.rb |
 
 Debug sessions: ${DEBUG_DIR}/
 

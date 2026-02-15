@@ -52,7 +52,7 @@ If MILESTONES.md doesn't exist, create it with header:
 
 **Stats to include:**
 - Count modified files: `git diff --stat feat(XX-XX)..feat(YY-YY) | tail -1`
-- Count LOC: `find . -name "*.swift" -o -name "*.ts" | xargs wc -l` (or relevant extension)
+- Count LOC: `find . -name "*.rb" | xargs wc -l` (or relevant extension)
 - Phase/plan/task counts from ROADMAP
 - Timeline from first phase commit to last phase commit
 

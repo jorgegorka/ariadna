@@ -72,7 +72,7 @@ Template for `.planning/codebase/STACK.md` - captures the technology foundation.
 - [Additional tooling if any: e.g., "PostgreSQL" if not using SQLite]
 
 **Production:**
-- [Deployment target: e.g., "Kamal to VPS", "Heroku", "Fly.io", "Docker container"]
+- [Deployment target: e.g., "Kamal to VPS", "Docker container", "Heroku", "Fly.io"]
 - [Application server: e.g., "Puma"]
 
 ---

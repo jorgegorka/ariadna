@@ -162,7 +162,7 @@ Auth errors during execution are NOT failures — they're expected interaction p
 6. Retry original task
 7. Continue normally
 
-**Example:** `vercel --yes` → "Not authenticated" → checkpoint asking user to `vercel login` → verify with `vercel whoami` → retry deploy → continue
+**Example:** `kamal deploy` → "SSH connection refused" → checkpoint asking user to configure SSH key access → verify with `ssh root@server-ip exit` → retry deploy → continue
 
 **In Summary:** Document as normal flow under "## Authentication Gates", not as deviations.
 
@@ -237,8 +237,8 @@ After each task (verification passed, done criteria met), commit immediately.
 
 **2. Stage individually** (NEVER `git add .` or `git add -A`):
 ```bash
-git add src/api/auth.ts
-git add src/types/user.ts
+git add app/controllers/sessions_controller.rb
+git add app/models/user.rb
 ```
 
 **3. Commit type:**

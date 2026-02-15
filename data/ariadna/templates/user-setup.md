@@ -101,11 +101,11 @@ user_setup:
 
 | Claude CAN Do (not in USER-SETUP) | Claude CANNOT Do (→ USER-SETUP) |
 |-----------------------------------|--------------------------------|
-| `npm install stripe` | Create Stripe account |
+| `bundle add stripe` | Create Stripe account |
 | Write webhook handler code | Get API keys from dashboard |
 | Create `.env.local` file structure | Copy actual secret values |
 | Run `stripe listen` | Authenticate Stripe CLI (browser OAuth) |
-| Configure package.json | Access external service dashboards |
+| Configure Gemfile / config files | Access external service dashboards |
 | Write any code | Retrieve secrets from third-party systems |
 
 **The test:** "Does this require a human in a browser, accessing an account Claude doesn't have credentials for?"
@@ -175,7 +175,7 @@ After completing setup:
 grep STRIPE .env.local
 
 # Verify build passes
-npm run build
+bundle exec rake assets:precompile
 
 # Test webhook endpoint (should return 400 bad signature, not 500 crash)
 curl -X POST http://localhost:3000/api/webhooks/stripe \
@@ -191,7 +191,7 @@ Expected: Build passes, webhook returns 400 (signature validation working).
 ```
 </stripe_example>
 
-<supabase_example>
+<stripe_example>
 ```markdown
 # Phase 2: User Setup Required
 
@@ -199,51 +199,50 @@ Expected: Build passes, webhook returns 400 (signature validation working).
 **Phase:** 02-authentication
 **Status:** Incomplete
 
-Complete these items for Supabase Auth to function.
+Complete these items for Stripe Payments to function.
 
 ## Environment Variables
 
 | Status | Variable | Source | Add to |
 |--------|----------|--------|--------|
-| [ ] | `NEXT_PUBLIC_SUPABASE_URL` | Supabase Dashboard → Settings → API → Project URL | `.env.local` |
-| [ ] | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase Dashboard → Settings → API → anon public | `.env.local` |
-| [ ] | `SUPABASE_SERVICE_ROLE_KEY` | Supabase Dashboard → Settings → API → service_role | `.env.local` |
+| [ ] | `STRIPE_PUBLISHABLE_KEY` | Stripe Dashboard → Developers → API keys → Publishable key | `config/credentials.yml.enc` |
+| [ ] | `STRIPE_SECRET_KEY` | Stripe Dashboard → Developers → API keys → Secret key | `config/credentials.yml.enc` |
+| [ ] | `STRIPE_WEBHOOK_SECRET` | Stripe Dashboard → Developers → Webhooks → Signing secret | `config/credentials.yml.enc` |
 
 ## Account Setup
 
-- [ ] **Create Supabase project**
-  - URL: https://supabase.com/dashboard/new
-  - Skip if: Already have project for this app
+- [ ] **Create Stripe account**
+  - URL: https://dashboard.stripe.com/register
+  - Skip if: Already have Stripe account for this app
 
 ## Dashboard Configuration
 
-- [ ] **Enable Email Auth**
-  - Location: Supabase Dashboard → Authentication → Providers
-  - Enable: Email provider
-  - Configure: Confirm email (on/off based on preference)
+- [ ] **Create webhook endpoint**
+  - Location: Stripe Dashboard → Developers → Webhooks
+  - Endpoint URL: `https://yourapp.com/webhooks/stripe`
+  - Events: `checkout.session.completed`, `invoice.paid`, `customer.subscription.updated`
 
-- [ ] **Configure OAuth providers** (if using social login)
-  - Location: Supabase Dashboard → Authentication → Providers
-  - For Google: Add Client ID and Secret from Google Cloud Console
-  - For GitHub: Add Client ID and Secret from GitHub OAuth Apps
+- [ ] **Configure OAuth providers** (if using Stripe Connect)
+  - Location: Stripe Dashboard → Settings → Connect
+  - Add redirect URI for your app
 
 ## Verification
 
 After completing setup:
 
 ```bash
-# Check env vars
-grep SUPABASE .env.local
+# Check credentials are set
+bin/rails credentials:show | grep stripe
 
 # Verify connection (run in project directory)
-npx supabase status
+bin/rails runner "Stripe::Account.retrieve"
 ```
 
 ---
 
 **Once all items complete:** Mark status as "Complete" at top of file.
 ```
-</supabase_example>
+</stripe_example>
 
 <sendgrid_example>
 ```markdown

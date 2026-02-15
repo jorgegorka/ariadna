@@ -1,12 +1,17 @@
-# Rails Patterns and Best Practices
+# Backend Patterns & Architecture
 
 **A Comprehensive Guide for Rails Developers**
 
-This documentation explains the patterns, conventions, and best practices used in Rails application. It's designed for developers who already know Ruby on Rails and need to understand how to structure and organize code.
+This documentation explains the backend patterns, conventions, and best practices used in Rails application. It's designed for developers who already know Ruby on Rails and need to understand how to structure and organize code.
 
 It has been heavily inspired by the architecture and patterns of [Fizzy](https://github.com/basecamp/fizzy)l(https://www.fizzy.do/), a [Kanban board](https://www.fizzy.do/) built with Ruby on Rails. Fizzy is an excellent example of a well-architected Rails application, and this guide distills the key patterns and practices that make it successful.
 
 We stand on the shoulders of giants.
+
+**Related guides:**
+- [Frontend Patterns](frontend.md) — Presenter pattern, view layer conventions
+- [Testing Patterns](testing.md) — Testing philosophy, model/controller/job test patterns
+- [Security Guide](security.md) — Agent-oriented security checklist for code review
 
 ## Table of Contents
 
@@ -25,13 +30,13 @@ We stand on the shoulders of giants.
   - [3.1 Event Tracking System](#31-event-tracking-system)
   - [3.2 Storage Tracking Pattern](#32-storage-tracking-pattern)
   - [3.3 Entropy System](#33-entropy-system)
-  - [3.4 Presenter Pattern](#34-presenter-pattern)
 - [Part 4: Controller & Job Patterns](#part-4-controller--job-patterns)
   - [4.1 Thin Controllers with Rich Models](#41-thin-controllers-with-rich-models)
   - [4.2 RESTful Resource Nesting](#42-restful-resource-nesting)
   - [4.3 Controller Concerns](#43-controller-concerns)
   - [4.4 Background Jobs: The _now/_later Pattern](#44-background-jobs-the-_now_later-pattern)
   - [4.5 Multi-Tenancy in Background Jobs](#45-multi-tenancy-in-background-jobs)
+  - [4.6 Pagination with Geared Pagination](#46-pagination-with-geared-pagination)
 - [Part 5: Coding Style Guide](#part-5-coding-style-guide)
   - [5.1 Coding Conventions](#51-fizzy-coding-conventions)
 - [Part 6: Common Tasks & Recipes](#part-6-common-tasks--recipes)
@@ -1278,6 +1283,8 @@ Does the operation act on a single entity's state?
 
 It has several unique domain-specific features that follow consistent patterns.
 
+> **Note:** For the Presenter Pattern, see [Frontend Patterns](frontend.md).
+
 ## 3.1 Event Tracking System
 
 Events audit trail. Every significant action creates an event record that drives activity timelines, notifications, and webhooks.
@@ -1437,7 +1444,7 @@ event.particulars["old_board"]  # => "Project A"
 1. Include `Eventable` in your model (if not already included)
 2. Call `track_event` in your action method (inside transaction)
 3. Pass relevant data in `particulars` hash
-4. Test that events are created
+4. Test that events are created (see [Testing Patterns](testing.md))
 
 **Example**: Adding event to a hypothetical `archive` method:
 
@@ -1449,16 +1456,6 @@ def archive(user: Current.user)
       track_event :archived, creator: user  # ← Add event tracking
     end
   end
-end
-
-# In test:
-test "archiving creates event" do
-  assert_difference -> { Event.count }, +1 do
-    cards(:logo).archive
-  end
-
-  assert_equal "card_archived", Event.last.action
-  assert_equal cards(:logo), Event.last.eventable
 end
 ```
 
@@ -1715,397 +1712,6 @@ auto_postpone_cards:
 
 The class method `Card.auto_postpone_all_due` is called hourly to process all eligible cards.
 
-## 3.4 Presenter Pattern
-
-It uses presenter classes to encapsulate complex view logic. Unlike typical Rails apps, presenters don't live in an `app/presenters/` directory—they live in `app/models/` organized by domain, aligning with "vanilla Rails" philosophy.
-
-### Philosophy
-
-Presenters are plain Ruby classes that:
-- Package data and display logic for views
-- Transform domain objects into view-ready formats
-- Encapsulate conditional display logic
-- Provide cache keys for fragment caching
-
-**Why models layer?** Presenters are domain objects that know about business rules. They fit naturally alongside concerns like `User::Filtering` and `Event::Description`. No separate presenter infrastructure is needed.
-
-### When to Create a Presenter
-
-**Create a presenter when:**
-- A view needs complex conditional logic (3+ conditions)
-- Multiple related values need to be computed together
-- You need to transform data into HTML or formatted text
-- The same display logic is needed in multiple views
-- You want to cache complex view fragments
-
-**Don't create a presenter when:**
-- Simple delegation would suffice (use helpers)
-- You only need one or two computed values
-- The logic is purely formatting (use view helpers)
-
-### Anatomy of a Presenter
-
-**File**: `app/models/user/filtering.rb`
-
-```ruby
-class User::Filtering
-  attr_reader :user, :filter, :expanded
-
-  delegate :as_params, :single_board, to: :filter
-  delegate :only_closed?, to: :filter
-
-  def initialize(user, filter, expanded: false)
-    @user, @filter, @expanded = user, filter, expanded
-  end
-
-  # Memoized collections (lazy-loaded)
-  def boards
-    @boards ||= user.boards.ordered_by_recently_accessed
-  end
-
-  def tags
-    @tags ||= account.tags.all.alphabetically
-  end
-
-  def users
-    @users ||= account.users.active.alphabetically
-  end
-
-  # Boolean methods for conditional display
-  def expanded?
-    @expanded
-  end
-
-  def any?
-    filter.used?(ignore_boards: true)
-  end
-
-  def show_tags?
-    return unless Tag.any?
-    filter.tags.any?
-  end
-
-  def show_assignees?
-    filter.assignees.any?
-  end
-
-  # Cache key for fragment caching
-  def cache_key
-    ActiveSupport::Cache.expand_cache_key(
-      [ user, filter, expanded?, boards, tags, users, filters ],
-      "user-filtering"
-    )
-  end
-
-  private
-    def account
-      user.account
-    end
-end
-```
-
-**Pattern breakdown:**
-
-1. **Plain Ruby class** - No framework, no gem, no inheritance
-2. **Explicit dependencies** - All inputs via constructor
-3. **Memoization** - `@var ||=` for lazy-loaded collections
-4. **Boolean methods** - `show_tags?`, `expanded?` for conditional display
-5. **Cache key** - Composite key for fragment caching
-6. **Private helpers** - Keep the interface clean
-
-### Generating HTML in Presenters
-
-When presenters need to generate HTML, include ActionView helpers:
-
-**File**: `app/models/event/description.rb`
-
-```ruby
-class Event::Description
-  include ActionView::Helpers::TagHelper  # ← For tag.span, etc.
-  include ERB::Util                       # ← For h() escaping
-
-  attr_reader :event, :user
-
-  def initialize(event, user)
-    @event = event
-    @user = user
-  end
-
-  def to_html
-    to_sentence(creator_tag, card_title_tag).html_safe
-  end
-
-  def to_plain_text
-    to_sentence(creator_name, quoted(card.title))
-  end
-
-  private
-    def creator_tag
-      tag.span data: { creator_id: event.creator.id } do
-        tag.span("You", data: { only_visible_to_you: true }) +
-        tag.span(event.creator.name, data: { only_visible_to_others: true })
-      end
-    end
-
-    def card_title_tag
-      tag.span card.title, class: "txt-underline"
-    end
-
-    # ... action-specific sentence methods ...
-end
-```
-
-**Key patterns:**
-- `to_html` / `to_plain_text` for multiple output formats
-- Include only the helpers you need
-- Use `h()` for escaping user content
-- Keep HTML generation in private methods
-
-### Nested Presenters
-
-Presenters can create other presenters for sub-components:
-
-**File**: `app/models/user/day_timeline.rb`
-
-```ruby
-class User::DayTimeline
-  def added_column
-    @added_column ||= build_column(:added, "Added", 1,
-      events.where(action: %w[card_published card_reopened]))
-  end
-
-  def updated_column
-    @updated_column ||= build_column(:updated, "Updated", 2,
-      events.where.not(action: %w[card_published card_closed card_reopened]))
-  end
-
-  def closed_column
-    @closed_column ||= build_column(:closed, "Done", 3,
-      events.where(action: "card_closed"))
-  end
-
-  private
-    def build_column(id, base_title, index, events)
-      Column.new(self, id, base_title, index, events)  # ← Nested presenter
-    end
-end
-```
-
-**File**: `app/models/user/day_timeline/column.rb`
-
-```ruby
-class User::DayTimeline::Column
-  include ActionView::Helpers::TagHelper, ActionView::Helpers::OutputSafetyHelper
-
-  def title
-    date_tag = local_datetime_tag(day_timeline.day, style: :agoorweekday)
-    parts = [ base_title, date_tag ]
-    parts << tag.span("(#{full_events_count})", class: "font-weight-normal") if full_events_count > 0
-    safe_join(parts, " ")
-  end
-
-  def events_by_hour
-    limited_events.group_by { it.created_at.hour }
-  end
-
-  def has_more_events?
-    limited_events.count < full_events_count
-  end
-end
-```
-
-### Instantiation Patterns
-
-#### Pattern 1: Controller Concerns
-
-For presenters used across multiple controllers, create a concern:
-
-**File**: `app/controllers/concerns/filter_scoped.rb`
-
-```ruby
-module FilterScoped
-  extend ActiveSupport::Concern
-
-  included do
-    before_action :set_filter
-    before_action :set_user_filtering
-  end
-
-  private
-    def set_filter
-      if params[:filter_id].present?
-        @filter = Current.user.filters.find(params[:filter_id])
-      else
-        @filter = Current.user.filters.from_params filter_params
-      end
-    end
-
-    def set_user_filtering
-      @user_filtering = User::Filtering.new(Current.user, @filter, expanded: expanded_param)
-    end
-end
-```
-
-**Usage in controllers:**
-
-```ruby
-class CardsController < ApplicationController
-  include FilterScoped  # ← Sets @user_filtering automatically
-
-  def index
-    # @user_filtering is available
-  end
-end
-```
-
-#### Pattern 2: Factory Methods on Models
-
-For presenters tied to a specific model, add a factory method:
-
-**File**: `app/models/event.rb`
-
-```ruby
-class Event < ApplicationRecord
-  def description_for(user)
-    Event::Description.new(self, user)
-  end
-end
-```
-
-**Usage in views:**
-
-```erb
-<%= event.description_for(Current.user).to_html %>
-```
-
-This keeps the API discoverable and maintains the object-oriented style.
-
-### View Usage
-
-**With controller-instantiated presenter:**
-
-```erb
-<%# @user_filtering set by FilterScoped concern %>
-
-<% if @user_filtering.show_tags? %>
-  <div class="filter-tags">
-    <% @user_filtering.tags.each do |tag| %>
-      <%= render "tag", tag: tag %>
-    <% end %>
-  </div>
-<% end %>
-
-<% if @user_filtering.show_assignees? %>
-  <!-- assignees UI -->
-<% end %>
-```
-
-**With factory method:**
-
-```erb
-<% @events.each do |event| %>
-  <div class="event-description">
-    <%= event.description_for(Current.user).to_html %>
-  </div>
-<% end %>
-```
-
-**With fragment caching:**
-
-```erb
-<% cache @user_filtering.cache_key do %>
-  <!-- expensive view rendering -->
-<% end %>
-```
-
-### Testing Presenters
-
-Test presenters like any Ruby class:
-
-```ruby
-require "test_helper"
-
-class User::FilteringTest < ActiveSupport::TestCase
-  setup do
-    Current.session = sessions(:david)
-    @user = users(:david)
-    @filter = Filter.new
-  end
-
-  test "boards returns user's boards ordered by access" do
-    filtering = User::Filtering.new(@user, @filter)
-
-    assert_equal @user.boards.ordered_by_recently_accessed, filtering.boards
-  end
-
-  test "show_tags? returns false when no tags selected" do
-    filtering = User::Filtering.new(@user, @filter)
-
-    assert_not filtering.show_tags?
-  end
-
-  test "show_tags? returns true when tags present" do
-    @filter.tags = [ tags(:bug) ]
-    filtering = User::Filtering.new(@user, @filter)
-
-    assert filtering.show_tags?
-  end
-
-  test "cache_key changes when filter changes" do
-    filtering1 = User::Filtering.new(@user, @filter)
-    key1 = filtering1.cache_key
-
-    @filter.tags = [ tags(:bug) ]
-    filtering2 = User::Filtering.new(@user, @filter)
-    key2 = filtering2.cache_key
-
-    assert_not_equal key1, key2
-  end
-end
-```
-
-For presenters that generate HTML:
-
-```ruby
-class Event::DescriptionTest < ActiveSupport::TestCase
-  test "to_html includes creator name" do
-    event = events(:card_closed)
-    description = Event::Description.new(event, users(:david))
-
-    assert_includes description.to_html, event.creator.name
-  end
-
-  test "to_plain_text is safe for notifications" do
-    event = events(:card_closed)
-    description = Event::Description.new(event, users(:david))
-
-    # No HTML tags in plain text
-    assert_no_match /<[^>]+>/, description.to_plain_text
-  end
-end
-```
-
-### Real Examples
-
-| Presenter | File | Purpose |
-|-----------|------|---------|
-| `User::Filtering` | `app/models/user/filtering.rb` | Filter UI state and collections |
-| `Event::Description` | `app/models/event/description.rb` | Event → human-readable text |
-| `User::DayTimeline` | `app/models/user/day_timeline.rb` | Timeline organization |
-| `User::DayTimeline::Column` | `app/models/user/day_timeline/column.rb` | Timeline column with HTML generation |
-
-### Summary
-
-Presenter pattern:
-- **Plain Ruby classes** in `app/models/` (no special directory)
-- **Domain-organized** (`User::Filtering`, not `FilteringPresenter`)
-- **Include ActionView helpers** when generating HTML
-- **Factory methods** on models for discoverable APIs
-- **Controller concerns** for cross-controller instantiation
-- **Memoization** for lazy-loaded collections
-- **Boolean methods** for conditional display
-- **Cache keys** for fragment caching
-
 ---
 
 # Part 4: Controller & Job Patterns
@@ -2161,7 +1767,7 @@ end
 
 ### Comparison: Before and After
 
-**❌ Anti-pattern (business logic in controller):**
+**Anti-pattern (business logic in controller):**
 
 ```ruby
 def create
@@ -2185,7 +1791,7 @@ def create
 end
 ```
 
-**✅ (model handles logic):**
+**Correct (model handles logic):**
 
 ```ruby
 def create
@@ -2221,7 +1827,7 @@ In models all actions as RESTful resources, not custom routes. This is a core pa
 
 Instead of adding custom action methods, create a new resource:
 
-**❌ Anti-pattern:**
+**Anti-pattern:**
 
 ```ruby
 # routes.rb
@@ -2233,7 +1839,7 @@ resources :cards do
 end
 ```
 
-**✅ pattern:**
+**Correct pattern:**
 
 ```ruby
 # routes.rb
@@ -2468,22 +2074,6 @@ record.notify_recipients        # Synchronous
 record.notify_recipients_later  # Async (enqueues job)
 ```
 
-**Logic tested via synchronous method:**
-```ruby
-# Test the logic (fast)
-test "notify_recipients sends to watchers" do
-  comment.notify_recipients
-  assert_equal 2, Notification.count
-end
-
-# Test the job (integration)
-test "notify_recipients_later enqueues job" do
-  assert_enqueued_with(job: NotifyRecipientsJob) do
-    comment.save!
-  end
-end
-```
-
 **Can call from different contexts:**
 ```ruby
 # In a callback:
@@ -2495,6 +2085,8 @@ comment.notify_recipients
 # Manually queue a job:
 comment.notify_recipients_later
 ```
+
+> For testing patterns related to the _now/_later pattern, see [Testing Patterns](testing.md).
 
 ### Ultra-Thin Jobs
 
@@ -2526,7 +2118,7 @@ end
 
 ### Common Mistake
 
-**❌ Don't put logic in jobs:**
+**Don't put logic in jobs:**
 
 ```ruby
 class NotifyRecipientsJob < ApplicationJob
@@ -2538,7 +2130,7 @@ class NotifyRecipientsJob < ApplicationJob
 end
 ```
 
-**✅ Put logic in models:**
+**Put logic in models:**
 
 ```ruby
 class NotifyRecipientsJob < ApplicationJob
@@ -2640,10 +2232,10 @@ NotifyRecipientsJob.perform_later(comment)
 **You never pass account manually:**
 
 ```ruby
-# ❌ Don't do this:
+# Don't do this:
 SomeJob.perform_later(record, account: Current.account)
 
-# ✅ Do this:
+# Do this:
 SomeJob.perform_later(record)
 # Account captured automatically!
 ```
@@ -2662,26 +2254,180 @@ class NotifyRecipientsJob < ApplicationJob
 end
 ```
 
-**Tests work automatically:**
-
-```ruby
-setup do
-  Current.session = sessions(:david)  # Sets Current.account
-end
-
-test "job processes in correct account" do
-  perform_enqueued_jobs do
-    comment.notify_recipients_later
-  end
-
-  # Job ran with correct Current.account
-  assert_equal 2, Current.account.notifications.count
-end
-```
-
 ### Key Insight
 
 Multi-tenancy "just works" in jobs without thinking about it. This is one of the most powerful patterns.
+
+---
+
+## 4.6 Pagination with Geared Pagination
+
+We use Basecamp's [geared_pagination](https://github.com/basecamp/geared_pagination) gem for all pagination. It fits the vanilla Rails philosophy: a single method call in the controller, no DSL to learn, and sensible defaults that handle the common case.
+
+### Why Geared Pagination
+
+Traditional pagination uses a fixed page size (e.g., 25 per page). Geared pagination uses **variable-speed page sizes** that grow as the user goes deeper:
+
+- **Page 1:** 15 records — fast initial load
+- **Page 2:** 30 records
+- **Page 3:** 50 records
+- **Page 4+:** 100 records
+
+This is optimized for how people actually browse: most users only see the first page, so it loads fast. The few who paginate deeper get larger batches to reduce round trips. Works naturally with infinite scroll and Turbo Frames.
+
+### Basic Controller Usage
+
+One line in the controller — consistent with the thin-controller philosophy from [section 4.1](#41-thin-controllers-with-rich-models):
+
+```ruby
+class MessagesController < ApplicationController
+  def index
+    set_page_and_extract_portion_from Message.order(created_at: :desc)  # ← one line does it all
+  end
+end
+```
+
+This sets `@page` as an instance variable available in the view. The relation must be ordered — geared_pagination needs a deterministic sort.
+
+**With scopes:**
+
+```ruby
+class CardsController < ApplicationController
+  def index
+    set_page_and_extract_portion_from Current.account.cards.active.ordered  # ← chain scopes naturally
+  end
+end
+```
+
+### The `@page` Object
+
+After calling `set_page_and_extract_portion_from`, the `@page` object provides everything you need:
+
+| Method | Returns | Purpose |
+|--------|---------|---------|
+| `@page.records` | Collection | Current page's records, ready to render |
+| `@page.number` | Integer | Current page number |
+| `@page.last?` | Boolean | Whether this is the final page |
+| `@page.next_param` | String | Parameter value for the next page link |
+| `@page.recordset.page_count` | Integer | Total number of pages |
+| `@page.recordset.records_count` | Integer | Total records across all pages |
+
+### View Integration
+
+**Basic template with next-page link:**
+
+```erb
+<%# app/views/messages/index.html.erb %>
+
+<%= render @page.records %>  <%# ← renders the partial for each record %>
+
+<% unless @page.last? %>
+  <%= link_to "Next page", messages_path(page: @page.next_param) %>
+<% end %>
+```
+
+**With Turbo Frames for infinite scroll:**
+
+```erb
+<%# app/views/messages/index.html.erb %>
+
+<%= turbo_frame_tag "messages_page_#{@page.number}" do %>
+  <%= render @page.records %>
+
+  <% unless @page.last? %>
+    <%= turbo_frame_tag "messages_page_#{@page.number + 1}",
+          src: messages_path(page: @page.next_param),
+          loading: :lazy %>  <%# ← loads next page when scrolled into view %>
+  <% end %>
+<% end %>
+```
+
+**Previous and next navigation:**
+
+```erb
+<nav class="pagination">
+  <% if @page.number > 1 %>
+    <%= link_to "Previous", messages_path(page: @page.number - 1) %>
+  <% end %>
+
+  <span>Page <%= @page.number %> of <%= @page.recordset.page_count %></span>
+
+  <% unless @page.last? %>
+    <%= link_to "Next", messages_path(page: @page.next_param) %>
+  <% end %>
+</nav>
+```
+
+### Cursor-Based Pagination
+
+For large datasets, offset-based pagination degrades because the database still scans skipped rows. Use `ordered_by:` to switch to cursor-based pagination:
+
+```ruby
+class EventsController < ApplicationController
+  def index
+    set_page_and_extract_portion_from Event.all,
+      ordered_by: { created_at: :desc, id: :desc }  # ← cursor-based, no OFFSET
+  end
+end
+```
+
+With cursor-based pagination, the `page` parameter becomes an encoded cursor instead of a number. The database seeks directly to the right position using an index — O(1) instead of O(n).
+
+**When to use cursor-based:**
+- Large tables (100k+ rows) where users may paginate deep
+- Tables with appropriate indexes on the sort columns
+- Infinite-scroll UIs where page numbers don't matter
+
+**When to stick with offset-based:**
+- Small bounded datasets
+- UIs that show "Page 3 of 12" navigation
+- Complex relations where cursor encoding isn't straightforward
+
+### Caching with Pagination
+
+Include `@page` in cache keys so different pages don't serve stale content:
+
+```erb
+<% cache [@page, Current.account] do %>
+  <%= render @page.records %>
+<% end %>
+```
+
+ETags automatically incorporate the current page and gear ratios, so conditional GET responses work correctly across pages.
+
+### Anti-Patterns
+
+**Don't use manual `limit`/`offset`:**
+
+```ruby
+# Bad — reimplements pagination poorly
+def index
+  @messages = Message.order(created_at: :desc)
+                     .offset(params[:page].to_i * 25)
+                     .limit(25)
+end
+
+# Good — let geared_pagination handle it
+def index
+  set_page_and_extract_portion_from Message.order(created_at: :desc)
+end
+```
+
+**Don't build custom pagination when geared_pagination handles it:**
+
+```ruby
+# Bad — unnecessary abstraction
+class PaginationService
+  def initialize(scope, page:, per_page:)
+    # ...50 lines of pagination logic...
+  end
+end
+
+# Good — one line, no service object needed
+set_page_and_extract_portion_from scope
+```
+
+**Don't ignore the gear ratios by forcing a fixed page size.** The variable-speed sizing is the whole point — it optimizes both initial load time and deep pagination efficiency.
 
 ---
 
@@ -2695,7 +2441,7 @@ It has specific code style conventions beyond standard Ruby/Rails style.
 
 It prefers expanded conditionals over guard clauses:
 
-**❌ Avoid:**
+**Avoid:**
 
 ```ruby
 def todos_for_new_group
@@ -2705,7 +2451,7 @@ def todos_for_new_group
 end
 ```
 
-**✅ Prefer:**
+**Prefer:**
 
 ```ruby
 def todos_for_new_group
@@ -2849,7 +2595,7 @@ end
 
 Only use `!` for methods that have a non-bang counterpart:
 
-**✅ Good:**
+**Good:**
 
 ```ruby
 def save    # ← Returns false on failure
@@ -2859,7 +2605,7 @@ def update(attrs)
 def update!(attrs)
 ```
 
-**❌ Avoid:**
+**Avoid:**
 
 ```ruby
 def destroy!  # ← No non-bang counterpart? Don't use !
@@ -2872,7 +2618,7 @@ def process!  # ← Not signaling danger vs non-bang version
 
 # Part 6: Common Tasks & Recipes
 
-Step-by-step guides for common development tasks.
+Step-by-step guides for common development tasks. For test examples associated with each recipe, see [Testing Patterns](testing.md).
 
 ## 6.1 Recipe: Adding a New State to Cards
 
@@ -3006,48 +2752,7 @@ end
 
 ### Step 6: Add Tests
 
-```ruby
-# test/models/card/archivable_test.rb
-require "test_helper"
-
-class Card::ArchivableTest < ActiveSupport::TestCase
-  setup do
-    Current.session = sessions(:david)
-  end
-
-  test "archive creates archive record and event" do
-    card = cards(:logo)
-
-    assert_difference -> { Card::Archive.count }, +1 do
-      assert_difference -> { Event.count }, +1 do
-        card.archive
-      end
-    end
-
-    assert card.archived?
-    assert_equal "card_archived", Event.last.action
-  end
-
-  test "unarchive removes archive record" do
-    card = cards(:logo)
-    card.archive
-
-    assert_difference -> { Card::Archive.count }, -1 do
-      card.unarchive
-    end
-
-    assert card.unarchived?
-  end
-
-  test "archived scope" do
-    card = cards(:logo)
-    card.archive
-
-    assert_includes Card.archived, card
-    assert_not_includes Card.unarchived, card
-  end
-end
-```
+See [Testing Patterns — Recipe: Testing New Card States](testing.md#recipe-testing-new-card-states) for the complete test examples.
 
 ### Step 7: Update Views
 
@@ -3097,22 +2802,7 @@ end
 
 ### Step 4: Test Event Creation
 
-```ruby
-test "moving boards creates event with particulars" do
-  card = cards(:logo)
-  old_board = card.board
-  new_board = boards(:other)
-
-  assert_difference -> { Event.count }, +1 do
-    card.move_to(new_board)
-  end
-
-  event = Event.last
-  assert_equal "card_board_changed", event.action
-  assert_equal old_board.name, event.particulars["old_board"]
-  assert_equal new_board.name, event.particulars["new_board"]
-end
-```
+See [Testing Patterns — Recipe: Testing Event Creation](testing.md#recipe-testing-event-creation) for the complete test examples.
 
 ## 6.3 Recipe: Creating Background Jobs
 
@@ -3159,20 +2849,7 @@ after_create_commit :process_data_later
 
 ### Step 5: Test Both Versions
 
-```ruby
-# Test synchronous logic
-test "process_data updates records" do
-  record.process_data
-  assert record.processed?
-end
-
-# Test async wrapper
-test "process_data_later enqueues job" do
-  assert_enqueued_with(job: ProcessDataJob, args: [record]) do
-    record.process_data_later
-  end
-end
-```
+See [Testing Patterns — Recipe: Testing Background Jobs](testing.md#recipe-testing-background-jobs) for the complete test examples.
 
 ---
 
@@ -3286,29 +2963,7 @@ Does this action create, update, or destroy something?
 
 ## 7.3 Common Gotchas
 
-### 1. Forgetting Current.session in Model Tests
-
-**Problem:**
-
-```ruby
-test "creating card" do
-  card = Card.create!(board: boards(:writebook), title: "Test")
-  # Error: Current.user is nil!
-end
-```
-
-**Solution:**
-
-```ruby
-test "creating card" do
-  Current.session = sessions(:david)  # ← Add this!
-  card = Card.create!(board: boards(:writebook), title: "Test")
-end
-```
-
-**Why:** Lambda defaults like `default: -> { Current.user }` need `Current.session` set.
-
-### 2. Adding Business Logic to Controllers
+### 1. Adding Business Logic to Controllers
 
 **Problem:**
 
@@ -3331,7 +2986,7 @@ end
 
 Put logic in models, not controllers.
 
-### 3. Creating Custom Actions Instead of Resources
+### 2. Creating Custom Actions Instead of Resources
 
 **Problem:**
 
@@ -3345,13 +3000,13 @@ end
 
 ```ruby
 resources :cards do
-  resource :closure  
+  resource :closure
 end
 ```
 
 Model actions as resources.
 
-### 4. Putting Logic in Jobs Instead of Models
+### 3. Putting Logic in Jobs Instead of Models
 
 **Problem:**
 
@@ -3375,7 +3030,7 @@ end
 
 Jobs should be thin wrappers.
 
-### 5. Breaking Association Declaration Order
+### 4. Breaking Association Declaration Order
 
 **Problem:**
 
@@ -3393,7 +3048,7 @@ belongs_to :account, default: -> { board.account }  # ← Use after
 
 Declare associations before using them in defaults.
 
-### 6. Using .find for Cards in Controllers
+### 5. Using .find for Cards in Controllers
 
 **Problem:**
 
@@ -3409,7 +3064,7 @@ Declare associations before using them in defaults.
 
 Cards use `number` for user-facing IDs, not `id`.
 
-### 7. Not Using Transactions for Multi-Step Operations
+### 6. Not Using Transactions for Multi-Step Operations
 
 **Problem:**
 
@@ -3437,7 +3092,7 @@ Wrap related operations in transactions.
 
 # Conclusion
 
-This documentation covers the core patterns and practices used throughout the Rails application:
+This documentation covers the core backend patterns and practices used throughout the Rails application:
 
 - **Foundation**: Multi-tenancy via Current context, UUID primary keys
 - **Models**: Concern-driven architecture, intention-revealing APIs, smart defaults
@@ -3449,8 +3104,13 @@ The key principle underlying all patterns: **business logic belongs in models, a
 
 For more details, explore the actual code files referenced throughout this document. The patterns are consistent, so once you understand them, you can navigate the entire codebase confidently.
 
+**Related guides:**
+- [Frontend Patterns](frontend.md) — Presenter pattern, view layer conventions
+- [Testing Patterns](testing.md) — Testing philosophy, model/controller/job test patterns
+- [Security Guide](security.md) — Agent-oriented security checklist for code review
+
 ---
 
 **Document Version**: 1.1
-**Last Updated**: 2026-02-14
+**Last Updated**: 2026-02-15
 **Maintainer**: Development Team

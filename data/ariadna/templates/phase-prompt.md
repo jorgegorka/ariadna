@@ -21,6 +21,8 @@ depends_on: []              # Plan IDs this plan requires (e.g., ["01-01"]).
 files_modified: []          # Files this plan modifies.
 autonomous: true            # false if plan has checkpoints requiring user interaction
 user_setup: []              # Human-required setup Claude cannot automate (see below)
+domain: general             # optional: backend, frontend, testing, general
+domain_guide: ~             # optional: guide filename (e.g., backend.md)
 
 # Goal-backward verification (derived during planning, verified after execution)
 must_haves:
@@ -54,7 +56,7 @@ Output: [What artifacts will be created]
 # Do NOT reflexively chain: Plan 02 refs 01, Plan 03 refs 02...
 
 [Relevant source files:]
-@src/path/to/relevant.ts
+@app/path/to/relevant.rb
 </context>
 
 <tasks>
@@ -130,6 +132,8 @@ After completion, create `.planning/phases/XX-name/{phase}-{plan}-SUMMARY.md`
 | `files_modified` | Yes | Files this plan touches. |
 | `autonomous` | Yes | `true` if no checkpoints, `false` if has checkpoints |
 | `user_setup` | No | Array of human-required setup items (external services) |
+| `domain` | No | Domain assignment: `backend`, `frontend`, `testing`, `general` (for domain-split execution) |
+| `domain_guide` | No | Guide filename for domain executor (e.g., `backend.md`) |
 | `must_haves` | Yes | Goal-backward verification criteria (see below) |
 
 **Wave is pre-computed:** Wave numbers are assigned during `/ariadna:plan-phase`. Execute-phase reads `wave` directly from frontmatter and groups plans by wave number. No runtime dependency analysis needed.
@@ -148,19 +152,19 @@ After completion, create `.planning/phases/XX-name/{phase}-{plan}-SUMMARY.md`
 # Plan 01 - User feature
 wave: 1
 depends_on: []
-files_modified: [src/models/user.ts, src/api/users.ts]
+files_modified: [app/models/user.rb, app/controllers/users_controller.rb]
 autonomous: true
 
 # Plan 02 - Product feature (no overlap with Plan 01)
 wave: 1
 depends_on: []
-files_modified: [src/models/product.ts, src/api/products.ts]
+files_modified: [app/models/product.rb, app/controllers/products_controller.rb]
 autonomous: true
 
 # Plan 03 - Order feature (no overlap)
 wave: 1
 depends_on: []
-files_modified: [src/models/order.ts, src/api/orders.ts]
+files_modified: [app/models/order.rb, app/controllers/orders_controller.rb]
 autonomous: true
 ```
 
@@ -172,13 +176,13 @@ All three run in parallel (Wave 1) - no dependencies, no file conflicts.
 # Plan 01 - Auth foundation
 wave: 1
 depends_on: []
-files_modified: [src/lib/auth.ts, src/middleware/auth.ts]
+files_modified: [app/services/authentication.rb, app/controllers/concerns/authenticatable.rb]
 autonomous: true
 
 # Plan 02 - Protected features (needs auth)
 wave: 2
 depends_on: ["01"]
-files_modified: [src/features/dashboard.ts]
+files_modified: [app/controllers/dashboards_controller.rb]
 autonomous: true
 ```
 
@@ -190,11 +194,49 @@ Plan 02 in Wave 2 waits for Plan 01 in Wave 1 - genuine dependency on auth types
 # Plan 03 - UI with verification
 wave: 3
 depends_on: ["01", "02"]
-files_modified: [src/components/Dashboard.tsx]
+files_modified: [app/views/dashboards/show.html.erb]
 autonomous: false  # Has checkpoint:human-verify
 ```
 
 Wave 3 runs after Waves 1 and 2. Pauses at checkpoint, orchestrator presents to user, resumes on approval.
+
+**Domain-split (horizontal by expertise):**
+
+```yaml
+# Plan 01 - Backend: User model + controller
+wave: 1
+depends_on: []
+files_modified: [app/models/user.rb, app/controllers/users_controller.rb]
+autonomous: true
+domain: backend
+domain_guide: backend.md
+
+# Plan 02 - Backend: Product model + controller
+wave: 1
+depends_on: []
+files_modified: [app/models/product.rb, app/controllers/products_controller.rb]
+autonomous: true
+domain: backend
+domain_guide: backend.md
+
+# Plan 03 - Frontend: User + Product views
+wave: 2
+depends_on: ["01", "02"]
+files_modified: [app/views/users/, app/views/products/]
+autonomous: true
+domain: frontend
+domain_guide: frontend.md
+
+# Plan 04 - Testing: Model + controller tests
+wave: 2
+depends_on: ["01", "02"]
+files_modified: [test/models/user_test.rb, test/controllers/users_controller_test.rb]
+autonomous: true
+domain: testing
+domain_guide: testing.md
+```
+
+Backend plans run in Wave 1. Frontend and testing plans run in Wave 2 (parallel, both depend on backend). Domain executors load their respective guides for domain-specific expertise.
 
 </parallel_examples>
 
@@ -218,7 +260,7 @@ Wave 3 runs after Waves 1 and 2. Pauses at checkpoint, orchestrator presents to 
 # Independent plans need NO prior SUMMARY references.
 # Do NOT reflexively chain: 02 refs 01, 03 refs 02...
 
-@src/relevant/source.ts
+@app/models/relevant.rb
 </context>
 ```
 
@@ -264,7 +306,7 @@ AVOID:  Plan 01 = All models
 
 TDD features get dedicated plans with `type: tdd`.
 
-**Heuristic:** Can you write `expect(fn(input)).toBe(output)` before writing `fn`?
+**Heuristic:** Can you write `assert_equal expected, fn(input)` before writing `fn`?
 → Yes: Create a TDD plan
 → No: Standard task in standard plan
 
@@ -301,7 +343,7 @@ plan: 01
 type: execute
 wave: 1
 depends_on: []
-files_modified: [src/features/user/model.ts, src/features/user/api.ts, src/features/user/UserList.tsx]
+files_modified: [app/models/user.rb, app/controllers/users_controller.rb, app/views/users/index.html.erb]
 autonomous: true
 ---
 
@@ -309,7 +351,7 @@ autonomous: true
 Implement complete User feature as vertical slice.
 
 Purpose: Self-contained user management that can run parallel to other features.
-Output: User model, API endpoints, and UI components.
+Output: User model, controller, and view templates.
 </objective>
 
 <context>
@@ -320,24 +362,24 @@ Output: User model, API endpoints, and UI components.
 
 <tasks>
 <task type="auto">
-  <name>Task 1: Create User model</name>
-  <files>src/features/user/model.ts</files>
-  <action>Define User type with id, email, name, createdAt. Export TypeScript interface.</action>
-  <verify>tsc --noEmit passes</verify>
-  <done>User type exported and usable</done>
+  <name>Task 1: Create User model and migration</name>
+  <files>app/models/user.rb, db/migrate/create_users.rb</files>
+  <action>Generate User model with email, name, timestamps. Add validations for presence and uniqueness.</action>
+  <verify>bundle exec rake test passes</verify>
+  <done>User model with validations and passing migration</done>
 </task>
 
 <task type="auto">
-  <name>Task 2: Create User API endpoints</name>
-  <files>src/features/user/api.ts</files>
-  <action>GET /users (list), GET /users/:id (single), POST /users (create). Use User type from model.</action>
-  <verify>curl tests pass for all endpoints</verify>
+  <name>Task 2: Create User controller and views</name>
+  <files>app/controllers/users_controller.rb, app/views/users/</files>
+  <action>RESTful UsersController with index, show, create actions. Add corresponding view templates.</action>
+  <verify>bundle exec rake test passes</verify>
   <done>All CRUD operations work</done>
 </task>
 </tasks>
 
 <verification>
-- [ ] npm run build succeeds
+- [ ] bundle exec rake test passes
 - [ ] API endpoints respond correctly
 </verification>
 
@@ -360,7 +402,7 @@ plan: 03
 type: execute
 wave: 2
 depends_on: ["03-01", "03-02"]
-files_modified: [src/components/Dashboard.tsx]
+files_modified: [app/controllers/dashboards_controller.rb, app/views/dashboards/show.html.erb]
 autonomous: false
 ---
 
@@ -368,7 +410,7 @@ autonomous: false
 Build dashboard with visual verification.
 
 Purpose: Integrate user and product features into unified view.
-Output: Working dashboard component.
+Output: Working dashboard controller and view.
 </objective>
 
 <execution_context>
@@ -386,17 +428,17 @@ Output: Working dashboard component.
 
 <tasks>
 <task type="auto">
-  <name>Task 1: Build Dashboard layout</name>
-  <files>src/components/Dashboard.tsx</files>
-  <action>Create responsive grid with UserList and ProductList components. Use CSS custom properties and utility classes per the project's style guide.</action>
-  <verify>npm run build succeeds</verify>
+  <name>Task 1: Build Dashboard controller and view</name>
+  <files>app/controllers/dashboards_controller.rb, app/views/dashboards/show.html.erb</files>
+  <action>Create DashboardsController#show with users and products data. Build responsive view with partials for user list and product list.</action>
+  <verify>bundle exec rake test passes</verify>
   <done>Dashboard renders without errors</done>
 </task>
 
 <!-- Checkpoint pattern: Claude starts server, user visits URL. See checkpoints.md for full patterns. -->
 <task type="auto">
   <name>Start dev server</name>
-  <action>Run `npm run dev` in background, wait for ready</action>
+  <action>Run `bin/rails server` in background, wait for ready</action>
   <verify>curl localhost:3000 returns 200</verify>
 </task>
 
@@ -408,7 +450,7 @@ Output: Working dashboard component.
 </tasks>
 
 <verification>
-- [ ] npm run build succeeds
+- [ ] bundle exec rake test passes
 - [ ] Visual verification passed
 </verification>
 
@@ -514,24 +556,24 @@ must_haves:
     - "User can send a message"
     - "Messages persist across refresh"
   artifacts:
-    - path: "src/components/Chat.tsx"
+    - path: "app/views/messages/index.html.erb"
       provides: "Message list rendering"
       min_lines: 30
-    - path: "src/app/api/chat/route.ts"
+    - path: "app/controllers/messages_controller.rb"
       provides: "Message CRUD operations"
-      exports: ["GET", "POST"]
-    - path: "prisma/schema.prisma"
+      exports: ["index", "create"]
+    - path: "app/models/message.rb"
       provides: "Message model"
-      contains: "model Message"
+      contains: "class Message"
   key_links:
-    - from: "src/components/Chat.tsx"
-      to: "/api/chat"
-      via: "fetch in useEffect"
-      pattern: "fetch.*api/chat"
-    - from: "src/app/api/chat/route.ts"
-      to: "prisma.message"
-      via: "database query"
-      pattern: "prisma\\.message\\.(find|create)"
+    - from: "app/views/messages/index.html.erb"
+      to: "messages_path"
+      via: "form_with and turbo_stream"
+      pattern: "form_with.*message"
+    - from: "app/controllers/messages_controller.rb"
+      to: "Message.where"
+      via: "ActiveRecord query"
+      pattern: "Message\\.(where|create|find)"
 ```
 
 **Field descriptions:**

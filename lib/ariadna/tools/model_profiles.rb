@@ -16,7 +16,10 @@ module Ariadna
         "ariadna-codebase-mapper" =>      { "quality" => "sonnet", "balanced" => "haiku", "budget" => "haiku" },
         "ariadna-verifier" =>             { "quality" => "sonnet", "balanced" => "sonnet", "budget" => "haiku" },
         "ariadna-plan-checker" =>         { "quality" => "sonnet", "balanced" => "sonnet", "budget" => "haiku" },
-        "ariadna-integration-checker" =>  { "quality" => "sonnet", "balanced" => "sonnet", "budget" => "haiku" }
+        "ariadna-integration-checker" =>  { "quality" => "sonnet", "balanced" => "sonnet", "budget" => "haiku" },
+        "ariadna-backend-executor" =>   { "quality" => "opus", "balanced" => "sonnet", "budget" => "sonnet" },
+        "ariadna-frontend-executor" =>  { "quality" => "opus", "balanced" => "sonnet", "budget" => "sonnet" },
+        "ariadna-test-executor" =>      { "quality" => "opus", "balanced" => "sonnet", "budget" => "sonnet" }
       }.freeze
 
       def self.resolve(argv, raw: false)
