@@ -1,13 +1,13 @@
 # Ariadna
 
-A meta-prompting and context engineering system for [Claude Code](https://docs.anthropic.com/en/docs/claude-code).
+A meta-prompting and context engineering system for building Ruby on Rails applications with [Claude Code](https://docs.anthropic.com/en/docs/claude-code).
 
 [![Gem Version](https://badge.fury.io/rb/ariadna.svg)](https://rubygems.org/gems/ariadna)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Ariadna provides structured planning, multi-agent orchestration, and verification workflows via Claude Code slash commands. It turns Claude Code into a disciplined project execution engine that plans before it builds, verifies after it ships, and tracks state across sessions. Specialized executor agents handle backend, frontend, and testing domains with domain-specific guides.
+Ariadna turns Claude Code into a disciplined Rails project execution engine that plans before it builds, verifies after it ships, and tracks state across sessions. It provides structured planning, multi-agent orchestration, and verification workflows via slash commands. Specialized executor agents handle backend, frontend, and testing domains with Rails-specific guides and conventions baked in.
 
-A system of prompts, agents, and workflows that make Claude Code work like a disciplined engineering team.
+A system of prompts, agents, and workflows that make Claude Code work like a disciplined Rails engineering team.
 
 ## Why Ariadna
 
@@ -18,7 +18,7 @@ A system of prompts, agents, and workflows that make Claude Code work like a dis
 - **Persistent memory** — `STATE.md` tracks decisions, progress, and blockers across sessions
 - **Structured planning** — roadmaps, phases, and plans with dependency-aware execution
 - **Parallel agents** — wave-based execution spawns multiple agents working simultaneously
-- **Domain-specific executors** — backend, frontend, and test agents load specialised guides
+- **Rails-aware executors** — backend, frontend, and test agents load Rails-specific guides and conventions
 - **Verification** — automated goal checking plus conversational UAT after every phase
 - **Session continuity** — pause mid-phase, resume later with full context restoration
 
@@ -26,7 +26,7 @@ A system of prompts, agents, and workflows that make Claude Code work like a dis
 
 1. You invoke a slash command (e.g., `/ariadna:execute-phase 1`)
 2. The command loads a workflow definition and gathers context via `ariadna-tools`
-3. An orchestrator spawns specialised agents (planner, executor, verifier) in parallel, routing to domain-specific executors based on plan metadata
+3. An orchestrator spawns specialised agents (planner, executor, verifier) in parallel, routing to Rails-specific executors based on plan metadata
 4. Agents execute tasks, make atomic commits, and produce summaries
 5. Project state is updated in `.planning/STATE.md`
 
@@ -50,7 +50,7 @@ Or locally for a single project:
 ariadna install --local     # Installs to ./.claude/ — project-specific
 ```
 
-### New Project (Greenfield)
+### New Rails Project (Greenfield)
 
 ```
 /ariadna:new-project           # Define vision, research domain, create roadmap
@@ -63,7 +63,7 @@ ariadna install --local     # Installs to ./.claude/ — project-specific
 
 Use `/clear` between commands to give each orchestrator a fresh context window. Each command loads only the context it needs.
 
-### Existing Project (Brownfield)
+### Existing Rails Project (Brownfield)
 
 ```
 /ariadna:map-codebase          # Analyse codebase → .planning/codebase/
@@ -172,7 +172,7 @@ Lightweight coordinators that spawn specialised agents. They stay lean (~10-15% 
 
 ### Specialised Executors
 
-Plans include a `domain` field in their frontmatter. The execute-phase orchestrator routes each plan to the appropriate executor:
+Plans include a `domain` field in their frontmatter. The execute-phase orchestrator routes each plan to the appropriate Rails-aware executor:
 
 | Domain | Executor | Guide |
 |--------|----------|-------|
@@ -200,7 +200,7 @@ Each specialised executor loads its domain guide automatically, applying domain-
 
 ## Guides
 
-Guides provide domain-specific patterns, conventions, and best practices that executors follow during plan execution. Read below how to customise them for your project.
+Guides encode Rails patterns, conventions, and best practices that executors follow during plan execution. Read below how to customise them for your project.
 
 | Guide | Purpose |
 |-------|---------|
