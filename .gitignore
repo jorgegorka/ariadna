@@ -1,0 +1,33 @@
+# Generated gems
+*.gem
+/pkg/
+
+# Runtime data
+*.rbc
+/coverage/
+/tmp/
+
+# Bundler
+/vendor/bundle/
+/.bundler/
+
+# Testing
+/spec/reports/
+/spec/examples.txt
+/test/tmp/
+/test/version_tmp/
+
+# Debugger
+.byebug_history
+
+# RVM/RBenv
+.rvmrc
+.ruby-version  # Optional: ignore if gem runs in multiple envs
+.ruby-gemset
+
+# RuboCop configs
+.rubocop-https?://*
+
+# Common dirs
+.log
+.DS_Store
