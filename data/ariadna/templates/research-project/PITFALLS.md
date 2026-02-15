@@ -184,6 +184,53 @@ params.require(:user).permit(:name, :email)
 
 ---
 
+### Pitfall 7: Explicit Translation Keys Instead of ActiveRecord Automatic Lookup
+
+**What goes wrong:**
+[Describe where explicit `t()` calls duplicate what Rails I18n automatic lookup provides — e.g., form labels passing explicit keys, validation messages hardcoded, model names translated manually]
+
+**Why it happens:**
+[Root cause — e.g., developers unaware of ActiveRecord I18n conventions, copying patterns from non-Rails projects, not reading Rails I18n guide]
+
+**How to avoid:**
+[Prevention strategy — e.g., use `form.label :name` instead of `form.label :name, t("teams.form.name")`, define translations under `activerecord.attributes.*` and `activerecord.models.*`, rely on automatic lookup for validation messages]
+
+**Warning signs:**
+[How to detect early — e.g., duplicate translation keys for the same attribute in different namespaces, inconsistent labels between forms and error messages, `t()` calls in form labels that mirror `activerecord.attributes` keys]
+
+**Example:**
+```ruby
+# Bad — explicit key duplicates what Rails provides automatically
+<%= form.label :name, t("teams.form.name") %>
+# Requires: teams.form.name in locale file AND activerecord.attributes.team.name for validations
+
+# Good — resolves from activerecord.attributes.team.name automatically
+<%= form.label :name %>
+# Single source of truth: activerecord.attributes.team.name used by forms AND validations
+```
+
+```yaml
+# Good — single source of truth for attribute names
+en:
+  activerecord:
+    models:
+      team: "Team"
+    attributes:
+      team:
+        name: "Team name"
+    errors:
+      models:
+        team:
+          attributes:
+            name:
+              blank: "cannot be empty"
+```
+
+**Phase to address:**
+[Which roadmap phase should prevent this]
+
+---
+
 [Continue for additional critical pitfalls specific to this application...]
 
 ## Technical Debt Patterns
@@ -215,6 +262,7 @@ Common mistakes when integrating Rails gems and external services.
 | Turbo / Hotwire | [e.g., full page reloads from misconfigured frames, missing turbo stream responses, form submission edge cases] | [what to do instead] |
 | Rails version upgrades | [e.g., skipping deprecation warnings, upgrading multiple major versions at once, not running `rails app:update`] | [what to do instead] |
 | Third-party APIs | [e.g., no circuit breaker, synchronous calls in request cycle, no webhook signature verification] | [what to do instead] |
+| I18n / rails-i18n | [e.g., using explicit `t()` keys for model attributes and form labels instead of ActiveRecord automatic lookup, missing `rails-i18n` gem for CLDR data (dates, currency, numbers), inconsistent locale file organization mixing per-model and flat structures] | [e.g., define translations under `activerecord.attributes.*` and `activerecord.models.*`, use `form.label :field` without explicit `t()`, add `rails-i18n` gem for base locale data, organize locale files consistently] |
 | [integration] | [what people do wrong] | [what to do instead] |
 
 ## Performance Traps
@@ -261,6 +309,7 @@ Rails features that appear complete but are missing critical pieces.
 - [ ] **Database connection pooling:** Pool size matches worker/thread count — verify `database.yml` pool matches Puma thread count
 - [ ] **Timezone handling:** Application uses `Time.current` / `Date.current` instead of `Time.now` / `Date.today` — verify `config.time_zone` is set and used consistently
 - [ ] **Email delivery:** Mailers use `deliver_later` not `deliver_now` in web requests — verify mailer calls don't block request cycle
+- [ ] **I18n locale completeness:** All supported locales have matching keys for `activerecord.models.*`, `activerecord.attributes.*`, and `activerecord.errors.*` — verify with `i18n-tasks` gem or manual comparison that no locale is missing translations present in others
 - [ ] **[Feature]:** Often missing [thing] — verify [check]
 - [ ] **[Feature]:** Often missing [thing] — verify [check]
 

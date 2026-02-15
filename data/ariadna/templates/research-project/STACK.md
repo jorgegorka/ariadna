@@ -52,6 +52,7 @@ Template for `.planning/research/STACK.md` — discovered technology stack for t
 | File storage service | [local/S3/GCS/Azure/none] | [config/storage.yml] |
 | Email | [Action Mailer/Postmark/SendGrid/none] | [Gemfile, mailer configs] |
 | PDF generation | [Prawn/wicked_pdf/Grover/none] | [Gemfile] |
+| Internationalization | [rails-i18n gem / manual locale files only / none] | [Gemfile, config/locales/] |
 
 ## Authentication & Authorization
 

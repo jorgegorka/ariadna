@@ -166,6 +166,56 @@ test/                      # [test framework: Minitest (default) or spec/ if RSp
 **Authentication:** [Rails authentication generator / has_secure_password / custom / other]
 **Authorization:** [Custom / Pundit / CanCanCan / Action Policy / other]
 
+### Internationalization (I18n)
+
+**Configuration:**
+- Default locale: [discovered from `config.i18n.default_locale`]
+- Available locales: [discovered from `config.i18n.available_locales`]
+- Fallback chain: [discovered from `config.i18n.fallbacks`]
+
+**Locale file organization:**
+```
+config/locales/
+├── [default locale].yml            # [application-wide defaults]
+├── activerecord.[lang].yml         # [model and attribute translations]
+├── [feature].[lang].yml            # [per-feature locale files if present]
+└── [additional locale files discovered]
+```
+
+**ActiveRecord translations:**
+```yaml
+# config/locales/activerecord.[lang].yml
+[lang]:
+  activerecord:
+    models:
+      [model]: [translated model name]
+    attributes:
+      [model]:
+        [attribute]: [translated attribute name]
+```
+
+**Translation approach:**
+
+| Context | Recommended Approach | What This Project Does |
+|---------|---------------------|------------------------|
+| Model names | `activerecord.models.*` — automatic lookup by Rails | [discovered approach] |
+| Attribute names | `activerecord.attributes.*` — automatic lookup by `form.label`, validations, etc. | [discovered approach] |
+| Form labels | `form.label :name` — resolves from `activerecord.attributes` automatically | [discovered approach] |
+| Validation messages | `activerecord.errors.models.*` / `errors.messages.*` — automatic lookup | [discovered approach] |
+| View text | Lazy lookup `t(".title")` or explicit `t("views.controller.action.title")` | [discovered approach] |
+| Enum values | `activerecord.attributes.[model].[enum_attribute]/[value]` | [discovered approach] |
+| Flash messages | Controller lazy lookup `t(".success")` or explicit keys | [discovered approach] |
+| Mailer subjects | `I18n.t("mailer_name.action_name.subject")` — automatic from mailer class | [discovered approach] |
+
+**CLDR / base locale data:**
+- `rails-i18n` gem: [present/absent — provides date, time, currency, number formats for non-English locales]
+- Custom date/time formats: [discovered in locale files or initializers]
+
+**Example from codebase:**
+```ruby
+# [Brief code example showing the project's actual I18n usage pattern]
+```
+
 ## Data Flow
 
 ### Standard Request Cycle
@@ -376,5 +426,14 @@ Client receives → DOM update
 - Document which Rails framework integrations are active (Active Storage, Action Cable, etc.)
 - Note external API integration patterns and HTTP client choices
 - Look for engine boundaries and module interfaces
+
+**Internationalization (I18n):**
+- Check `config/application.rb` for `i18n.default_locale`, `i18n.available_locales`, and `i18n.fallbacks`
+- Inspect `config/locales/` file organization — per-model, per-feature, or flat structure
+- Look for `activerecord.models.*` and `activerecord.attributes.*` keys in locale files — these power automatic lookup for model names, form labels, and validation messages
+- Check whether form labels use automatic lookup (`form.label :name`) vs explicit `t()` calls — explicit calls duplicate what Rails provides for free
+- Check Gemfile for `rails-i18n` gem — provides CLDR base data (dates, times, currency, numbers) for non-English locales
+- Look for validation error message customization under `activerecord.errors.models.*`
+- Check for lazy lookup usage in views (`t(".key")`) and controllers
 
 </guidelines>
