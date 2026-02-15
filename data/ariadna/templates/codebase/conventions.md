@@ -251,7 +251,7 @@ end
 - Model validation errors re-render form with `@model.errors`
 
 **Error Types:**
-- Raise on authorization failures: `rescue_from Pundit::NotAuthorizedError`
+- Raise on authorization failures: `rescue_from NotAuthorizedError`
 - Raise on missing records: `rescue_from ActiveRecord::RecordNotFound`
 - Return `false`/`nil` for expected domain failures
 - Jobs: `retry_on` for transient failures (network, timeouts), `discard_on ActiveRecord::RecordNotFound`

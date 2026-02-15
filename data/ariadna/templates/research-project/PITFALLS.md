@@ -155,7 +155,7 @@ params.require(:user).permit(:name, :email)
 [Root cause — e.g., tenant scoping not enforced at the framework level, new developers unaware of scoping requirements, background jobs not carrying tenant context]
 
 **How to avoid:**
-[Prevention strategy — e.g., acts_as_tenant gem, Current attributes for tenant context, controller-level `around_action` for scoping, test isolation per tenant]
+[Prevention strategy — e.g., Current attributes for tenant context, controller-level `around_action` for scoping, test isolation per tenant]
 
 **Warning signs:**
 [How to detect early — e.g., queries without `WHERE tenant_id = ?`, cross-tenant data appearing in tests, background jobs processing wrong tenant data]
@@ -241,7 +241,7 @@ Rails-specific security issues beyond basic web security.
 | SQL injection via string interpolation in `where` | [e.g., user input directly in query string allows data exfiltration] | [e.g., always use parameterized queries: `where("name = ?", params[:name])` or hash syntax `where(name: params[:name])`] |
 | CSRF token handling gaps | [e.g., API endpoints without `protect_from_forgery`, token not verified on state-changing requests] | [e.g., `protect_from_forgery with: :exception`, proper token handling for JS requests, `csrf_meta_tags` in layout] |
 | Credential management mistakes | [e.g., secrets in ENV vars without encryption, credentials checked into git, different credentials per environment not managed] | [e.g., Rails encrypted credentials, `rails credentials:edit`, per-environment credential files] |
-| Insecure direct object references | [e.g., `User.find(params[:id])` without authorization check, enumerable IDs exposing records] | [e.g., always scope to authorized records: `current_user.posts.find(params[:id])`, use Pundit/CanCanCan] |
+| Insecure direct object references | [e.g., `User.find(params[:id])` without authorization check, enumerable IDs exposing records] | [e.g., always scope to authorized records: `current_user.posts.find(params[:id])`, use Current.account or Current.employee] |
 | Mass assignment vulnerabilities | [e.g., unpermitted nested attributes modifying admin fields, `accepts_nested_attributes_for` without `reject_if`] | [e.g., explicit strong parameters, test that admin attributes cannot be set via API, `attr_readonly` for sensitive fields] |
 | Unsafe `html_safe` / `raw` usage | [e.g., XSS from marking user input as safe, rendering unescaped HTML from database] | [e.g., never call `html_safe` on user input, use `sanitize` helper, Content Security Policy headers] |
 | Open redirects | [e.g., `redirect_to params[:return_to]` allows redirecting to malicious sites] | [e.g., validate redirect URLs against allowlist, use `redirect_back` with `fallback_location`] |

@@ -57,7 +57,7 @@ Launch **6 parallel agents** (one per file), each tasked with rewriting a single
   - **Languages**: Ruby (version from `.ruby-version`), JavaScript/CSS for assets
   - **Runtime**: Ruby + Bundler, `.ruby-version`
   - **Frameworks**: Rails (version), Minitest (recommended)/RSpec, Hotwire/Turbo/Stimulus
-  - **Key Dependencies**: Key gems (solid_queue, solid_cache, pundit, etc.)
+  - **Key Dependencies**: Key gems (solid_queue, solid_cache, etc.)
   - **Configuration**: `database.yml`, `credentials.yml.enc`, `config/environments/`
   - **Build**: Asset pipeline (Propshaft/Sprockets), importmap/esbuild/vite
   - **Platform**: Kamal, Docker, Heroku, etc.

@@ -17,7 +17,7 @@ Template for `.planning/codebase/ARCHITECTURE.md` - captures conceptual code org
 
 **Overall:** [Pattern name: e.g., "Rails Monolith", "Rails API-only", "Rails + Hotwire", "Rails Engine-based"]
 
-**Multi-Tenancy:** [e.g., "Path-based with CurrentAttributes", "Subdomain-based", "acts_as_tenant gem", "Single-tenant", "None"]
+**Multi-Tenancy:** [e.g., "Path-based with CurrentAttributes", "Subdomain-based", "session based", "Single-tenant", "None"]
 
 **Key Characteristics:**
 - [Characteristic 1: e.g., "Server-rendered with Turbo"]
@@ -357,11 +357,6 @@ Template for `.planning/codebase/ARCHITECTURE.md` - captures conceptual code org
 - Location: `app/models/` subdirectories — `User::Filtering`, `Event::Description`, `User::DayTimeline`
 - Pattern: Constructor injection, memoized collections (`@boards ||= ...`), boolean methods for conditional display (`show_tags?`), cache keys for fragment caching. Some include `ActionView::Helpers::TagHelper` for HTML generation. Instantiated via controller concerns or factory methods on models (`event.description_for(user)`)
 
-**Pundit Policies:**
-- Purpose: Authorize user actions on resources
-- Examples: `ProjectPolicy`, `TaskPolicy`, `MembershipPolicy`
-- Pattern: Policy class per model with `?` predicate methods
-
 ## Multi-Tenancy & Current Context
 
 **Approach:** Path-based — account slug extracted from URL path by `AccountSlug::Extractor` middleware. Slug moves from `PATH_INFO` to `SCRIPT_NAME`. No subdomain configuration needed.
@@ -400,7 +395,7 @@ Template for `.planning/codebase/ARCHITECTURE.md` - captures conceptual code org
 
 **Patterns:**
 - `rescue_from ActiveRecord::RecordNotFound` → 404 page
-- `rescue_from Pundit::NotAuthorizedError` → 403 or redirect with flash
+- `rescue_from NotAuthorizedError` → 403 or redirect with flash
 - Model validation errors re-render form with `@model.errors`
 - Service objects return `Result` structs (success/failure) instead of raising
 - Jobs use `retry_on` for transient failures, `discard_on` for permanent ones
@@ -421,7 +416,6 @@ Template for `.planning/codebase/ARCHITECTURE.md` - captures conceptual code org
 - `require_authentication` filter on all non-public controllers
 
 **Authorization:**
-- Pundit policies per resource
 - `authorize` calls in controller actions
 - Scoped queries via `policy_scope`
 

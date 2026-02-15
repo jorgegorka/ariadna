@@ -164,7 +164,7 @@ test/                      # [test framework: Minitest (default) or spec/ if RSp
 ### Authentication and Authorization
 
 **Authentication:** [Rails authentication generator / has_secure_password / custom / other]
-**Authorization:** [Pundit / CanCanCan / custom / Action Policy / other]
+**Authorization:** [Custom / Pundit / CanCanCan / Action Policy / other]
 
 ## Data Flow
 

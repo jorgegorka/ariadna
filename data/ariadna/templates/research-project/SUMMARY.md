@@ -53,7 +53,7 @@ Template for `.planning/research/SUMMARY.md` — executive summary of project re
 
 **Authentication & authorization:**
 - [Auth solution]: [purpose] — [why recommended — e.g., Rails authentication generator for session-based auth]
-- [Authorization]: [purpose] — [why recommended — e.g., Pundit for policies, Action Policy for scalable rules]
+- [Authorization]: [purpose] — [why recommended — e.g., before_action, Pundit for policies, Action Policy for scalable rules]
 
 **Additional gems:**
 - [Gem]: [purpose] — [why recommended]
@@ -87,7 +87,7 @@ Template for `.planning/research/SUMMARY.md` — executive summary of project re
 6. [Data access patterns] — [approach — e.g., scopes, query objects, eager loading strategy]
 
 **Multi-tenancy approach (if applicable):**
-- [Strategy] — [e.g., acts_as_tenant scoping, PostgreSQL schemas, separate databases]
+- [Strategy] — [e.g., Denormalise tables with account_id and use Current.account, PostgreSQL schemas, separate databases]
 
 **Engine extraction (if applicable):**
 - [Engine/mountable concern] — [e.g., admin engine, API engine, shared authentication engine]

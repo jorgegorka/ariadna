@@ -123,9 +123,8 @@ Template for `.planning/codebase/STACK.md` - captures the technology foundation.
 
 **Critical:**
 - authentication (built-in) — Session-based auth
-- pundit — Authorization
+- authorization - custom implementation (no gem) — Role-based access control, pundit
 - solid_queue — Background jobs (Rails 8 default)
-- stripe — Payment processing
 
 **Infrastructure:**
 - sqlite3 — SQLite adapter (Rails default)
