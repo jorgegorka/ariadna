@@ -190,8 +190,8 @@ Template for `.planning/codebase/CONCERNS.md` - captures known issues and areas 
 **Missing authorization checks on nested resources:**
 - Risk: Card comments endpoint does not verify user has access to the parent board
 - Files: `app/controllers/comments_controller.rb`, missing `authorize @comment` call
-- Current mitigation: Obscured by UUID-based URLs (hard to guess)
-- Recommendations: Add Pundit `authorize` call or `before_action` scope check, add `CommentPolicy` with board-access verification
+- Current mitigation: Denormalise tables so all include account_id and rely on `Current.account` scope, but no explicit check on board access.
+- Recommendations: Add `before_action` scope check.
 
 **Unscoped queries leaking tenant data:**
 - Risk: `Admin::ReportsController` uses `Card.where(created_at: range)` without `Current.account` scope

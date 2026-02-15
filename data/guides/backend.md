@@ -18,7 +18,6 @@ We stand on the shoulders of giants.
 - [Part 1: Foundation & Architecture](#part-1-foundation--architecture)
   - [1.0 The Vanilla Rails Philosophy](#10-the-vanilla-rails-philosophy)
   - [1.1 Understanding Architecture](#11-understanding-fizzys-architecture)
-  - [1.2 UUID Primary Keys & Fixtures](#12-uuid-primary-keys--fixtures)
 - [Part 2: Model Layer Patterns](#part-2-model-layer-patterns)
   - [2.1 Concern Architecture](#21-concern-architecture)
   - [2.2 Intention-Revealing APIs](#22-intention-revealing-apis)
@@ -201,52 +200,6 @@ When you set `Current.session`, it automatically:
 ```ruby
 setup do
   Current.session = sessions(:david)  # Sets up user and account context
-end
-```
-
-### UUID Primary Keys
-
-It uses UUIDs (UUIDv7, base36-encoded to 25 characters) instead of auto-incrementing integers:
-
-**Why UUIDs:**
-- **Security**: No ID enumeration across tenants
-- **Distributed systems**: Can generate IDs client-side
-- **Merging**: No ID conflicts when combining data
-
-**The Card exception**: Cards use `number` (integer) for user-facing IDs:
-```ruby
-# Card ID: "abc123def456..." (UUID, internal)
-# Card number: 1234 (integer, user-facing)
-
-# In routes and URLs
-card_path(@card)  # => /cards/1234 (uses number, not ID)
-
-# In controllers
-@card = Current.user.accessible_cards.find_by!(number: params[:id])
-```
-
-**Fixture behavior:**
-- Fixture UUIDs are deterministic and always "older" than test-created records
-- `.first` and `.last` work predictably in tests
-
-## 1.2 UUID Primary Keys & Fixtures
-
-### Practical Implications
-
-```ruby
-# ✓ Good: Find cards by number
-def set_card
-  @card = Current.user.accessible_cards.find_by!(number: params[:id])
-end
-
-# ✗ Bad: Don't use regular find for cards
-def set_card
-  @card = Card.find(params[:id])  # Wrong! Cards use number for params
-end
-
-# ✓ Good: Everything else uses UUID find
-def set_board
-  @board = Current.user.boards.find(params[:board_id])
 end
 ```
 
@@ -2642,10 +2595,10 @@ end
 ```ruby
 class CreateCardArchives < ActiveRecord::Migration[7.1]
   def change
-    create_table :card_archives, id: :uuid do |t|
-      t.references :card, null: false, foreign_key: true, type: :uuid
-      t.references :user, null: false, foreign_key: true, type: :uuid
-      t.references :account, null: false, foreign_key: true, type: :uuid
+    create_table :card_archives do |t|
+      t.references :card, null: false, foreign_key: true
+      t.references :user, null: false, foreign_key: true
+      t.references :account, null: false, foreign_key: true
       t.timestamps
     end
   end
@@ -3094,7 +3047,7 @@ Wrap related operations in transactions.
 
 This documentation covers the core backend patterns and practices used throughout the Rails application:
 
-- **Foundation**: Multi-tenancy via Current context, UUID primary keys
+- **Foundation**: Multi-tenancy via Current context
 - **Models**: Concern-driven architecture, intention-revealing APIs, smart defaults
 - **Controllers**: Thin controllers that delegate to rich models
 - **Jobs**: Ultra-thin jobs following _now/_later pattern

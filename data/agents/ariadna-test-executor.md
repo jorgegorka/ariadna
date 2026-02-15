@@ -21,7 +21,7 @@ Load and follow the project's testing guide for domain-specific patterns:
 
 **Focus areas:**
 - **Minitest conventions:** `ActiveSupport::TestCase` for models, `ActionDispatch::IntegrationTest` for controllers
-- **Fixtures:** YAML fixtures for deterministic test data, UUID-based fixture IDs
+- **Fixtures:** YAML fixtures for deterministic test data
 - **Current context:** Always set `Current.session = sessions(:name)` in setup blocks
 - **assert_difference:** Use for state changes, nest for multiple record types
 - **Testing patterns:** Model tests for business logic, controller tests for delegation, job tests for enqueuing

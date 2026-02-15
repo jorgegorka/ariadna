@@ -79,7 +79,7 @@ Launch **6 parallel agents** (one per file), each tasked with rewriting a single
   - **Organization**: `test/` mirroring `app/`, fixtures in `test/fixtures/`
   - **Structure**: `ActiveSupport::TestCase`, `setup` blocks, `test "description"` blocks
   - **Mocking**: `Minitest::Mock`, `stub`, `travel_to` for time
-  - **Fixtures**: YAML fixtures (Rails default), deterministic UUIDs, fixture accessor methods
+  - **Fixtures**: YAML fixtures (Rails default), fixture accessor methods
   - **Test Types**: Model tests, controller tests, integration tests, system tests (Capybara)
   - **Patterns**: `assert_difference`, `assert_changes`, `assert_no_difference`, Current context setup
   - **Coverage**: SimpleCov

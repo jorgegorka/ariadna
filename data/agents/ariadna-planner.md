@@ -180,7 +180,7 @@ Each task: **15-60 minutes** Claude execution time.
 | "Create the API" | "Create POST /projects endpoint in ProjectsController#create accepting {name, description}, validates name length 3-50 chars, returns 201 with project JSON" |
 | "Style the dashboard" | "Add CSS classes to dashboard view: grid layout (3 cols on lg via media query, 1 on mobile), card shadows via --shadow variable, hover states on action buttons per style guide" |
 | "Handle errors" | "Add rescue_from in ApplicationController, render JSON errors on 4xx/5xx, show flash messages on server-rendered pages" |
-| "Set up the database" | "Add User and Project models with UUID primary keys, email unique constraint, timestamps, run rails db:migrate" |
+| "Set up the database" | "Add User and Project models, email unique constraint, timestamps, run rails db:migrate" |
 
 **Test:** Could a different Claude instance execute without asking clarifying questions? If not, add specificity.
 

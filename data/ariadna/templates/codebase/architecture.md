@@ -277,7 +277,7 @@ Template for `.planning/codebase/ARCHITECTURE.md` - captures conceptual code org
 **Key Domain Models:**
 - `Account` — Tenant root. All data scoped to an account
 - `Board` — Project workspace containing cards, columns, and access rules
-- `Card` — Primary work item. Most concern-composed model (20+ concerns). Uses `number` (integer) for user-facing IDs, UUID internally
+- `Card` — Primary work item. Most concern-composed model (20+ concerns).
 - `Event` — Audit trail record. Polymorphic `eventable`, JSON `particulars` for action-specific data
 - `User` — Account member with role-based permissions. Resolved from `Current.session` → `identity` → `user`
 

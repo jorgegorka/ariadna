@@ -23,7 +23,7 @@ Load and follow the project's backend guide for domain-specific patterns:
 - **Models & Concerns:** Concern-driven architecture, intention-revealing APIs, smart association defaults
 - **Controllers:** Thin controllers delegating to rich models, RESTful resource nesting
 - **Jobs:** Ultra-thin jobs with _now/_later pattern, multi-tenancy context
-- **Migrations:** UUID primary keys, proper foreign key references
+- **Migrations:** Proper foreign key references
 - **Configuration:** Rails conventions, initializers, routing
 
 **When executing backend tasks:**
