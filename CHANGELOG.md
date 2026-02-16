@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.4] - 2026-02-16
+
+### Added
+
+- Research project templates (`ARCHITECTURE.md`, `PITFALLS.md`, `STACK.md`)
+
+### Changed
+
+- Updated README to emphasize Rails application focus
+- Improved default codebase and research-project templates
+- Removed UUID references from agents, templates, and guides (8 files)
+- Added frontmatter require in PhaseManager
+
+### Fixed
+
+- Missing `require "fileutils"` in ConfigManager causing `NameError` on `config-ensure-section`
+- Documentation typos in README (path references)
+
+## [1.1.3] - 2026-02-15
+
+### Changed
+
+- Major README improvements (248 additions, 39 removals)
+
 ## [1.1.2] - 2026-02-15
 
 ### Added
@@ -43,5 +67,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Wave-based plan execution with parallelism support
 - Guides for backend, frontend, and testing workflows
 
+[1.1.4]: https://github.com/jorgegorka/ariadna/releases/tag/v1.1.4
+[1.1.3]: https://github.com/jorgegorka/ariadna/releases/tag/v1.1.3
 [1.1.2]: https://github.com/jorgegorka/ariadna/releases/tag/v1.1.2
 [1.1.1]: https://github.com/jorgegorka/ariadna/releases/tag/v1.1.1
