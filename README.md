@@ -9,6 +9,8 @@ Ariadna turns Claude Code into a disciplined Rails project execution engine that
 
 A system of prompts, agents, and workflows that make Claude Code work like a disciplined Rails engineering team.
 
+This is not a vibe-coding tool.  You will get the best results when you review both the created plans and the outcomes of each phase. 
+
 ## Why Ariadna
 
 **Without Ariadna**, Claude Code sessions are stateless. There's no memory between sessions, no structure to large projects, no verification that what was built matches what was planned, and no way to coordinate parallel work streams.
