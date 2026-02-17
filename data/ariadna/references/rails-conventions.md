@@ -216,6 +216,7 @@ class UserTest < ActiveSupport::TestCase
 
   test "validates email presence" do
     user = User.new(name: "Test")
+
     assert_not user.valid?
     assert_includes user.errors[:email], "can't be blank"
   end
@@ -238,6 +239,7 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
 
   test "index returns posts" do
     get posts_url
+
     assert_response :success
     assert_select "h2", posts(:first).title
   end
