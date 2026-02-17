@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-02-17
+
+### Added
+
+- Rails conventions reference document (`rails-conventions.md`) with standard stack, architecture patterns, common pitfalls, testing patterns, and domain templates
+- Rails-aware planning in ariadna-planner agent (domain templates, known domain detection, pitfall prevention)
+- Inline context gathering in `plan-phase` workflow (replaces separate `discuss-phase` step)
+- `--research` flag for `new-project` command to force domain research
+- `--skip-context` flag for `plan-phase` command
+
+### Changed
+
+- Research disabled by default — Rails conventions are pre-loaded, use `--research` for non-standard integrations
+- Streamlined `new-project` workflow: opinionated config defaults (single depth question instead of 8 questions across 2 rounds)
+- `new-project` auto mode skips config questions entirely and skips research by default
+- `plan-phase` checker issues handled inline (minor fixes by orchestrator, major issues presented to user) instead of revision loop (max 3 iterations)
+- Default next step after project creation changed from `/ariadna:discuss-phase 1` to `/ariadna:plan-phase 1`
+- Roadmapper agent now receives `rails-conventions.md` as context
+
+### Fixed
+
+- Frontmatter parser crash when encountering non-Hash objects during YAML key parsing
+- Missing `require "fileutils"` in ConfigManager (carried from 1.1.4)
+
 ## [1.1.4] - 2026-02-16
 
 ### Added
@@ -67,6 +91,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Wave-based plan execution with parallelism support
 - Guides for backend, frontend, and testing workflows
 
+[1.2.0]: https://github.com/jorgegorka/ariadna/releases/tag/v1.2.0
 [1.1.4]: https://github.com/jorgegorka/ariadna/releases/tag/v1.1.4
 [1.1.3]: https://github.com/jorgegorka/ariadna/releases/tag/v1.1.3
 [1.1.2]: https://github.com/jorgegorka/ariadna/releases/tag/v1.1.2
