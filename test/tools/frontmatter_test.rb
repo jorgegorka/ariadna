@@ -16,6 +16,12 @@ class FrontmatterTest < Minitest::Test
     assert_equal %w[auth api], fm["tags"]
   end
 
+  def test_extract_array_followed_by_key_value_does_not_crash
+    content = "---\nitems:\n  - item1\n  nested: value\n---\n\nBody"
+    fm = Ariadna::Tools::Frontmatter.extract(content)
+    assert_equal ["item1"], fm["items"]
+  end
+
   def test_extract_inline_array
     content = "---\ntags: [auth, api, db]\n---\n\nBody"
     fm = Ariadna::Tools::Frontmatter.extract(content)

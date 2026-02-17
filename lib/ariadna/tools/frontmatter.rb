@@ -210,6 +210,8 @@ module Ariadna
             key = key_match[2]
             value = key_match[3].strip
 
+            next unless current[:obj].is_a?(Hash)
+
             if value.empty? || value == "["
               current[:obj][key] = value == "[" ? [] : {}
               stack.push({ obj: current[:obj][key], key: nil, indent: indent })
