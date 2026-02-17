@@ -27,7 +27,7 @@ Parse JSON for: `researcher_model`, `planner_model`, `checker_model`, `research_
 
 ## 2. Parse and Normalize Arguments
 
-Extract from $ARGUMENTS: phase number (integer or decimal like `2.1`), flags (`--research`, `--skip-research`, `--gaps`, `--skip-verify`, `--skip-context`).
+Extract from $ARGUMENTS: phase number (integer or decimal like `2.1`), flags (`--research`, `--skip-research`, `--gaps`, `--skip-verify`, `--skip-context`, `--skip-approval`).
 
 **If no phase number:** Detect next unplanned phase from roadmap.
 
@@ -56,32 +56,30 @@ Use `context_content` from init JSON (already loaded via `--include context`).
 
 Analyze the phase goal from `roadmap_content` and determine if there are implementation decisions the user should weigh in on.
 
-**Quick assessment — does this phase need context?**
+**Categorize the phase — determines context behavior:**
 
-- Pure infrastructure / setup / configuration → No context needed, skip
-- Standard CRUD (models, controllers, views) → No context needed, skip
-- User-facing features with UI/UX decisions → Context helpful
-- Features with multiple valid approaches → Context helpful
+- **Category A** (infrastructure, setup, config, standard CRUD, testing, migrations, background jobs) → Skip context entirely. Display: `Context: Skipped (infrastructure/standard phase)`. Continue to step 5.
+- **Category B** (user-facing features, UI/UX decisions, user workflows, multiple valid approaches) → Show context question below.
 
-**If context would be helpful:** Offer inline clarification with a single AskUserQuestion:
+**Category B only — offer inline clarification.** Identify 2-3 specific gray areas from the phase goal (e.g., "unclear: how should password reset flow work?" or "multiple options: modal vs. inline form for editing"). Include them in the question text:
 
 ```
 questions: [
   {
     header: "Context",
-    question: "Phase {X}: {Name} has some implementation choices. Want to discuss them before planning?",
+    question: "Phase {X}: {Name} has gray areas:\n- {gray_area_1}\n- {gray_area_2}\n- {gray_area_3}\nWant to clarify before planning?",
     multiSelect: false,
     options: [
-      { label: "Plan directly (Recommended)", description: "Planner will make reasonable choices, you review the plan" },
-      { label: "Quick discussion", description: "Clarify 2-3 key decisions inline" },
+      { label: "Quick discussion (Recommended)", description: "Clarify these decisions inline — prevents plan mismatches" },
+      { label: "Plan directly", description: "Planner will make reasonable choices, you review the plan" },
       { label: "Full discussion", description: "Run /ariadna:discuss-phase for detailed context gathering" }
     ]
   }
 ]
 ```
 
-- **"Plan directly":** Continue to step 5. Planner will use its judgment for ambiguous areas.
 - **"Quick discussion":** Identify 2-3 key gray areas and ask focused AskUserQuestion for each. Write a lightweight CONTEXT.md to the phase directory. Then continue to step 5.
+- **"Plan directly":** Continue to step 5. Planner will use its judgment for ambiguous areas.
 - **"Full discussion":** Exit and tell user to run `/ariadna:discuss-phase {X}` first, then return.
 
 **CRITICAL:** Use `context_content` from INIT — pass to planner and checker agents.
@@ -251,7 +249,7 @@ Task(
 
 ## 9. Handle Planner Return
 
-- **`## PLANNING COMPLETE`:** Display plan count. If `--skip-verify` or `plan_checker_enabled` is false (from init): skip to step 13. Otherwise: step 10.
+- **`## PLANNING COMPLETE`:** Display plan count. If `--skip-verify` or `plan_checker_enabled` is false (from init): skip to step 13 (approval gate). Otherwise: step 10.
 - **`## CHECKPOINT REACHED`:** Present to user, get response, spawn continuation (step 12)
 - **`## PLANNING INCONCLUSIVE`:** Show attempts, offer: Add context / Retry / Manual
 
@@ -306,7 +304,7 @@ Task(
 
 ## 11. Handle Checker Return
 
-- **`## VERIFICATION PASSED`:** Display confirmation, proceed to step 13.
+- **`## VERIFICATION PASSED`:** Display confirmation, proceed to step 13 (approval gate).
 - **`## ISSUES FOUND`:** Classify issues and proceed to step 12.
 
 ## 12. Handle Checker Issues (Inline Fix, No Revision Loop)
@@ -351,7 +349,7 @@ questions: [
 ]
 ```
 
-- **"Accept as-is":** Proceed to step 13.
+- **"Accept as-is":** Proceed to step 13 (approval gate).
 - **"Re-plan":** Spawn planner in revision mode (single attempt, not a loop):
 
 ```
@@ -363,11 +361,36 @@ Task(
 )
 ```
 
-After planner returns, proceed to step 13 (no re-check loop).
+After planner returns, proceed to step 13 (approval gate, no re-check loop).
 
 - **"Fix manually":** Display file paths and exit.
 
-## 13. Present Final Status
+## 13. User Plan Approval Gate
+
+**Skip if:** `--skip-approval` flag, `--gaps` mode (gap closures already user-directed), or `requirements_content` is null (no REQUIREMENTS.md).
+
+**Otherwise:** Cross-reference each requirement mapped to this phase (from `requirements_content`) against the plans' `must_haves.truths` (from plan frontmatter). Present a single `AskUserQuestion`:
+
+```
+questions: [
+  {
+    header: "Plan Review",
+    question: "Phase {X}: {Name} — {N} plan(s) covering these requirements:\n\n| REQ-ID | Requirement | Covered By |\n|--------|-------------|------------|\n| {id} | {description} | Plan {plan_number}: {what_it_builds} |\n| {id} | {description} | ⚠ Not covered |\n\nApprove plans for execution?",
+    multiSelect: false,
+    options: [
+      { label: "Approve", description: "Plans look good, proceed to execution" },
+      { label: "Review details", description: "Show full plan files before deciding" },
+      { label: "Adjust", description: "Give feedback for a single re-plan attempt" }
+    ]
+  }
+]
+```
+
+- **"Approve":** Proceed to step 14.
+- **"Review details":** Display full content of each PLAN.md file in the phase directory. Then re-ask the same question (Approve / Adjust only).
+- **"Adjust":** Ask user for feedback with a follow-up AskUserQuestion (freeform). Spawn planner in revision mode with user feedback (single attempt, no loop). Then proceed to step 14.
+
+## 14. Present Final Status
 
 Route to `<offer_next>`.
 
@@ -422,6 +445,7 @@ Verification: {Passed | Passed with fixes | Skipped}
 - [ ] ariadna-plan-checker spawned (unless --skip-verify)
 - [ ] Minor checker issues fixed inline by orchestrator (no revision loop)
 - [ ] Major checker issues presented to user for decision
+- [ ] User approved plans (or --skip-approval / --gaps flag used / no REQUIREMENTS.md)
 - [ ] User sees status between agent spawns
 - [ ] User knows next steps
 </success_criteria>

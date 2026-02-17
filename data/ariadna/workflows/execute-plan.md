@@ -321,7 +321,18 @@ If user_setup exists: create `{phase}-USER-SETUP.md` using template `~/.claude/a
 <step name="create_summary">
 Create `{phase}-{plan}-SUMMARY.md` at `.planning/phases/XX-name/`. Use `~/.claude/ariadna/templates/summary.md`.
 
-**Frontmatter:** phase, plan, subsystem, tags | requires/provides/affects | tech-stack.added/patterns | key-files.created/modified | key-decisions | duration ($DURATION), completed ($PLAN_END_TIME date).
+**Frontmatter:** phase, plan, subsystem, tags | requires/provides/affects | tech-stack.added/patterns | key-files.created/modified | key-decisions | requirements_covered | duration ($DURATION), completed ($PLAN_END_TIME date).
+
+**Requirements traceability:** Cross-reference plan tasks against `requirements_content` (from INIT, or read `.planning/REQUIREMENTS.md`). For each requirement mapped to this phase that was implemented by tasks in this plan, populate the `requirements_covered` frontmatter:
+```yaml
+requirements_covered:
+  - id: "AUTH-01"
+    description: "User can sign up with email and password"
+    evidence: "SessionsController#create + User model with has_secure_password"
+```
+Use the actual REQ-ID and description from REQUIREMENTS.md. Evidence should reference the specific file/class/method that implements the requirement. Omit the `requirements_covered` field entirely if no REQUIREMENTS.md exists or no requirements map to this plan.
+
+Also populate the `## Requirements Covered` markdown section (after Accomplishments) with the same data in table format.
 
 Title: `# Phase [X] Plan [Y]: [Name] Summary`
 

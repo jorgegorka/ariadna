@@ -298,10 +298,15 @@ Plans with `autonomous: false` require user interaction.
 <step name="aggregate_results">
 After all waves:
 
+**Aggregate requirements coverage:** Parse `requirements_covered` from all SUMMARY.md frontmatter in this phase. Cross-check against `requirements_content` (from INIT or re-read REQUIREMENTS.md) for requirements mapped to this phase. Flag uncovered requirements. Show coverage count.
+
+If covered requirements exist, update REQUIREMENTS.md traceability table: set status to "Complete" for each covered REQ-ID, with evidence from the SUMMARY frontmatter.
+
 ```markdown
 ## Phase {X}: {Name} Execution Complete
 
 **Waves:** {N} | **Plans:** {M}/{total} complete
+**Requirements:** {covered}/{total_for_phase} covered
 
 | Wave | Plans | Status |
 |------|-------|--------|
@@ -312,6 +317,14 @@ After all waves:
 ### Plan Details
 1. **03-01**: [one-liner from SUMMARY.md]
 2. **03-02**: [one-liner from SUMMARY.md]
+
+### Requirements Coverage
+| REQ-ID | Requirement | Evidence |
+|--------|-------------|----------|
+| {id} | {description} | {evidence from SUMMARY} |
+| {id} | {description} | ⚠ Not covered |
+
+[Omit section if no REQUIREMENTS.md or no requirements for this phase]
 
 ### Issues Encountered
 [Aggregate from SUMMARYs, or "None"]
@@ -339,8 +352,8 @@ grep "^status:" "$PHASE_DIR"/*-VERIFICATION.md | cut -d: -f2 | tr -d ' '
 
 | Status | Action |
 |--------|--------|
-| `passed` | → update_roadmap |
-| `human_needed` | Present items for human testing, get approval or feedback |
+| `passed` | → user_acceptance |
+| `human_needed` | Present items for human testing, get approval or feedback → user_acceptance |
 | `gaps_found` | Present gap summary, offer `/ariadna:plan-phase {phase} --gaps` |
 
 **If human_needed:**
@@ -376,6 +389,33 @@ Also: `/ariadna:verify-work {X}` — manual testing first
 ```
 
 Gap closure cycle: `/ariadna:plan-phase {X} --gaps` reads VERIFICATION.md → creates gap plans with `gap_closure: true` → user runs `/ariadna:execute-phase {X} --gaps-only` → verifier re-runs.
+</step>
+
+<step name="user_acceptance">
+**Trigger:** After verifier returns `passed` (or `human_needed` items are approved by user).
+
+**Skip if:** `--no-review` flag, or ALL plans in this phase have `domain: backend` or `domain: testing` only (no user-facing deliverables).
+
+**Otherwise:** Show a lightweight acceptance gate. Gather one-liners from each SUMMARY.md + key decisions Claude made during execution:
+
+```
+questions: [
+  {
+    header: "Acceptance",
+    question: "Phase {X}: {Name} — verified and passing.\n\nWhat was built:\n- {one-liner from SUMMARY 1}\n- {one-liner from SUMMARY 2}\n\nKey decisions made:\n- {decision 1 from SUMMARY}\n- {decision 2 from SUMMARY}\n\nDoes the direction look right?",
+    multiSelect: false,
+    options: [
+      { label: "Looks good", description: "Mark phase complete and continue" },
+      { label: "Test first", description: "Run /ariadna:verify-work before marking complete" },
+      { label: "Issues", description: "Record blocker and suggest gap closure" }
+    ]
+  }
+]
+```
+
+- **"Looks good":** Proceed to `update_roadmap`.
+- **"Test first":** Display: `Run /ariadna:verify-work {X} to test, then re-run /ariadna:execute-phase {X} to continue.` Exit without marking phase complete.
+- **"Issues":** Ask user to describe the issue. Record as blocker in STATE.md via `ariadna-tools state add-blocker "{issue}"`. Display: `Blocker recorded. Run /ariadna:plan-phase {X} --gaps to create fix plans.` Exit without marking phase complete.
 </step>
 
 <step name="update_roadmap">

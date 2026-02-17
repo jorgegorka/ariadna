@@ -38,6 +38,11 @@ patterns-established:
   - "Pattern 1: description"
   - "Pattern 2: description"
 
+requirements_covered:
+  - id: "REQ-ID"
+    description: "Requirement description"
+    evidence: "File/class implementing it"
+
 # Metrics
 duration: Xmin
 completed: YYYY-MM-DD
@@ -59,6 +64,12 @@ completed: YYYY-MM-DD
 - [Most important outcome]
 - [Second key accomplishment]
 - [Third if applicable]
+
+## Requirements Covered
+| REQ-ID | Requirement | Evidence |
+|--------|-------------|----------|
+
+[Omit this section if no REQUIREMENTS.md exists or no requirements map to this phase/plan]
 
 ## Task Commits
 

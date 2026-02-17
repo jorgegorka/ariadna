@@ -343,11 +343,16 @@ Tasks:
 ### Add Turbo/Hotwire Feature
 ```
 Tasks:
-1. Add Turbo Frame wrapping + controller turbo_stream response
+1. Add Turbo Frame wrapping to target views + controller turbo_stream responses
    Files: app/views/[model]/*.html.erb, app/controllers/[model]_controller.rb
+   Conventions: 422 for validation errors, 303 for redirects, dom_id for frame IDs
 2. Add Stimulus controller (if interactive behavior needed)
    Files: app/javascript/controllers/[name]_controller.js
-3. Add system test for real-time behavior
+   Conventions: static values/targets/outlets first, connect/disconnect symmetry
+3. Add Turbo Stream broadcasts (if real-time updates needed)
+   Files: app/models/[model].rb (after_create_commit callbacks)
+   Conventions: prefer default stream actions, broadcast_append_to/replace_to
+4. Add system test for Turbo/Stimulus behavior
    Files: test/system/[feature]_test.rb
 ```
 
