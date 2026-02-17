@@ -55,7 +55,7 @@ ariadna install --local     # Installs to ./.claude/ — project-specific
 ### New Rails Project (Greenfield)
 
 ```
-/ariadna:new-project           # Define vision, research domain, create roadmap
+/ariadna:new-project           # Define vision, set preferences, create roadmap
 /clear
 /ariadna:plan-phase 1          # Create detailed plan for first phase
 /clear
@@ -85,7 +85,7 @@ For adding features to an existing project without a full roadmap, use `/ariadna
 
 Every phase follows the same three-step cycle:
 
-**Plan** (`/ariadna:plan-phase N`) — spawns a researcher, planner, and plan-checker working in sequence. The researcher investigates the ecosystem, the planner creates `PLAN.md` files with tasks, and the plan-checker validates the plan against the phase goal. Output: one or more `PLAN.md` files in `.planning/phases/`.
+**Plan** (`/ariadna:plan-phase N`) — gathers context inline, then spawns a planner and plan-checker. The planner creates `PLAN.md` files using pre-loaded Rails conventions, and the plan-checker validates the plan against the phase goal. Use `--research` to force ecosystem research for non-standard domains. Output: one or more `PLAN.md` files in `.planning/phases/`.
 
 **Execute** (`/ariadna:execute-phase N`) — groups plans into waves based on dependency numbering. Plans in the same wave run in parallel via separate executor agents. Each agent reads its plan, executes tasks with atomic commits, and writes a `SUMMARY.md`. The orchestrator spot-checks results between waves.
 
@@ -93,7 +93,9 @@ Every phase follows the same three-step cycle:
 
 ### Phase Preparation (Optional)
 
-For complex phases, prepare before planning:
+`/ariadna:plan-phase` now gathers context inline — it assesses whether the phase needs discussion and offers a quick in-line option. For most Rails phases, you can go straight to planning.
+
+For complex phases involving unfamiliar libraries or non-standard domains, prepare before planning:
 
 ```
 /ariadna:discuss-phase N              # Capture your vision and decisions → CONTEXT.md
@@ -105,7 +107,7 @@ For complex phases, prepare before planning:
 /ariadna:plan-phase N                 # Plan with full context
 ```
 
-These commands are optional — `/ariadna:plan-phase` works standalone. But for phases involving unfamiliar libraries or architectural decisions, preparation pays off.
+Use `--research` with `/ariadna:plan-phase` to force research for phases involving unfamiliar gems, external APIs, or non-standard patterns. Standard Rails work (models, controllers, auth, jobs, mailers, Turbo) uses pre-loaded conventions and doesn't need research.
 
 ### Session Management
 
@@ -225,7 +227,7 @@ Guides are installed to `~/.claude/guides/` (global) or `.claude/guides/` (local
 
 | Command | Description |
 |---|---|
-| `/ariadna:new-project` | Initialise project: questioning, research, requirements, roadmap |
+| `/ariadna:new-project` | Initialise project: vision, requirements, roadmap (opinionated defaults, no research by default) |
 | `/ariadna:map-codebase` | Analyse existing codebase before starting (brownfield projects) |
 
 ### Phase Planning
@@ -235,7 +237,7 @@ Guides are installed to `~/.claude/guides/` (global) or `.claude/guides/` (local
 | `/ariadna:discuss-phase <n>` | Capture your vision for a phase before planning |
 | `/ariadna:research-phase <n>` | Deep ecosystem research for specialised domains |
 | `/ariadna:list-phase-assumptions <n>` | See Claude's intended approach before it plans |
-| `/ariadna:plan-phase <n>` | Create detailed execution plan |
+| `/ariadna:plan-phase <n>` | Create detailed execution plan (inline context gathering, Rails conventions pre-loaded) |
 
 ### Execution
 
@@ -336,11 +338,11 @@ Configure via `/ariadna:settings`:
 
 | Toggle | Default | Effect |
 |---|---|---|
-| Research | on | Phase researcher runs before planning |
+| Research | **off** | Phase researcher runs before planning (use `--research` to enable) |
 | Plan check | on | Plan-checker validates plans against goals |
 | Verifier | on | Verifier runs after phase execution |
 
-Per-command overrides: `--research`, `--skip-research`, `--skip-verify`.
+Per-command overrides: `--research`, `--skip-research`, `--skip-context`, `--skip-verify`.
 
 ### Branching Strategies
 

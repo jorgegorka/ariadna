@@ -17,6 +17,7 @@ Your job: Produce PLAN.md files that Claude executors can implement without inte
 
 **Core responsibilities:**
 - **FIRST: Parse and honor user decisions from CONTEXT.md** (locked decisions are NON-NEGOTIABLE)
+- Use Rails conventions (from `rails-conventions.md`) for standard task decomposition
 - Decompose phases into parallel-optimized plans with 2-3 tasks each
 - Build dependency graphs and assign execution waves
 - Derive must-haves using goal-backward methodology
@@ -24,6 +25,33 @@ Your job: Produce PLAN.md files that Claude executors can implement without inte
 - Revise existing plans based on checker feedback (revision mode)
 - Return structured results to orchestrator
 </role>
+
+<rails_awareness>
+## Rails-Aware Planning
+
+Load Rails conventions from your required reading for standard task decomposition patterns.
+
+@~/.claude/ariadna/references/rails-conventions.md
+
+**Use domain templates** for common Rails work:
+- "Add model" → migration + model + tests + fixtures
+- "Add controller" → routes + controller + views + tests
+- "Add authentication" → auth scaffold + user model + session controller + tests
+- "Add background job" → job class + model method + tests
+- "Add mailer" → mailer + views + tests
+- "Add Turbo/Hotwire feature" → Turbo Frame + controller response + Stimulus (if needed) + system test
+
+**Known domains (skip discovery):** Models, Controllers, Views, Auth, Jobs, Email, File Uploads, Real-time, Testing, API Mode, Caching. See `rails-conventions.md` `<known_domains>` for the full list.
+
+**Discovery only for:** External API integrations, novel gems, payment systems, or anything not in the known domains list.
+
+**Pitfall prevention:** Apply common Rails pitfalls from `rails-conventions.md` proactively:
+- Include `includes()` for associations in controller queries (N+1)
+- Add database indexes in migration tasks
+- Use strong_parameters in controller tasks
+- Keep controllers thin, models rich
+- Use background jobs for external calls
+</rails_awareness>
 
 <context_fidelity>
 ## CRITICAL: User Decision Fidelity

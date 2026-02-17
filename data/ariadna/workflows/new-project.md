@@ -14,9 +14,9 @@ Check if `--auto` flag is present in $ARGUMENTS.
 **If auto mode:**
 - Skip brownfield mapping offer (assume greenfield)
 - Skip deep questioning (extract context from provided document)
-- Config questions still required (Step 5)
+- Skip config questions — use opinionated defaults (Step 5)
 - After config: run Steps 6-9 automatically with smart defaults:
-  - Research: Always yes
+  - Research: No (Rails conventions pre-loaded). Use `--auto --research` to force research.
   - Requirements: Include all table stakes + features from provided document
   - Requirements approval: Auto-approve
   - Roadmap approval: Auto-approve
@@ -215,129 +215,45 @@ mkdir -p .planning
 ariadna-tools commit "docs: initialize project" --files .planning/PROJECT.md
 ```
 
-## 5. Workflow Preferences
+## 5. Workflow Configuration
 
-**Round 1 — Core workflow settings (4 questions):**
+**Use opinionated defaults. Only ask if user wants to customize.**
+
+Apply these defaults directly to `.planning/config.json`:
+
+```json
+{
+  "mode": "interactive",
+  "depth": "standard",
+  "parallelization": true,
+  "commit_docs": true,
+  "model_profile": "balanced",
+  "workflow": {
+    "research": false,
+    "plan_check": true,
+    "verifier": true
+  }
+}
+```
+
+**Ask ONE question — only the non-obvious setting:**
 
 ```
 questions: [
-  {
-    header: "Mode",
-    question: "How do you want to work?",
-    multiSelect: false,
-    options: [
-      { label: "YOLO (Recommended)", description: "Auto-approve, just execute" },
-      { label: "Interactive", description: "Confirm at each step" }
-    ]
-  },
   {
     header: "Depth",
     question: "How thorough should planning be?",
     multiSelect: false,
     options: [
+      { label: "Standard (Recommended)", description: "Balanced scope and speed (5-8 phases, 3-5 plans each)" },
       { label: "Quick", description: "Ship fast (3-5 phases, 1-3 plans each)" },
-      { label: "Standard", description: "Balanced scope and speed (5-8 phases, 3-5 plans each)" },
       { label: "Comprehensive", description: "Thorough coverage (8-12 phases, 5-10 plans each)" }
     ]
-  },
-  {
-    header: "Execution",
-    question: "Run plans in parallel?",
-    multiSelect: false,
-    options: [
-      { label: "Parallel (Recommended)", description: "Independent plans run simultaneously" },
-      { label: "Sequential", description: "One plan at a time" }
-    ]
-  },
-  {
-    header: "Git Tracking",
-    question: "Commit planning docs to git?",
-    multiSelect: false,
-    options: [
-      { label: "Yes (Recommended)", description: "Planning docs tracked in version control" },
-      { label: "No", description: "Keep .planning/ local-only (add to .gitignore)" }
-    ]
   }
 ]
 ```
 
-**Round 2 — Workflow agents:**
-
-These spawn additional agents during planning/execution. They add tokens and time but improve quality.
-
-| Agent | When it runs | What it does |
-|-------|--------------|--------------|
-| **Researcher** | Before planning each phase | Investigates domain, finds patterns, surfaces gotchas |
-| **Plan Checker** | After plan is created | Verifies plan actually achieves the phase goal |
-| **Verifier** | After phase execution | Confirms must-haves were delivered |
-
-All recommended for important projects. Skip for quick experiments.
-
-```
-questions: [
-  {
-    header: "Research",
-    question: "Research before planning each phase? (adds tokens/time)",
-    multiSelect: false,
-    options: [
-      { label: "Yes (Recommended)", description: "Investigate domain, find patterns, surface gotchas" },
-      { label: "No", description: "Plan directly from requirements" }
-    ]
-  },
-  {
-    header: "Plan Check",
-    question: "Verify plans will achieve their goals? (adds tokens/time)",
-    multiSelect: false,
-    options: [
-      { label: "Yes (Recommended)", description: "Catch gaps before execution starts" },
-      { label: "No", description: "Execute plans without verification" }
-    ]
-  },
-  {
-    header: "Verifier",
-    question: "Verify work satisfies requirements after each phase? (adds tokens/time)",
-    multiSelect: false,
-    options: [
-      { label: "Yes (Recommended)", description: "Confirm deliverables match phase goals" },
-      { label: "No", description: "Trust execution, skip verification" }
-    ]
-  },
-  {
-    header: "Model Profile",
-    question: "Which AI models for planning agents?",
-    multiSelect: false,
-    options: [
-      { label: "Balanced (Recommended)", description: "Sonnet for most agents — good quality/cost ratio" },
-      { label: "Quality", description: "Opus for research/roadmap — higher cost, deeper analysis" },
-      { label: "Budget", description: "Haiku where possible — fastest, lowest cost" }
-    ]
-  }
-]
-```
-
-Create `.planning/config.json` with all settings:
-
-```json
-{
-  "mode": "yolo|interactive",
-  "depth": "quick|standard|comprehensive",
-  "parallelization": true|false,
-  "commit_docs": true|false,
-  "model_profile": "quality|balanced|budget",
-  "workflow": {
-    "research": true|false,
-    "plan_check": true|false,
-    "verifier": true|false
-  }
-}
-```
-
-**If commit_docs = No:**
-- Set `commit_docs: false` in config.json
-- Add `.planning/` to `.gitignore` (create if needed)
-
-**If commit_docs = Yes:**
-- No additional gitignore entries needed
+Create `.planning/config.json` with the defaults above, applying the user's depth selection.
 
 **Commit config.json:**
 
@@ -345,24 +261,26 @@ Create `.planning/config.json` with all settings:
 ariadna-tools commit "chore: add project config" --files .planning/config.json
 ```
 
-**Note:** Run `/ariadna:settings` anytime to update these preferences.
+**Note:** Run `/ariadna:settings` anytime to update these preferences (research, model profile, parallelization, etc.).
 
 ## 5.5. Resolve Model Profile
 
-Use models from init: `researcher_model`, `synthesizer_model`, `roadmapper_model`.
+Use models from init: `roadmapper_model`.
 
 ## 6. Research Decision
 
-**If auto mode:** Default to "Research first" without asking.
+**Default: Skip research.** Rails conventions are pre-loaded via `rails-conventions.md` reference document, which provides standard stack, architecture patterns, common pitfalls, and testing patterns.
 
-Use AskUserQuestion:
-- header: "Research"
-- question: "Research the domain ecosystem before defining requirements?"
-- options:
-  - "Research first (Recommended)" — Discover standard stacks, expected features, architecture patterns
-  - "Skip research" — I know this domain well, go straight to requirements
+**If `--research` flag was passed or auto mode:** Run full research (see below).
 
-**If "Research first":**
+**Otherwise:** Display skip notice and continue to Step 7:
+
+```
+Using pre-loaded Rails conventions (stack, architecture, patterns, pitfalls).
+To research instead: /ariadna:new-project --research
+```
+
+**If research requested (`--research` flag or auto mode):**
 
 Display stage banner:
 ```
@@ -596,7 +514,7 @@ Display research complete banner and key findings:
 Files: `.planning/research/`
 ```
 
-**If "Skip research":** Continue to Step 7.
+**If research not requested:** Continue to Step 7.
 
 ## 7. Define Requirements
 
@@ -769,6 +687,9 @@ Task(prompt="
 **Research (if exists):**
 @.planning/research/SUMMARY.md
 
+**Rails Conventions (pre-loaded domain knowledge):**
+@~/.claude/ariadna/references/rails-conventions.md
+
 **Config:**
 @.planning/config.json
 
@@ -780,8 +701,9 @@ Create roadmap:
 2. Map every v1 requirement to exactly one phase
 3. Derive 2-5 success criteria per phase (observable user behaviors)
 4. Validate 100% coverage
-5. Write files immediately (ROADMAP.md, STATE.md, update REQUIREMENTS.md traceability)
-6. Return ROADMAP CREATED with summary
+5. Use Rails conventions reference for standard patterns and build order
+6. Write files immediately (ROADMAP.md, STATE.md, update REQUIREMENTS.md traceability)
+7. Return ROADMAP CREATED with summary
 
 Write files first, then return. This ensures artifacts persist even if context is lost.
 </instructions>
@@ -903,14 +825,15 @@ Present completion with next steps:
 
 **Phase 1: [Phase Name]** — [Goal from ROADMAP.md]
 
-/ariadna:discuss-phase 1 — gather context and clarify approach
+/ariadna:plan-phase 1
 
 <sub>/clear first → fresh context window</sub>
 
 ---
 
 **Also available:**
-- /ariadna:plan-phase 1 — skip discussion, plan directly
+- /ariadna:discuss-phase 1 — gather detailed context before planning (optional)
+- /ariadna:plan-phase 1 --research — research before planning (for non-standard integrations)
 
 ───────────────────────────────────────────────────────────────
 ```
@@ -940,18 +863,18 @@ Present completion with next steps:
 - [ ] Brownfield detection completed
 - [ ] Deep questioning completed (threads followed, not rushed)
 - [ ] PROJECT.md captures full context → **committed**
-- [ ] config.json has workflow mode, depth, parallelization → **committed**
-- [ ] Research completed (if selected) — 4 parallel agents spawned → **committed**
-- [ ] Requirements gathered (from research or conversation)
+- [ ] config.json has opinionated defaults → **committed**
+- [ ] Research completed (only if `--research` flag) — 4 parallel agents spawned → **committed**
+- [ ] Requirements gathered (from research or conversation, with Rails conventions as context)
 - [ ] User scoped each category (v1/v2/out of scope)
 - [ ] REQUIREMENTS.md created with REQ-IDs → **committed**
-- [ ] ariadna-roadmapper spawned with context
+- [ ] ariadna-roadmapper spawned with context (including rails-conventions.md)
 - [ ] Roadmap files written immediately (not draft)
 - [ ] User feedback incorporated (if any)
 - [ ] ROADMAP.md created with phases, requirement mappings, success criteria
 - [ ] STATE.md initialized
 - [ ] REQUIREMENTS.md traceability updated
-- [ ] User knows next step is `/ariadna:discuss-phase 1`
+- [ ] User knows next step is `/ariadna:plan-phase 1`
 
 **Atomic commits:** Each phase commits its artifacts immediately. If context is lost, artifacts persist.
 

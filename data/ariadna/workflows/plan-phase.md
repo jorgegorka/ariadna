@@ -1,11 +1,12 @@
 <purpose>
-Create executable phase prompts (PLAN.md files) for a roadmap phase with integrated research and verification. Default flow: Research (if needed) -> Plan -> Verify -> Done. Orchestrates ariadna-phase-researcher, ariadna-planner, and ariadna-plan-checker agents with a revision loop (max 3 iterations).
+Create executable phase prompts (PLAN.md files) for a roadmap phase. Default flow: Context (inline if needed) -> Plan -> Verify -> Done. Orchestrates ariadna-planner and ariadna-plan-checker agents. Research skipped by default (Rails conventions pre-loaded); use --research to force research for non-standard integrations.
 </purpose>
 
 <required_reading>
 Read all files referenced by the invoking prompt's execution_context before starting.
 
 @~/.claude/ariadna/references/ui-brand.md
+@~/.claude/ariadna/references/rails-conventions.md
 </required_reading>
 
 <process>
@@ -26,7 +27,7 @@ Parse JSON for: `researcher_model`, `planner_model`, `checker_model`, `research_
 
 ## 2. Parse and Normalize Arguments
 
-Extract from $ARGUMENTS: phase number (integer or decimal like `2.1`), flags (`--research`, `--skip-research`, `--gaps`, `--skip-verify`).
+Extract from $ARGUMENTS: phase number (integer or decimal like `2.1`), flags (`--research`, `--skip-research`, `--gaps`, `--skip-verify`, `--skip-context`).
 
 **If no phase number:** Detect next unplanned phase from roadmap.
 
@@ -45,21 +46,55 @@ PHASE_INFO=$(ariadna-tools roadmap get-phase "${PHASE}")
 
 **If `found` is false:** Error with available phases. **If `found` is true:** Extract `phase_number`, `phase_name`, `goal` from JSON.
 
-## 4. Load CONTEXT.md
+## 4. Inline Context Gathering (Replaces discuss-phase)
 
 Use `context_content` from init JSON (already loaded via `--include context`).
 
-**CRITICAL:** Use `context_content` from INIT — pass to researcher, planner, checker, and revision agents.
+**If `context_content` is not null:** Display: `Using phase context from: ${PHASE_DIR}/*-CONTEXT.md` and skip to step 5.
 
-If `context_content` is not null, display: `Using phase context from: ${PHASE_DIR}/*-CONTEXT.md`
+**If `context_content` is null AND no `--skip-context` flag:**
+
+Analyze the phase goal from `roadmap_content` and determine if there are implementation decisions the user should weigh in on.
+
+**Quick assessment — does this phase need context?**
+
+- Pure infrastructure / setup / configuration → No context needed, skip
+- Standard CRUD (models, controllers, views) → No context needed, skip
+- User-facing features with UI/UX decisions → Context helpful
+- Features with multiple valid approaches → Context helpful
+
+**If context would be helpful:** Offer inline clarification with a single AskUserQuestion:
+
+```
+questions: [
+  {
+    header: "Context",
+    question: "Phase {X}: {Name} has some implementation choices. Want to discuss them before planning?",
+    multiSelect: false,
+    options: [
+      { label: "Plan directly (Recommended)", description: "Planner will make reasonable choices, you review the plan" },
+      { label: "Quick discussion", description: "Clarify 2-3 key decisions inline" },
+      { label: "Full discussion", description: "Run /ariadna:discuss-phase for detailed context gathering" }
+    ]
+  }
+]
+```
+
+- **"Plan directly":** Continue to step 5. Planner will use its judgment for ambiguous areas.
+- **"Quick discussion":** Identify 2-3 key gray areas and ask focused AskUserQuestion for each. Write a lightweight CONTEXT.md to the phase directory. Then continue to step 5.
+- **"Full discussion":** Exit and tell user to run `/ariadna:discuss-phase {X}` first, then return.
+
+**CRITICAL:** Use `context_content` from INIT — pass to planner and checker agents.
 
 ## 5. Handle Research
 
-**Skip if:** `--gaps` flag, `--skip-research` flag, or `research_enabled` is false (from init) without `--research` override.
+**Default: Skip research.** Rails conventions are pre-loaded via `rails-conventions.md`.
+
+**Skip if:** `--gaps` flag, or `research_enabled` is false (default) without `--research` override.
 
 **If `has_research` is true (from init) AND no `--research` flag:** Use existing, skip to step 6.
 
-**If RESEARCH.md missing OR `--research` flag:**
+**If `--research` flag explicitly passed:**
 
 Display banner:
 ```
@@ -179,6 +214,14 @@ IMPORTANT: If context exists below, it contains USER DECISIONS from /ariadna:dis
 **Gap Closure (if --gaps):** {verification_content} {uat_content}
 </planning_context>
 
+<rails_context>
+Use Rails conventions from your required reading (rails-conventions.md) for:
+- Standard task decomposition patterns (model → migration+model+tests, controller → routes+controller+views+tests)
+- Known domain detection (skip discovery for standard Rails work)
+- Architecture patterns (MVC, concerns, service objects)
+- Common pitfall prevention (N+1, mass assignment, fat controllers)
+</rails_context>
+
 <downstream_consumer>
 Output consumed by /ariadna:execute-phase. Plans need:
 - Frontmatter (wave, depends_on, files_modified, autonomous)
@@ -248,7 +291,7 @@ IMPORTANT: Plans MUST honor user decisions. Flag as issue if plans contradict.
 
 <expected_output>
 - ## VERIFICATION PASSED — all checks pass
-- ## ISSUES FOUND — structured issue list
+- ## ISSUES FOUND — structured issue list with severity (minor/major/blocker)
 </expected_output>
 ```
 
@@ -264,58 +307,65 @@ Task(
 ## 11. Handle Checker Return
 
 - **`## VERIFICATION PASSED`:** Display confirmation, proceed to step 13.
-- **`## ISSUES FOUND`:** Display issues, check iteration count, proceed to step 12.
+- **`## ISSUES FOUND`:** Classify issues and proceed to step 12.
 
-## 12. Revision Loop (Max 3 Iterations)
+## 12. Handle Checker Issues (Inline Fix, No Revision Loop)
 
-Track `iteration_count` (starts at 1 after initial plan + check).
+**Classify each issue by severity:**
 
-**If iteration_count < 3:**
+### Minor Issues (orchestrator fixes inline)
+Issues the orchestrator can fix directly with the Edit tool — no agent re-spawn needed:
+- Missing requirement mapping in frontmatter
+- Dependency ordering errors (wrong wave number)
+- Missing `<verify>` or `<done>` elements in tasks
+- Frontmatter field corrections
+- must_haves adjustments
 
-Display: `Sending back to planner for revision... (iteration {N}/3)`
-
-```bash
-PLANS_CONTENT=$(cat "${PHASE_DIR}"/*-PLAN.md 2>/dev/null)
+**For minor issues:** Fix the PLAN.md files directly using the Edit tool:
+```
+Read the PLAN.md file, apply the fix, write it back.
 ```
 
-Revision prompt:
+Display: `Fixed {N} minor issue(s) inline.`
 
-```markdown
-<revision_context>
-**Phase:** {phase_number}
-**Mode:** revision
+### Major Issues (present to user)
+Issues that require architectural decisions or significant plan restructuring:
+- Missing requirements with no clear task mapping
+- Incorrect decomposition (tasks too large or wrong scope)
+- Contradictions with user decisions from CONTEXT.md
+- Scope creep (tasks implementing deferred ideas)
 
-**Existing plans:** {plans_content}
-**Checker issues:** {structured_issues_from_checker}
-
-**Phase Context:**
-Revisions MUST still honor user decisions.
-{context_content}
-</revision_context>
-
-<instructions>
-Make targeted updates to address checker issues.
-Do NOT replan from scratch unless issues are fundamental.
-Return what changed.
-</instructions>
+**For major issues:** Present to user with AskUserQuestion:
 ```
+questions: [
+  {
+    header: "Plan Issues",
+    question: "The plan checker found {N} issue(s) that need your input. How to proceed?",
+    multiSelect: false,
+    options: [
+      { label: "Accept as-is", description: "Proceed despite issues" },
+      { label: "Re-plan", description: "Spawn planner again with issue context" },
+      { label: "Fix manually", description: "I'll edit the PLAN.md files myself" }
+    ]
+  }
+]
+```
+
+- **"Accept as-is":** Proceed to step 13.
+- **"Re-plan":** Spawn planner in revision mode (single attempt, not a loop):
 
 ```
 Task(
-  prompt="First, read ~/.claude/agents/ariadna-planner.md for your role and instructions.\n\n" + revision_prompt,
+  prompt="First, read ~/.claude/agents/ariadna-planner.md for your role and instructions.\n\n" + revision_prompt_with_issues,
   subagent_type="general-purpose",
   model="{planner_model}",
   description="Revise Phase {phase} plans"
 )
 ```
 
-After planner returns -> spawn checker again (step 10), increment iteration_count.
+After planner returns, proceed to step 13 (no re-check loop).
 
-**If iteration_count >= 3:**
-
-Display: `Max iterations reached. {N} issues remain:` + issue list
-
-Offer: 1) Force proceed, 2) Provide guidance and retry, 3) Abandon
+- **"Fix manually":** Display file paths and exit.
 
 ## 13. Present Final Status
 
@@ -337,8 +387,9 @@ Output this markdown directly (not as a code block):
 | 1    | 01, 02 | [objectives] |
 | 2    | 03     | [objective]  |
 
-Research: {Completed | Used existing | Skipped}
-Verification: {Passed | Passed with override | Skipped}
+Context: {Gathered inline | Used existing | Skipped}
+Research: {Completed | Used existing | Skipped (Rails conventions loaded)}
+Verification: {Passed | Passed with fixes | Skipped}
 
 ───────────────────────────────────────────────────────────────
 
@@ -363,14 +414,14 @@ Verification: {Passed | Passed with override | Skipped}
 - [ ] .planning/ directory validated
 - [ ] Phase validated against roadmap
 - [ ] Phase directory created if needed
-- [ ] CONTEXT.md loaded early (step 4) and passed to ALL agents
-- [ ] Research completed (unless --skip-research or --gaps or exists)
-- [ ] ariadna-phase-researcher spawned with CONTEXT.md
+- [ ] Context handled: existing CONTEXT.md used, inline gathering offered, or skipped
+- [ ] Research skipped by default (Rails conventions in context), or completed if --research flag
 - [ ] Existing plans checked
-- [ ] ariadna-planner spawned with CONTEXT.md + RESEARCH.md
+- [ ] ariadna-planner spawned with rails-conventions + any CONTEXT.md + RESEARCH.md
 - [ ] Plans created (PLANNING COMPLETE or CHECKPOINT handled)
-- [ ] ariadna-plan-checker spawned with CONTEXT.md
-- [ ] Verification passed OR user override OR max iterations with user decision
+- [ ] ariadna-plan-checker spawned (unless --skip-verify)
+- [ ] Minor checker issues fixed inline by orchestrator (no revision loop)
+- [ ] Major checker issues presented to user for decision
 - [ ] User sees status between agent spawns
 - [ ] User knows next steps
 </success_criteria>

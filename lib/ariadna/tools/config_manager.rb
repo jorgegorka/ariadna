@@ -12,7 +12,7 @@ module Ariadna
         "branching_strategy" => "none",
         "phase_branch_template" => "ariadna/phase-{phase}-{slug}",
         "milestone_branch_template" => "ariadna/{milestone}-{slug}",
-        "research" => true,
+        "research" => false,
         "plan_checker" => true,
         "verifier" => true,
         "parallelization" => true,
@@ -89,7 +89,7 @@ module Ariadna
           phase_branch_template: "ariadna/phase-{phase}-{slug}",
           milestone_branch_template: "ariadna/{milestone}-{slug}",
           workflow: {
-            research: true,
+            research: false,
             plan_check: true,
             verifier: true
           },
