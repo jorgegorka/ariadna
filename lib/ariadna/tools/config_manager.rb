@@ -63,7 +63,13 @@ module Ariadna
           "verifier" => nil_or.call(get.call("verifier", { section: "workflow", field: "verifier" }), DEFAULTS["verifier"]),
           "parallelization" => parallelization,
           "execution_mode" => get.call("execution_mode", { section: "execution", field: "mode" }) || DEFAULTS["execution_mode"],
-          "team_execution" => nil_or.call(get.call("team_execution", { section: "execution", field: "team" }), DEFAULTS["team_execution"])
+          "team_execution" => begin
+            val = get.call("team_execution", { section: "execution", field: "team" })
+            case val
+            when "auto", true, false then val
+            else DEFAULTS["team_execution"]
+            end
+          end
         }
       rescue JSON::ParserError
         DEFAULTS.dup

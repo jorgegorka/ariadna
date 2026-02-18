@@ -128,10 +128,28 @@ module Ariadna
           fm = Frontmatter.extract(content)
           summary_name = f.sub(/-PLAN\.md$/i, "-SUMMARY.md")
           has_summary = File.exist?(File.join(dir_path, summary_name))
-          { file: f, phase: fm["phase"], plan: fm["plan"], wave: fm["wave"], type: fm["type"], completed: has_summary }
+          {
+            file: f, phase: fm["phase"], plan: fm["plan"], wave: fm["wave"],
+            type: fm["type"], completed: has_summary,
+            domain: fm["domain"] || "general",
+            depends_on: fm["depends_on"] || [],
+            files_modified: fm["files_modified"] || [],
+            autonomous: fm.key?("autonomous") ? fm["autonomous"] : true,
+            objective: fm["objective"],
+            task_count: content.scan(/<task\b/).count
+          }
         end
 
-        Output.json({ plans: plans, count: plans.size }, raw: raw)
+        domains = plans.map { |p| p[:domain] }.uniq
+        non_general = domains.reject { |d| d == "general" }
+
+        Output.json({
+                      plans: plans, count: plans.size,
+                      domains: domains,
+                      domain_count: non_general.size,
+                      multi_domain: non_general.size >= 2,
+                      recommend_team: plans.size >= 3 && non_general.size >= 2
+                    }, raw: raw)
       end
 
       def self.list(options, raw: false)

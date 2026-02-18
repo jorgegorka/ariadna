@@ -397,7 +397,10 @@ When spawned as part of a team (via `TeamCreate`/`Task` with `team_name`), follo
 1. **Check for assigned tasks:** `TaskList` → find tasks owned by you with status `pending`
 2. **Claim a task:** `TaskUpdate(taskId=..., status="in_progress")` — prefer lowest ID first
 3. **Read the plan:** Extract the plan file path from the task description, read it with the Read tool
-4. **Execute the plan:** Follow the standard execution flow (load_plan → execute_tasks → summary → state_updates)
+4. **Execute the plan:** Follow the standard execution flow (load_plan → execute_tasks → summary → self_check)
+4b. **Skip STATE.md updates in team mode.** The orchestrator aggregates state.
+    Only create SUMMARY.md and commit plan files.
+    Do NOT call `ariadna-tools state advance-plan` or `ariadna-tools state record-metric`.
 5. **Mark task complete:** `TaskUpdate(taskId=..., status="completed")`
 6. **Check for more work:** `TaskList` → find next unblocked, unowned task. If available, claim and execute it.
 7. **When no tasks remain:** `SendMessage(type="message", recipient="team-lead", content="All assigned tasks complete. No remaining tasks.")` then go idle.

@@ -19,7 +19,7 @@ Load all context in one call:
 INIT=$(ariadna-tools init execute-phase "${PHASE_ARG}")
 ```
 
-Parse JSON for: `executor_model`, `verifier_model`, `commit_docs`, `parallelization`, `branching_strategy`, `branch_name`, `phase_found`, `phase_dir`, `phase_number`, `phase_name`, `phase_slug`, `plans`, `incomplete_plans`, `plan_count`, `incomplete_count`, `state_exists`, `roadmap_exists`.
+Parse JSON for: `executor_model`, `verifier_model`, `commit_docs`, `parallelization`, `branching_strategy`, `branch_name`, `phase_found`, `phase_dir`, `phase_number`, `phase_name`, `phase_slug`, `plans`, `incomplete_plans`, `plan_count`, `incomplete_count`, `team_execution`, `execution_mode`, `backend_executor_model`, `frontend_executor_model`, `test_executor_model`, `state_exists`, `roadmap_exists`.
 
 **If `phase_found` is false:** Error — phase directory not found.
 **If `plan_count` is 0:** Error — no plans found in phase.
@@ -54,7 +54,7 @@ Load plan inventory with wave grouping in one call:
 PLAN_INDEX=$(ariadna-tools phase-plan-index "${PHASE_NUMBER}")
 ```
 
-Parse JSON for: `phase`, `plans[]` (each with `id`, `wave`, `autonomous`, `objective`, `files_modified`, `task_count`, `has_summary`), `waves` (map of wave number → plan IDs), `incomplete`, `has_checkpoints`.
+Parse JSON for: `plans[]` (each with `file`, `phase`, `plan`, `wave`, `type`, `completed`, `domain`, `depends_on`, `files_modified`, `autonomous`, `objective`, `task_count`), `count`, `domains`, `domain_count`, `multi_domain`, `recommend_team`.
 
 **Filtering:** Skip plans where `has_summary: true`. If `--gaps-only`: also skip non-gap_closure plans. If all filtered: "No matching incomplete plans" → exit.
 
@@ -69,6 +69,28 @@ Report:
 | 1 | 01-01, 01-02 | {from plan objectives, 3-8 words} |
 | 2 | 01-03 | ... |
 ```
+</step>
+
+<step name="decide_execution_mode">
+**Determine execution mode:**
+
+1. If `--team` flag → team execution
+2. If `--no-team` flag → wave execution
+3. If `team_execution` from init is `true` → team execution
+4. If `team_execution` from init is `false` → wave execution
+5. If `team_execution` is `"auto"` → check plan index:
+   - Parse `multi_domain` and `recommend_team` from PLAN_INDEX
+   - If `recommend_team` is true (3+ plans, 2+ non-general domains) → team execution
+   - Otherwise → wave execution
+
+Report:
+```
+**Execution mode:** {Team | Wave}
+{If auto: "Auto-detected: {plan_count} plans across {domains}"}
+```
+
+If team mode: proceed to `team_execution` step.
+If wave mode: proceed to `execute_waves` step.
 </step>
 
 <step name="execute_waves">
@@ -249,6 +271,17 @@ If `TEAM_MODE` is `true` OR `--team` flag present → use team execution. Otherw
    - Assign unblocked tasks to idle agents of the matching domain
    - Cross-domain handoffs: if a frontend task depends on a backend task, the frontend executor can read the backend SUMMARY.md for context
 
+   **Progress reporting (on each task completion message from an agent):**
+   Check `TaskList` and display:
+   ```
+   ## Team Progress
+   | Agent             | Status  | Current Task | Completed |
+   |-------------------|---------|-------------|-----------|
+   | backend-executor  | working | Plan 03-01  | 1/3       |
+   | frontend-executor | idle    | waiting     | 0/2       |
+   | test-executor     | working | Plan 03-03  | 0/1       |
+   ```
+
 6. **Handle checkpoints:** Same as wave-based — agent sends message to orchestrator, orchestrator presents checkpoint to user, spawns continuation agent.
 
 7. **Shutdown team:** When all tasks are complete:
@@ -261,6 +294,10 @@ If `TEAM_MODE` is `true` OR `--team` flag present → use team execution. Otherw
    ```
 
 **Conflict prevention:** File ownership is enforced by `files_modified` frontmatter — the planner ensures no overlap between concurrent plans assigned to different agents.
+
+**STATE.md serialization:** Agents do NOT update STATE.md in team mode.
+The orchestrator reads each SUMMARY.md after all tasks complete and
+updates STATE.md sequentially. This prevents concurrent write corruption.
 </step>
 
 <step name="checkpoint_handling">
@@ -296,7 +333,18 @@ Plans with `autonomous: false` require user interaction.
 </step>
 
 <step name="aggregate_results">
-After all waves:
+After all waves (or after all team tasks complete):
+
+**Team mode state aggregation (if team execution was used):**
+
+For each completed task's SUMMARY.md, in plan order:
+```bash
+ariadna-tools state advance-plan
+ariadna-tools state record-metric \
+  --phase "${PHASE}" --plan "${PLAN}" --duration "${DURATION}" \
+  --tasks "${TASK_COUNT}" --files "${FILE_COUNT}"
+```
+This runs sequentially from the orchestrator to prevent concurrent writes.
 
 **Aggregate requirements coverage:** Parse `requirements_covered` from all SUMMARY.md frontmatter in this phase. Cross-check against `requirements_content` (from INIT or re-read REQUIREMENTS.md) for requirements mapped to this phase. Flag uncovered requirements. Show coverage count.
 

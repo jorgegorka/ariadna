@@ -33,6 +33,33 @@ class InitTest < Minitest::Test
     end
   end
 
+  def test_init_execute_phase_includes_team_fields
+    phase_dir = File.join(@phases_dir, "01-setup")
+    FileUtils.mkdir_p(phase_dir)
+    File.write(File.join(phase_dir, "01-01-PLAN.md"), "---\nphase: 1\nplan: 01\n---\n")
+
+    Dir.chdir(@dir) do
+      result = capture_json { Ariadna::Tools::Init.dispatch(["execute-phase", "1"]) }
+      assert_equal false, result[:team_execution]
+      assert_equal "vertical", result[:execution_mode]
+      assert_includes result.keys, :backend_executor_model
+      assert_includes result.keys, :frontend_executor_model
+      assert_includes result.keys, :test_executor_model
+    end
+  end
+
+  def test_init_execute_phase_auto_team_execution
+    phase_dir = File.join(@phases_dir, "01-setup")
+    FileUtils.mkdir_p(phase_dir)
+    File.write(File.join(phase_dir, "01-01-PLAN.md"), "---\nphase: 1\nplan: 01\n---\n")
+    File.write(File.join(@planning_dir, "config.json"), '{"model_profile":"balanced","team_execution":"auto"}')
+
+    Dir.chdir(@dir) do
+      result = capture_json { Ariadna::Tools::Init.dispatch(["execute-phase", "1"]) }
+      assert_equal "auto", result[:team_execution]
+    end
+  end
+
   def test_init_execute_phase_with_includes
     phase_dir = File.join(@phases_dir, "01-setup")
     FileUtils.mkdir_p(phase_dir)

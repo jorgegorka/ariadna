@@ -83,6 +83,11 @@ module Ariadna
           milestone_version: milestone[:version],
           milestone_name: milestone[:name],
           milestone_slug: generate_slug(milestone[:name]),
+          team_execution: config["team_execution"],
+          execution_mode: config["execution_mode"],
+          backend_executor_model: resolve_model(cwd, "ariadna-backend-executor"),
+          frontend_executor_model: resolve_model(cwd, "ariadna-frontend-executor"),
+          test_executor_model: resolve_model(cwd, "ariadna-test-executor"),
           state_exists: path_exists?(cwd, ".planning/STATE.md"),
           roadmap_exists: path_exists?(cwd, ".planning/ROADMAP.md"),
           config_exists: path_exists?(cwd, ".planning/config.json")
