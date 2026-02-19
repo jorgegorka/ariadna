@@ -1,6 +1,6 @@
 # Architecture Template
 
-Template for `.planning/codebase/ARCHITECTURE.md` - captures conceptual code organization.
+Template for `.ariadna_planning/codebase/ARCHITECTURE.md` - captures conceptual code organization.
 
 **Purpose:** Document how the code is organized at a conceptual level. Complements STRUCTURE.md (which shows physical file locations).
 

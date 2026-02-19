@@ -1,6 +1,6 @@
 # Research Template
 
-Template for `.planning/phases/XX-name/{phase}-RESEARCH.md` - comprehensive ecosystem research before planning.
+Template for `.ariadna_planning/phases/XX-name/{phase}-RESEARCH.md` - comprehensive ecosystem research before planning.
 
 **Purpose:** Document what Claude needs to know to implement a phase well - not just "which library" but "how do experts build this."
 
@@ -531,6 +531,6 @@ end
 - Code examples can be referenced in task actions
 
 **After creation:**
-- File lives in phase directory: `.planning/phases/XX-name/{phase}-RESEARCH.md`
+- File lives in phase directory: `.ariadna_planning/phases/XX-name/{phase}-RESEARCH.md`
 - Referenced during planning workflow
 - plan-phase loads it automatically when present

@@ -4,7 +4,7 @@ require "ariadna/tools/init"
 class InitTest < Minitest::Test
   def setup
     @dir = Dir.mktmpdir
-    @planning_dir = File.join(@dir, ".planning")
+    @planning_dir = File.join(@dir, ".ariadna_planning")
     @phases_dir = File.join(@planning_dir, "phases")
     FileUtils.mkdir_p(@phases_dir)
 

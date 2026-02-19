@@ -23,7 +23,7 @@ Parse JSON for: `executor_model`, `verifier_model`, `commit_docs`, `parallelizat
 
 **If `phase_found` is false:** Error — phase directory not found.
 **If `plan_count` is 0:** Error — no plans found in phase.
-**If `state_exists` is false but `.planning/` exists:** Offer reconstruct or continue.
+**If `state_exists` is false but `.ariadna_planning/` exists:** Offer reconstruct or continue.
 
 When `parallelization` is false, plans within a wave execute sequentially.
 </step>
@@ -157,8 +157,8 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
        <files_to_read>
        Read these files at execution start using the Read tool:
        - Plan: {phase_dir}/{plan_file}
-       - State: .planning/STATE.md
-       - Config: .planning/config.json (if exists)
+       - State: .ariadna_planning/STATE.md
+       - Config: .ariadna_planning/config.json (if exists)
        </files_to_read>
 
        <success_criteria>
@@ -470,7 +470,7 @@ questions: [
 Mark phase complete in ROADMAP.md (date, status).
 
 ```bash
-ariadna-tools commit "docs(phase-{X}): complete phase execution" --files .planning/ROADMAP.md .planning/STATE.md .planning/phases/{phase_dir}/*-VERIFICATION.md .planning/REQUIREMENTS.md
+ariadna-tools commit "docs(phase-{X}): complete phase execution" --files .ariadna_planning/ROADMAP.md .ariadna_planning/STATE.md .ariadna_planning/phases/{phase_dir}/*-VERIFICATION.md .ariadna_planning/REQUIREMENTS.md
 ```
 </step>
 

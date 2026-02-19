@@ -26,14 +26,14 @@ STATE_CONTENT=$(echo "$INIT" | jq -r '.state_content // empty')
 CONFIG_CONTENT=$(echo "$INIT" | jq -r '.config_content // empty')
 ```
 
-If `.planning/` missing: error.
+If `.ariadna_planning/` missing: error.
 </step>
 
 <step name="identify_plan">
 ```bash
 # Use plans/summaries from INIT JSON, or list files
-ls .planning/phases/XX-name/*-PLAN.md 2>/dev/null | sort
-ls .planning/phases/XX-name/*-SUMMARY.md 2>/dev/null | sort
+ls .ariadna_planning/phases/XX-name/*-PLAN.md 2>/dev/null | sort
+ls .ariadna_planning/phases/XX-name/*-SUMMARY.md 2>/dev/null | sort
 ```
 
 Find first PLAN without matching SUMMARY. Decimal phases supported (`01.1-hotfix/`):
@@ -61,7 +61,7 @@ PLAN_START_EPOCH=$(date +%s)
 
 <step name="parse_segments">
 ```bash
-grep -n "type=\"checkpoint" .planning/phases/XX-name/{phase}-{plan}-PLAN.md
+grep -n "type=\"checkpoint" .ariadna_planning/phases/XX-name/{phase}-{plan}-PLAN.md
 ```
 
 **Routing by checkpoint type:**
@@ -83,12 +83,12 @@ Fresh context per subagent preserves peak quality. Main context stays lean.
 
 <step name="init_agent_tracking">
 ```bash
-if [ ! -f .planning/agent-history.json ]; then
-  echo '{"version":"1.0","max_entries":50,"entries":[]}' > .planning/agent-history.json
+if [ ! -f .ariadna_planning/agent-history.json ]; then
+  echo '{"version":"1.0","max_entries":50,"entries":[]}' > .ariadna_planning/agent-history.json
 fi
-rm -f .planning/current-agent-id.txt
-if [ -f .planning/current-agent-id.txt ]; then
-  INTERRUPTED_ID=$(cat .planning/current-agent-id.txt)
+rm -f .ariadna_planning/current-agent-id.txt
+if [ -f .ariadna_planning/current-agent-id.txt ]; then
+  INTERRUPTED_ID=$(cat .ariadna_planning/current-agent-id.txt)
   echo "Found interrupted agent: $INTERRUPTED_ID"
 fi
 ```
@@ -121,14 +121,14 @@ Pattern B only (verify-only checkpoints). Skip for A/C.
 
 <step name="load_prompt">
 ```bash
-cat .planning/phases/XX-name/{phase}-{plan}-PLAN.md
+cat .ariadna_planning/phases/XX-name/{phase}-{plan}-PLAN.md
 ```
 This IS the execution instructions. Follow exactly. If plan references CONTEXT.md: honor user's vision throughout.
 </step>
 
 <step name="previous_phase_check">
 ```bash
-ls .planning/phases/*/SUMMARY.md 2>/dev/null | sort -r | head -2 | tail -1
+ls .ariadna_planning/phases/*/SUMMARY.md 2>/dev/null | sort -r | head -2 | tail -1
 ```
 If previous SUMMARY has unresolved "Issues Encountered" or "Next Phase Readiness" blockers: AskUserQuestion(header="Previous Issues", options: "Proceed anyway" | "Address first" | "Review previous").
 </step>
@@ -312,18 +312,18 @@ fi
 
 <step name="generate_user_setup">
 ```bash
-grep -A 50 "^user_setup:" .planning/phases/XX-name/{phase}-{plan}-PLAN.md | head -50
+grep -A 50 "^user_setup:" .ariadna_planning/phases/XX-name/{phase}-{plan}-PLAN.md | head -50
 ```
 
 If user_setup exists: create `{phase}-USER-SETUP.md` using template `~/.claude/ariadna/templates/user-setup.md`. Per service: env vars table, account setup checklist, dashboard config, local dev notes, verification commands. Status "Incomplete". Set `USER_SETUP_CREATED=true`. If empty/missing: skip.
 </step>
 
 <step name="create_summary">
-Create `{phase}-{plan}-SUMMARY.md` at `.planning/phases/XX-name/`. Use `~/.claude/ariadna/templates/summary.md`.
+Create `{phase}-{plan}-SUMMARY.md` at `.ariadna_planning/phases/XX-name/`. Use `~/.claude/ariadna/templates/summary.md`.
 
 **Frontmatter:** phase, plan, subsystem, tags | requires/provides/affects | tech-stack.added/patterns | key-files.created/modified | key-decisions | requirements_covered | duration ($DURATION), completed ($PLAN_END_TIME date).
 
-**Requirements traceability:** Cross-reference plan tasks against `requirements_content` (from INIT, or read `.planning/REQUIREMENTS.md`). For each requirement mapped to this phase that was implemented by tasks in this plan, populate the `requirements_covered` frontmatter:
+**Requirements traceability:** Cross-reference plan tasks against `requirements_content` (from INIT, or read `.ariadna_planning/REQUIREMENTS.md`). For each requirement mapped to this phase that was implemented by tasks in this plan, populate the `requirements_covered` frontmatter:
 ```yaml
 requirements_covered:
   - id: "AUTH-01"
@@ -397,12 +397,12 @@ More plans → update plan count, keep "In progress". Last plan → mark phase "
 Task code already committed per-task. Commit plan metadata:
 
 ```bash
-ariadna-tools commit "docs({phase}-{plan}): complete [plan-name] plan" --files .planning/phases/XX-name/{phase}-{plan}-SUMMARY.md .planning/STATE.md .planning/ROADMAP.md
+ariadna-tools commit "docs({phase}-{plan}): complete [plan-name] plan" --files .ariadna_planning/phases/XX-name/{phase}-{plan}-SUMMARY.md .ariadna_planning/STATE.md .ariadna_planning/ROADMAP.md
 ```
 </step>
 
 <step name="update_codebase_map">
-If .planning/codebase/ doesn't exist: skip.
+If .ariadna_planning/codebase/ doesn't exist: skip.
 
 ```bash
 FIRST_TASK=$(git log --oneline --grep="feat({phase}-{plan}):" --grep="fix({phase}-{plan}):" --grep="test({phase}-{plan}):" --reverse | head -1 | cut -d' ' -f1)
@@ -412,7 +412,7 @@ git diff --name-only ${FIRST_TASK}^..HEAD 2>/dev/null
 Update only structural changes: new src/ dir → STRUCTURE.md | deps → STACK.md | file pattern → CONVENTIONS.md | API client → INTEGRATIONS.md | config → STACK.md | renamed → update paths. Skip code-only/bugfix/content changes.
 
 ```bash
-ariadna-tools commit "" --files .planning/codebase/*.md --amend
+ariadna-tools commit "" --files .ariadna_planning/codebase/*.md --amend
 ```
 </step>
 
@@ -420,8 +420,8 @@ ariadna-tools commit "" --files .planning/codebase/*.md --amend
 If `USER_SETUP_CREATED=true`: display `⚠️ USER SETUP REQUIRED` with path + env/config tasks at TOP.
 
 ```bash
-ls -1 .planning/phases/[current-phase-dir]/*-PLAN.md 2>/dev/null | wc -l
-ls -1 .planning/phases/[current-phase-dir]/*-SUMMARY.md 2>/dev/null | wc -l
+ls -1 .ariadna_planning/phases/[current-phase-dir]/*-PLAN.md 2>/dev/null | wc -l
+ls -1 .ariadna_planning/phases/[current-phase-dir]/*-SUMMARY.md 2>/dev/null | wc -l
 ```
 
 | Condition | Route | Action |

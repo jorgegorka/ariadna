@@ -18,7 +18,7 @@ Execute small, ad-hoc tasks with Ariadna guarantees (atomic commits, STATE.md tr
 Quick mode is the same system with a shorter path:
 - Spawns ariadna-planner (quick mode) + ariadna-executor(s)
 - Skips ariadna-phase-researcher, ariadna-plan-checker, ariadna-verifier
-- Quick tasks live in `.planning/quick/` separate from planned phases
+- Quick tasks live in `.ariadna_planning/quick/` separate from planned phases
 - Updates STATE.md "Quick Tasks Completed" table (NOT ROADMAP.md)
 
 Use when: You know exactly what to do and the task is small enough to not need research or verification.
@@ -29,7 +29,7 @@ Use when: You know exactly what to do and the task is small enough to not need r
 </execution_context>
 
 <context>
-@.planning/STATE.md
+@.ariadna_planning/STATE.md
 </context>
 
 <process>

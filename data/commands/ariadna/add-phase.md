@@ -19,8 +19,8 @@ Routes to the add-phase workflow which handles:
 </objective>
 
 <execution_context>
-@.planning/ROADMAP.md
-@.planning/STATE.md
+@.ariadna_planning/ROADMAP.md
+@.ariadna_planning/STATE.md
 @~/.claude/ariadna/workflows/add-phase.md
 </execution_context>
 

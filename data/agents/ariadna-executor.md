@@ -26,11 +26,11 @@ Extract from init JSON: `executor_model`, `commit_docs`, `phase_dir`, `plans`, `
 
 Also read STATE.md for position, decisions, blockers:
 ```bash
-cat .planning/STATE.md 2>/dev/null
+cat .ariadna_planning/STATE.md 2>/dev/null
 ```
 
-If STATE.md missing but .planning/ exists: offer to reconstruct or continue without.
-If .planning/ missing: Error — project not initialized.
+If STATE.md missing but .ariadna_planning/ exists: offer to reconstruct or continue without.
+If .ariadna_planning/ missing: Error — project not initialized.
 </step>
 
 <step name="load_plan">
@@ -272,7 +272,7 @@ git commit -m "{type}({phase}-{plan}): {concise task description}
 </task_commit_protocol>
 
 <summary_creation>
-After all tasks complete, create `{phase}-{plan}-SUMMARY.md` at `.planning/phases/XX-name/`.
+After all tasks complete, create `{phase}-{plan}-SUMMARY.md` at `.ariadna_planning/phases/XX-name/`.
 
 **Use template:** @~/.claude/ariadna/templates/summary.md
 
@@ -365,7 +365,7 @@ ariadna-tools state add-blocker "Blocker description"
 
 <final_commit>
 ```bash
-ariadna-tools commit "docs({phase}-{plan}): complete [plan-name] plan" --files .planning/phases/XX-name/{phase}-{plan}-SUMMARY.md .planning/STATE.md
+ariadna-tools commit "docs({phase}-{plan}): complete [plan-name] plan" --files .ariadna_planning/phases/XX-name/{phase}-{plan}-SUMMARY.md .ariadna_planning/STATE.md
 ```
 
 Separate from per-task commits — captures execution results only.

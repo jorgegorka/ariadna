@@ -58,8 +58,8 @@ Decimal phase directories use the full decimal number:
 
 ```bash
 SLUG=$(ariadna-tools generate-slug "$DESCRIPTION" --raw)
-PHASE_DIR=".planning/phases/${DECIMAL_PHASE}-${SLUG}"
+PHASE_DIR=".ariadna_planning/phases/${DECIMAL_PHASE}-${SLUG}"
 mkdir -p "$PHASE_DIR"
 ```
 
-Example: `.planning/phases/06.1-fix-critical-auth-bug/`
+Example: `.ariadna_planning/phases/06.1-fix-critical-auth-bug/`

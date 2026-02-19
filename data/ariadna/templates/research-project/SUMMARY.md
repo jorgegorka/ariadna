@@ -1,6 +1,6 @@
 # Research Summary Template
 
-Template for `.planning/research/SUMMARY.md` — executive summary of project research with roadmap implications for Ruby on Rails applications.
+Template for `.ariadna_planning/research/SUMMARY.md` — executive summary of project research with roadmap implications for Ruby on Rails applications.
 
 <template>
 

@@ -44,7 +44,7 @@ module Ariadna
 
       def self.history_digest(_argv, raw: false)
         cwd = Dir.pwd
-        phases_dir = File.join(cwd, ".planning", "phases")
+        phases_dir = File.join(cwd, ".ariadna_planning", "phases")
         digest = { phases: {}, decisions: [], tech_stack: [] }
 
         unless File.directory?(phases_dir)
@@ -107,7 +107,7 @@ module Ariadna
 
       def self.snapshot(_argv, raw: false)
         cwd = Dir.pwd
-        state_path = File.join(cwd, ".planning", "STATE.md")
+        state_path = File.join(cwd, ".ariadna_planning", "STATE.md")
         Output.error("STATE.md not found") unless File.exist?(state_path)
 
         content = File.read(state_path)
@@ -122,7 +122,7 @@ module Ariadna
       def self.load_state(raw: false)
         cwd = Dir.pwd
         config = ConfigManager.load_config(cwd)
-        planning_dir = File.join(cwd, ".planning")
+        planning_dir = File.join(cwd, ".ariadna_planning")
 
         state_raw = begin
           File.read(File.join(planning_dir, "STATE.md"))
@@ -152,7 +152,7 @@ module Ariadna
 
       def self.get(section, raw: false)
         cwd = Dir.pwd
-        state_path = File.join(cwd, ".planning", "STATE.md")
+        state_path = File.join(cwd, ".ariadna_planning", "STATE.md")
         content = File.read(state_path)
 
         unless section
@@ -183,7 +183,7 @@ module Ariadna
         Output.error("field and value required for state update") unless field && value
 
         cwd = Dir.pwd
-        state_path = File.join(cwd, ".planning", "STATE.md")
+        state_path = File.join(cwd, ".ariadna_planning", "STATE.md")
         content = File.read(state_path)
 
         new_content = replace_field(content, field, value)
@@ -199,7 +199,7 @@ module Ariadna
 
       def self.patch(patches, raw: false)
         cwd = Dir.pwd
-        state_path = File.join(cwd, ".planning", "STATE.md")
+        state_path = File.join(cwd, ".ariadna_planning", "STATE.md")
         content = File.read(state_path)
 
         results = { updated: [], failed: [] }
@@ -221,7 +221,7 @@ module Ariadna
 
       def self.advance_plan(raw: false)
         cwd = Dir.pwd
-        state_path = File.join(cwd, ".planning", "STATE.md")
+        state_path = File.join(cwd, ".ariadna_planning", "STATE.md")
         unless File.exist?(state_path)
           Output.json({ error: "STATE.md not found" }, raw: raw)
           return
@@ -254,7 +254,7 @@ module Ariadna
 
       def self.record_metric(options, raw: false)
         cwd = Dir.pwd
-        state_path = File.join(cwd, ".planning", "STATE.md")
+        state_path = File.join(cwd, ".ariadna_planning", "STATE.md")
         unless File.exist?(state_path)
           Output.json({ error: "STATE.md not found" }, raw: raw)
           return
@@ -282,14 +282,14 @@ module Ariadna
 
       def self.update_progress(raw: false)
         cwd = Dir.pwd
-        state_path = File.join(cwd, ".planning", "STATE.md")
+        state_path = File.join(cwd, ".ariadna_planning", "STATE.md")
         unless File.exist?(state_path)
           Output.json({ error: "STATE.md not found" }, raw: raw)
           return
         end
 
         content = File.read(state_path)
-        phases_dir = File.join(cwd, ".planning", "phases")
+        phases_dir = File.join(cwd, ".ariadna_planning", "phases")
         total_plans = 0
         total_summaries = 0
 
@@ -321,7 +321,7 @@ module Ariadna
 
       def self.add_decision(options, raw: false)
         cwd = Dir.pwd
-        state_path = File.join(cwd, ".planning", "STATE.md")
+        state_path = File.join(cwd, ".ariadna_planning", "STATE.md")
         unless File.exist?(state_path)
           Output.json({ error: "STATE.md not found" }, raw: raw)
           return
@@ -350,7 +350,7 @@ module Ariadna
 
       def self.add_blocker(text, raw: false)
         cwd = Dir.pwd
-        state_path = File.join(cwd, ".planning", "STATE.md")
+        state_path = File.join(cwd, ".ariadna_planning", "STATE.md")
         unless File.exist?(state_path)
           Output.json({ error: "STATE.md not found" }, raw: raw)
           return
@@ -374,7 +374,7 @@ module Ariadna
 
       def self.resolve_blocker(text, raw: false)
         cwd = Dir.pwd
-        state_path = File.join(cwd, ".planning", "STATE.md")
+        state_path = File.join(cwd, ".ariadna_planning", "STATE.md")
         unless File.exist?(state_path)
           Output.json({ error: "STATE.md not found" }, raw: raw)
           return
@@ -399,7 +399,7 @@ module Ariadna
 
       def self.record_session(options, raw: false)
         cwd = Dir.pwd
-        state_path = File.join(cwd, ".planning", "STATE.md")
+        state_path = File.join(cwd, ".ariadna_planning", "STATE.md")
         unless File.exist?(state_path)
           Output.json({ error: "STATE.md not found" }, raw: raw)
           return

@@ -25,7 +25,7 @@ module Ariadna
         Output.error("phase number required") unless phase_num
 
         cwd = Dir.pwd
-        roadmap_path = File.join(cwd, ".planning", "ROADMAP.md")
+        roadmap_path = File.join(cwd, ".ariadna_planning", "ROADMAP.md")
 
         unless File.exist?(roadmap_path)
           Output.json({ found: false, error: "ROADMAP.md not found" }, raw: raw, raw_value: "")
@@ -63,7 +63,7 @@ module Ariadna
 
       def self.analyze(raw: false)
         cwd = Dir.pwd
-        roadmap_path = File.join(cwd, ".planning", "ROADMAP.md")
+        roadmap_path = File.join(cwd, ".ariadna_planning", "ROADMAP.md")
 
         unless File.exist?(roadmap_path)
           Output.json({ error: "ROADMAP.md not found", milestones: [], phases: [], current_phase: nil }, raw: raw)
@@ -71,7 +71,7 @@ module Ariadna
         end
 
         content = File.read(roadmap_path)
-        phases_dir = File.join(cwd, ".planning", "phases")
+        phases_dir = File.join(cwd, ".ariadna_planning", "phases")
 
         phases = []
         phase_pattern = /###\s*Phase\s+(\d+(?:\.\d+)?)\s*:\s*([^\n]+)/i
@@ -168,7 +168,7 @@ module Ariadna
 
       def self.render_progress(format, raw: false)
         cwd = Dir.pwd
-        phases_dir = File.join(cwd, ".planning", "phases")
+        phases_dir = File.join(cwd, ".ariadna_planning", "phases")
         milestone = get_milestone_info(cwd)
 
         phases = []
@@ -231,7 +231,7 @@ module Ariadna
       end
 
       def self.get_milestone_info(cwd)
-        roadmap = File.read(File.join(cwd, ".planning", "ROADMAP.md"))
+        roadmap = File.read(File.join(cwd, ".ariadna_planning", "ROADMAP.md"))
         version_match = roadmap.match(/v(\d+\.\d+)/)
         name_match = roadmap.match(/## .*v\d+\.\d+[:\s]+([^\n(]+)/)
         {

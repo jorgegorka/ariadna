@@ -406,8 +406,8 @@ module Ariadna
 
       def self.validate_consistency(raw: false)
         cwd = Dir.pwd
-        roadmap_path = File.join(cwd, ".planning", "ROADMAP.md")
-        phases_dir = File.join(cwd, ".planning", "phases")
+        roadmap_path = File.join(cwd, ".ariadna_planning", "ROADMAP.md")
+        phases_dir = File.join(cwd, ".ariadna_planning", "phases")
         errors = []
         warnings = []
 
@@ -499,7 +499,7 @@ module Ariadna
       # --- Private helpers ---
 
       def self.find_phase_internal(cwd, phase)
-        phases_dir = File.join(cwd, ".planning", "phases")
+        phases_dir = File.join(cwd, ".ariadna_planning", "phases")
         normalized = normalize_phase(phase)
 
         return nil unless File.directory?(phases_dir)
@@ -512,7 +512,7 @@ module Ariadna
         phase_number = dir_match ? dir_match[1] : normalized
         phase_name = dir_match && !dir_match[2].empty? ? dir_match[2] : nil
 
-        { directory: File.join(".planning", "phases", match), phase_number: phase_number, phase_name: phase_name }
+        { directory: File.join(".ariadna_planning", "phases", match), phase_number: phase_number, phase_name: phase_name }
       rescue StandardError
         nil
       end

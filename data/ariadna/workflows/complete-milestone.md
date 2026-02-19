@@ -8,9 +8,9 @@ Mark a shipped version (v1.0, v1.1, v2.0) as complete. Creates historical record
 
 1. templates/milestone.md
 2. templates/milestone-archive.md
-3. `.planning/ROADMAP.md`
-4. `.planning/REQUIREMENTS.md`
-5. `.planning/PROJECT.md`
+3. `.ariadna_planning/ROADMAP.md`
+4. `.ariadna_planning/REQUIREMENTS.md`
+5. `.ariadna_planning/PROJECT.md`
 
 </required_reading>
 
@@ -18,8 +18,8 @@ Mark a shipped version (v1.0, v1.1, v2.0) as complete. Creates historical record
 
 When a milestone completes:
 
-1. Extract full milestone details to `.planning/milestones/v[X.Y]-ROADMAP.md`
-2. Archive requirements to `.planning/milestones/v[X.Y]-REQUIREMENTS.md`
+1. Extract full milestone details to `.ariadna_planning/milestones/v[X.Y]-ROADMAP.md`
+2. Archive requirements to `.ariadna_planning/milestones/v[X.Y]-REQUIREMENTS.md`
 3. Update ROADMAP.md — replace milestone details with one-line summary
 4. Delete REQUIREMENTS.md (fresh one for next milestone)
 5. Perform full PROJECT.md evolution review
@@ -65,7 +65,7 @@ Total: {phase_count} phases, {total_plans} plans, all complete
 <config-check>
 
 ```bash
-cat .planning/config.json 2>/dev/null
+cat .ariadna_planning/config.json 2>/dev/null
 ```
 
 </config-check>
@@ -130,7 +130,7 @@ Extract one-liners from SUMMARY.md files using summary-extract:
 
 ```bash
 # For each phase in milestone, extract one-liner
-for summary in .planning/phases/*-*/*-SUMMARY.md; do
+for summary in .ariadna_planning/phases/*-*/*-SUMMARY.md; do
   ariadna-tools summary-extract "$summary" --fields one_liner | jq -r '.one_liner'
 done
 ```
@@ -163,7 +163,7 @@ Full PROJECT.md evolution review at milestone completion.
 Read all phase summaries:
 
 ```bash
-cat .planning/phases/*-*/*-SUMMARY.md
+cat .ariadna_planning/phases/*-*/*-SUMMARY.md
 ```
 
 **Full review checklist:**
@@ -297,7 +297,7 @@ Initial user testing showed demand for shape tools.
 
 <step name="reorganize_roadmap">
 
-Update `.planning/ROADMAP.md` — group completed milestone phases:
+Update `.ariadna_planning/ROADMAP.md` — group completed milestone phases:
 
 ```markdown
 # Roadmap: [Project Name]
@@ -348,7 +348,7 @@ ARCHIVE=$(ariadna-tools milestone complete "v[X.Y]" --name "[Milestone Name]")
 ```
 
 The CLI handles:
-- Creating `.planning/milestones/` directory
+- Creating `.ariadna_planning/milestones/` directory
 - Archiving ROADMAP.md to `milestones/v[X.Y]-ROADMAP.md`
 - Archiving REQUIREMENTS.md to `milestones/v[X.Y]-REQUIREMENTS.md` with archive header
 - Moving audit file to milestones if it exists
@@ -357,9 +357,9 @@ The CLI handles:
 
 Extract from result: `version`, `date`, `phases`, `plans`, `tasks`, `accomplishments`, `archived`.
 
-Verify: `✅ Milestone archived to .planning/milestones/`
+Verify: `✅ Milestone archived to .ariadna_planning/milestones/`
 
-**Note:** Phase directories (`.planning/phases/`) are NOT deleted — they accumulate across milestones as raw execution history. Phase numbering continues (v1.0 phases 1-4, v1.1 phases 5-8, etc.).
+**Note:** Phase directories (`.ariadna_planning/phases/`) are NOT deleted — they accumulate across milestones as raw execution history. Phase numbering continues (v1.0 phases 1-4, v1.1 phases 5-8, etc.).
 
 After archival, the AI still handles:
 - Reorganizing ROADMAP.md with milestone grouping (requires judgment)
@@ -397,8 +397,8 @@ After `milestone complete` has archived, reorganize ROADMAP.md with milestone gr
 **Then delete originals:**
 
 ```bash
-rm .planning/ROADMAP.md
-rm .planning/REQUIREMENTS.md
+rm .ariadna_planning/ROADMAP.md
+rm .ariadna_planning/REQUIREMENTS.md
 ```
 
 </step>
@@ -412,7 +412,7 @@ Most STATE.md updates were handled by `milestone complete`, but verify and updat
 ```markdown
 ## Project Reference
 
-See: .planning/PROJECT.md (updated [today])
+See: .ariadna_planning/PROJECT.md (updated [today])
 
 **Core value:** [Current core value from PROJECT.md]
 **Current focus:** [Next milestone or "Planning next milestone"]
@@ -543,7 +543,7 @@ Key accomplishments:
 - [Item 2]
 - [Item 3]
 
-See .planning/MILESTONES.md for full details."
+See .ariadna_planning/MILESTONES.md for full details."
 ```
 
 Confirm: "Tagged: v[X.Y]"
@@ -562,7 +562,7 @@ git push origin v[X.Y]
 Commit milestone completion.
 
 ```bash
-ariadna-tools commit "chore: complete v[X.Y] milestone" --files .planning/milestones/v[X.Y]-ROADMAP.md .planning/milestones/v[X.Y]-REQUIREMENTS.md .planning/milestones/v[X.Y]-MILESTONE-AUDIT.md .planning/MILESTONES.md .planning/PROJECT.md .planning/STATE.md
+ariadna-tools commit "chore: complete v[X.Y] milestone" --files .ariadna_planning/milestones/v[X.Y]-ROADMAP.md .ariadna_planning/milestones/v[X.Y]-REQUIREMENTS.md .ariadna_planning/milestones/v[X.Y]-MILESTONE-AUDIT.md .ariadna_planning/MILESTONES.md .ariadna_planning/PROJECT.md .ariadna_planning/STATE.md
 ```
 ```
 
@@ -583,7 +583,7 @@ Archived:
 - milestones/v[X.Y]-ROADMAP.md
 - milestones/v[X.Y]-REQUIREMENTS.md
 
-Summary: .planning/MILESTONES.md
+Summary: .ariadna_planning/MILESTONES.md
 Tag: v[X.Y]
 
 ---

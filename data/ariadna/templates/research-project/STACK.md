@@ -1,6 +1,6 @@
 # Stack Research Template
 
-Template for `.planning/research/STACK.md` — discovered technology stack for the Rails project.
+Template for `.ariadna_planning/research/STACK.md` — discovered technology stack for the Rails project.
 
 <template>
 

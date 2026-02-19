@@ -1,5 +1,5 @@
 <purpose>
-Interactive configuration of Ariadna workflow agents (research, plan_check, verifier) and model profile selection via multi-question prompt. Updates .planning/config.json with user preferences.
+Interactive configuration of Ariadna workflow agents (research, plan_check, verifier) and model profile selection via multi-question prompt. Updates .ariadna_planning/config.json with user preferences.
 </purpose>
 
 <required_reading>
@@ -16,12 +16,12 @@ ariadna-tools config-ensure-section
 INIT=$(ariadna-tools state load)
 ```
 
-Creates `.planning/config.json` with defaults if missing and loads current config values.
+Creates `.ariadna_planning/config.json` with defaults if missing and loads current config values.
 </step>
 
 <step name="read_current">
 ```bash
-cat .planning/config.json
+cat .ariadna_planning/config.json
 ```
 
 Parse current values (default to `true` if not present):
@@ -106,7 +106,7 @@ Merge new settings into existing config.json:
 }
 ```
 
-Write updated config to `.planning/config.json`.
+Write updated config to `.ariadna_planning/config.json`.
 </step>
 
 <step name="confirm">

@@ -9,6 +9,7 @@ case command
 when "install"
   global = ARGV.include?("--global") || ARGV.include?("-g")
   local = ARGV.include?("--local") || ARGV.include?("-l")
+  force_statusline = ARGV.include?("--force-statusline")
 
   unless global || local
     warn "Usage: ariadna install --global   (install to ~/.claude/)"
@@ -16,7 +17,7 @@ when "install"
     exit 1
   end
 
-  Ariadna::Installer.new(local: local).install
+  Ariadna::Installer.new(local: local, force_statusline: force_statusline).install
 when "uninstall"
   require "ariadna/uninstaller"
   global = ARGV.include?("--global") || ARGV.include?("-g")

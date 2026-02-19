@@ -19,12 +19,12 @@ allowed-tools:
 Initialize a new project through streamlined flow: questioning → requirements → roadmap. Research skipped by default (Rails conventions pre-loaded); use --research for non-standard domains.
 
 **Creates:**
-- `.planning/PROJECT.md` — project context
-- `.planning/config.json` — workflow preferences (opinionated defaults)
-- `.planning/research/` — domain research (only with --research flag)
-- `.planning/REQUIREMENTS.md` — scoped requirements
-- `.planning/ROADMAP.md` — phase structure
-- `.planning/STATE.md` — project memory
+- `.ariadna_planning/PROJECT.md` — project context
+- `.ariadna_planning/config.json` — workflow preferences (opinionated defaults)
+- `.ariadna_planning/research/` — domain research (only with --research flag)
+- `.ariadna_planning/REQUIREMENTS.md` — scoped requirements
+- `.ariadna_planning/ROADMAP.md` — phase structure
+- `.ariadna_planning/STATE.md` — project memory
 
 **After this command:** Run `/ariadna:plan-phase 1` to start planning.
 </objective>

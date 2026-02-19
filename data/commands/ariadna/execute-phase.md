@@ -44,8 +44,8 @@ Phase: $ARGUMENTS
 - `--team` — Use team-based execution with domain-specialized agents instead of wave-based execution.
 - `--no-team` — Force wave-based execution even when auto-detection would choose team mode.
 
-@.planning/ROADMAP.md
-@.planning/STATE.md
+@.ariadna_planning/ROADMAP.md
+@.ariadna_planning/STATE.md
 </context>
 
 <process>

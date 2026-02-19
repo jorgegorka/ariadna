@@ -1,6 +1,6 @@
 # Features Research Template
 
-Template for `.planning/research/FEATURES.md` — feature landscape for the project domain.
+Template for `.ariadna_planning/research/FEATURES.md` — feature landscape for the project domain.
 
 <template>
 

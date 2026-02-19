@@ -1,6 +1,6 @@
 # Milestone Entry Template
 
-Add this entry to `.planning/MILESTONES.md` when completing a milestone:
+Add this entry to `.ariadna_planning/MILESTONES.md` when completing a milestone:
 
 ```markdown
 ## v[X.Y] [Name] (Shipped: YYYY-MM-DD)

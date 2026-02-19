@@ -22,8 +22,8 @@ Output: Phase deleted, all subsequent phases renumbered, git commit as historica
 <context>
 Phase: $ARGUMENTS
 
-@.planning/ROADMAP.md
-@.planning/STATE.md
+@.ariadna_planning/ROADMAP.md
+@.ariadna_planning/STATE.md
 </context>
 
 <process>

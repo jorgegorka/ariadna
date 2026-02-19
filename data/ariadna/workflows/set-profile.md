@@ -27,7 +27,7 @@ ariadna-tools config-ensure-section
 INIT=$(ariadna-tools state load)
 ```
 
-This creates `.planning/config.json` with defaults if missing and loads current config.
+This creates `.ariadna_planning/config.json` with defaults if missing and loads current config.
 </step>
 
 <step name="update_config">
@@ -40,7 +40,7 @@ Update `model_profile` field:
 }
 ```
 
-Write updated config back to `.planning/config.json`.
+Write updated config back to `.ariadna_planning/config.json`.
 </step>
 
 <step name="confirm">

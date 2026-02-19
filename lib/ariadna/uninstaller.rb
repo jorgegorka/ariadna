@@ -14,6 +14,7 @@ module Ariadna
       remove_commands
       remove_agents
       remove_content
+      remove_statusline
       remove_patches
       remove_manifest
 
@@ -56,6 +57,22 @@ module Ariadna
         FileUtils.rm_rf(dir)
         puts "  \u2713 Removed ariadna/"
       end
+    end
+
+    def remove_statusline
+      script_path = File.join(@target_dir, "ariadna-statusline.sh")
+      FileUtils.rm_f(script_path)
+
+      settings_path = File.join(@target_dir, "settings.json")
+      if File.exist?(settings_path)
+        settings = JSON.parse(File.read(settings_path))
+        if settings.dig("statusLine", "command")&.include?("ariadna-statusline.sh")
+          settings.delete("statusLine")
+          File.write(settings_path, JSON.pretty_generate(settings))
+        end
+      end
+
+      puts "  \u2713 Removed statusline"
     end
 
     def remove_patches

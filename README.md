@@ -30,7 +30,7 @@ This is not a vibe-coding tool.  You will get the best results when you review b
 2. The command loads a workflow definition and gathers context via `ariadna-tools`
 3. An orchestrator spawns specialised agents (planner, executor, verifier) in parallel, routing to Rails-specific executors based on plan metadata
 4. Agents execute tasks, make atomic commits, and produce summaries
-5. Project state is updated in `.planning/STATE.md`
+5. Project state is updated in `.ariadna_planning/STATE.md`
 
 ## Quick Start
 
@@ -68,7 +68,7 @@ Use `/clear` between commands to give each orchestrator a fresh context window. 
 ### Existing Rails Project (Brownfield)
 
 ```
-/ariadna:map-codebase          # Analyse codebase → .planning/codebase/
+/ariadna:map-codebase          # Analyse codebase → .ariadna_planning/codebase/
 /clear
 /ariadna:new-project           # Define vision using codebase analysis
 /clear
@@ -85,7 +85,7 @@ For adding features to an existing project without a full roadmap, use `/ariadna
 
 Every phase follows the same three-step cycle:
 
-**Plan** (`/ariadna:plan-phase N`) — gathers context inline, then spawns a planner and plan-checker. The planner creates `PLAN.md` files using pre-loaded Rails conventions, and the plan-checker validates the plan against the phase goal. Use `--research` to force ecosystem research for non-standard domains. Output: one or more `PLAN.md` files in `.planning/phases/`.
+**Plan** (`/ariadna:plan-phase N`) — gathers context inline, then spawns a planner and plan-checker. The planner creates `PLAN.md` files using pre-loaded Rails conventions, and the plan-checker validates the plan against the phase goal. Use `--research` to force ecosystem research for non-standard domains. Output: one or more `PLAN.md` files in `.ariadna_planning/phases/`.
 
 **Execute** (`/ariadna:execute-phase N`) — groups plans into waves based on dependency numbering. Plans in the same wave run in parallel via separate executor agents. Each agent reads its plan, executes tasks with atomic commits, and writes a `SUMMARY.md`. The orchestrator spot-checks results between waves.
 
@@ -125,7 +125,7 @@ Pause *before* hitting context limits. The handoff document captures current pos
 /ariadna:quick             # Same guarantees, skips optional agents
 ```
 
-For small, ad-hoc tasks that don't warrant a full phase cycle. Quick tasks live in `.planning/quick/`, get atomic commits, and update `STATE.md` — but skip the roadmap and don't create phase directories.
+For small, ad-hoc tasks that don't warrant a full phase cycle. Quick tasks live in `.ariadna_planning/quick/`, get atomic commits, and update `STATE.md` — but skip the roadmap and don't create phase directories.
 
 ### Milestone Lifecycle
 
@@ -152,7 +152,7 @@ Roadmap manipulation commands:
 /ariadna:debug [description]    # Systematic debugging with persistent state
 ```
 
-Uses the scientific method: observe, hypothesise, test, conclude. Debug state persists in `.planning/debug/` and survives `/clear`, so you can continue across sessions.
+Uses the scientific method: observe, hypothesise, test, conclude. Debug state persists in `.ariadna_planning/debug/` and survives `/clear`, so you can continue across sessions.
 
 ## Hierarchy Model
 
@@ -288,7 +288,7 @@ Guides are installed to `~/.claude/guides/` (global) or `.claude/guides/` (local
 ## Planning Directory
 
 ```
-.planning/
+.ariadna_planning/
 ├── PROJECT.md                # Project vision and requirements
 ├── ROADMAP.md                # Phase breakdown with status
 ├── STATE.md                  # Project memory across sessions
@@ -352,7 +352,7 @@ Per-command overrides: `--research`, `--skip-research`, `--skip-context`, `--ski
 | `phase` | At `execute-phase` start | Single phase | Code review per phase, granular rollback |
 | `milestone` | At first `execute-phase` | Entire milestone | Release branches, PR per version |
 
-Configure via `/ariadna:settings` or directly in `.planning/config.json`.
+Configure via `/ariadna:settings` or directly in `.ariadna_planning/config.json`.
 
 ## Updating
 

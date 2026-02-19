@@ -1,6 +1,6 @@
 # PROJECT.md Template
 
-Template for `.planning/PROJECT.md` — the living project context document.
+Template for `.ariadna_planning/PROJECT.md` — the living project context document.
 
 <template>
 
@@ -173,7 +173,7 @@ STATE.md references PROJECT.md:
 ```markdown
 ## Project Reference
 
-See: .planning/PROJECT.md (updated [date])
+See: .ariadna_planning/PROJECT.md (updated [date])
 
 **Core value:** [One-liner from Core Value section]
 **Current focus:** [Current phase name]

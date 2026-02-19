@@ -4,7 +4,7 @@ require "ariadna/tools/phase_manager"
 class PhaseManagerTest < Minitest::Test
   def setup
     @dir = Dir.mktmpdir
-    @phases_dir = File.join(@dir, ".planning", "phases")
+    @phases_dir = File.join(@dir, ".ariadna_planning", "phases")
     FileUtils.mkdir_p(@phases_dir)
   end
 

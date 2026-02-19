@@ -13,23 +13,23 @@ Template for spawning ariadna-planner agent. The agent contains all planning exp
 **Mode:** {standard | gap_closure}
 
 **Project State:**
-@.planning/STATE.md
+@.ariadna_planning/STATE.md
 
 **Roadmap:**
-@.planning/ROADMAP.md
+@.ariadna_planning/ROADMAP.md
 
 **Requirements (if exists):**
-@.planning/REQUIREMENTS.md
+@.ariadna_planning/REQUIREMENTS.md
 
 **Phase Context (if exists):**
-@.planning/phases/{phase_dir}/{phase}-CONTEXT.md
+@.ariadna_planning/phases/{phase_dir}/{phase}-CONTEXT.md
 
 **Research (if exists):**
-@.planning/phases/{phase_dir}/{phase}-RESEARCH.md
+@.ariadna_planning/phases/{phase_dir}/{phase}-RESEARCH.md
 
 **Gap Closure (if --gaps mode):**
-@.planning/phases/{phase_dir}/{phase}-VERIFICATION.md
-@.planning/phases/{phase_dir}/{phase}-UAT.md
+@.ariadna_planning/phases/{phase_dir}/{phase}-VERIFICATION.md
+@.ariadna_planning/phases/{phase_dir}/{phase}-UAT.md
 
 </planning_context>
 
@@ -98,8 +98,8 @@ Continue planning for Phase {phase_number}: {phase_name}
 </objective>
 
 <prior_state>
-Phase directory: @.planning/phases/{phase_dir}/
-Existing plans: @.planning/phases/{phase_dir}/*-PLAN.md
+Phase directory: @.ariadna_planning/phases/{phase_dir}/
+Existing plans: @.ariadna_planning/phases/{phase_dir}/*-PLAN.md
 </prior_state>
 
 <checkpoint_response>

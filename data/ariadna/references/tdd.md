@@ -50,8 +50,8 @@ Output: [Working, tested feature]
 </objective>
 
 <context>
-@.planning/PROJECT.md
-@.planning/ROADMAP.md
+@.ariadna_planning/PROJECT.md
+@.ariadna_planning/ROADMAP.md
 @relevant/source/files.rb
 </context>
 

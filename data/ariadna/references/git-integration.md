@@ -51,7 +51,7 @@ Phases:
 What to commit:
 
 ```bash
-ariadna-tools commit "docs: initialize [project-name] ([N] phases)" --files .planning/
+ariadna-tools commit "docs: initialize [project-name] ([N] phases)" --files .ariadna_planning/
 ```
 
 </format>
@@ -123,13 +123,13 @@ Tasks completed: [N]/[N]
 - [Task 2 name]
 - [Task 3 name]
 
-SUMMARY: .planning/phases/XX-name/{phase}-{plan}-SUMMARY.md
+SUMMARY: .ariadna_planning/phases/XX-name/{phase}-{plan}-SUMMARY.md
 ```
 
 What to commit:
 
 ```bash
-ariadna-tools commit "docs({phase}-{plan}): complete [plan-name] plan" --files .planning/phases/XX-name/{phase}-{plan}-PLAN.md .planning/phases/XX-name/{phase}-{plan}-SUMMARY.md .planning/STATE.md .planning/ROADMAP.md
+ariadna-tools commit "docs({phase}-{plan}): complete [plan-name] plan" --files .ariadna_planning/phases/XX-name/{phase}-{plan}-PLAN.md .ariadna_planning/phases/XX-name/{phase}-{plan}-SUMMARY.md .ariadna_planning/STATE.md .ariadna_planning/ROADMAP.md
 ```
 
 **Note:** Code files NOT included - already committed per-task.
@@ -149,7 +149,7 @@ Current: [task name]
 What to commit:
 
 ```bash
-ariadna-tools commit "wip: [phase-name] paused at task [X]/[Y]" --files .planning/
+ariadna-tools commit "wip: [phase-name] paused at task [X]/[Y]" --files .ariadna_planning/
 ```
 
 </format>

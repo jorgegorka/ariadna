@@ -12,7 +12,7 @@ Read all files referenced by the invoking prompt's execution_context before star
 
 ```bash
 # Find the most recent audit file
-ls -t .planning/v*-MILESTONE-AUDIT.md 2>/dev/null | head -1
+ls -t .ariadna_planning/v*-MILESTONE-AUDIT.md 2>/dev/null | head -1
 ```
 
 Parse YAML frontmatter to extract structured gaps:
@@ -126,13 +126,13 @@ Add new phases to current milestone:
 ## 7. Create Phase Directories
 
 ```bash
-mkdir -p ".planning/phases/{NN}-{name}"
+mkdir -p ".ariadna_planning/phases/{NN}-{name}"
 ```
 
 ## 8. Commit Roadmap Update
 
 ```bash
-ariadna-tools commit "docs(roadmap): add gap closure phases {N}-{M}" --files .planning/ROADMAP.md
+ariadna-tools commit "docs(roadmap): add gap closure phases {N}-{M}" --files .ariadna_planning/ROADMAP.md
 ```
 
 ## 9. Offer Next Steps
@@ -157,7 +157,7 @@ ariadna-tools commit "docs(roadmap): add gap closure phases {N}-{M}" --files .pl
 
 **Also available:**
 - `/ariadna:execute-phase {N}` — if plans already exist
-- `cat .planning/ROADMAP.md` — see updated roadmap
+- `cat .ariadna_planning/ROADMAP.md` — see updated roadmap
 
 ---
 

@@ -24,10 +24,10 @@ Output: Conversational output only (no file creation) - ends with "What do you t
 Phase number: $ARGUMENTS (required)
 
 **Load project state first:**
-@.planning/STATE.md
+@.ariadna_planning/STATE.md
 
 **Load roadmap:**
-@.planning/ROADMAP.md
+@.ariadna_planning/ROADMAP.md
 </context>
 
 <process>

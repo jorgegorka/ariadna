@@ -31,7 +31,7 @@ module Ariadna
       def self.list_todos(argv, raw: false)
         area = argv.first
         cwd = Dir.pwd
-        pending_dir = File.join(cwd, ".planning", "todos", "pending")
+        pending_dir = File.join(cwd, ".ariadna_planning", "todos", "pending")
 
         count = 0
         todos = []
@@ -51,7 +51,7 @@ module Ariadna
               created: created,
               title: title,
               area: todo_area,
-              path: File.join(".planning", "todos", "pending", File.basename(file))
+              path: File.join(".ariadna_planning", "todos", "pending", File.basename(file))
             }
           end
         end
@@ -87,8 +87,8 @@ module Ariadna
       def self.todo_complete(filename, raw: false)
         Output.error("filename required") unless filename
         cwd = Dir.pwd
-        pending = File.join(cwd, ".planning", "todos", "pending", filename)
-        completed_dir = File.join(cwd, ".planning", "todos", "completed")
+        pending = File.join(cwd, ".ariadna_planning", "todos", "pending", filename)
+        completed_dir = File.join(cwd, ".ariadna_planning", "todos", "completed")
 
         unless File.exist?(pending)
           Output.json({ completed: false, reason: "not_found" }, raw: raw, raw_value: "false")

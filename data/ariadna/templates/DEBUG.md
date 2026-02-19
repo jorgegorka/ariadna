@@ -1,6 +1,6 @@
 # Debug Template
 
-Template for `.planning/debug/[slug].md` — active debug session tracking.
+Template for `.ariadna_planning/debug/[slug].md` — active debug session tracking.
 
 ---
 
@@ -129,7 +129,7 @@ files_changed: []
 
 **On resolution:**
 - status → "resolved"
-- Move file to .planning/debug/resolved/
+- Move file to .ariadna_planning/debug/resolved/
 
 </lifecycle>
 

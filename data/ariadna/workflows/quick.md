@@ -1,5 +1,5 @@
 <purpose>
-Execute small, ad-hoc tasks with Ariadna guarantees (atomic commits, STATE.md tracking) while skipping optional agents (research, plan-checker, verifier). Quick mode spawns ariadna-planner (quick mode) + ariadna-executor(s), tracks tasks in `.planning/quick/`, and updates STATE.md's "Quick Tasks Completed" table.
+Execute small, ad-hoc tasks with Ariadna guarantees (atomic commits, STATE.md tracking) while skipping optional agents (research, plan-checker, verifier). Quick mode spawns ariadna-planner (quick mode) + ariadna-executor(s), tracks tasks in `.ariadna_planning/quick/`, and updates STATE.md's "Quick Tasks Completed" table.
 </purpose>
 
 <required_reading>
@@ -52,7 +52,7 @@ mkdir -p "${task_dir}"
 Create the directory for this quick task:
 
 ```bash
-QUICK_DIR=".planning/quick/${next_num}-${slug}"
+QUICK_DIR=".ariadna_planning/quick/${next_num}-${slug}"
 mkdir -p "$QUICK_DIR"
 ```
 
@@ -80,7 +80,7 @@ Task(
 **Description:** ${DESCRIPTION}
 
 **Project State:**
-@.planning/STATE.md
+@.ariadna_planning/STATE.md
 
 </planning_context>
 
@@ -121,7 +121,7 @@ Task(
 Execute quick task ${next_num}.
 
 Plan: @${QUICK_DIR}/${next_num}-PLAN.md
-Project state: @.planning/STATE.md
+Project state: @.ariadna_planning/STATE.md
 
 <constraints>
 - Execute all tasks in the plan
@@ -191,7 +191,7 @@ Use Edit tool to make these changes atomically
 Stage and commit quick task artifacts:
 
 ```bash
-ariadna-tools commit "docs(quick-${next_num}): ${DESCRIPTION}" --files ${QUICK_DIR}/${next_num}-PLAN.md ${QUICK_DIR}/${next_num}-SUMMARY.md .planning/STATE.md
+ariadna-tools commit "docs(quick-${next_num}): ${DESCRIPTION}" --files ${QUICK_DIR}/${next_num}-PLAN.md ${QUICK_DIR}/${next_num}-SUMMARY.md .ariadna_planning/STATE.md
 ```
 
 Get final commit hash:
@@ -222,7 +222,7 @@ Ready for next task: /ariadna:quick
 - [ ] User provides task description
 - [ ] Slug generated (lowercase, hyphens, max 40 chars)
 - [ ] Next number calculated (001, 002, 003...)
-- [ ] Directory created at `.planning/quick/NNN-slug/`
+- [ ] Directory created at `.ariadna_planning/quick/NNN-slug/`
 - [ ] `${next_num}-PLAN.md` created by planner
 - [ ] `${next_num}-SUMMARY.md` created by executor
 - [ ] STATE.md updated with quick task row

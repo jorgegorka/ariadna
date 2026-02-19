@@ -13,7 +13,7 @@ Find current phase directory from most recently modified files:
 
 ```bash
 # Find most recent phase directory with work
-ls -lt .planning/phases/*/PLAN.md 2>/dev/null | head -1 | grep -oP 'phases/\K[^/]+'
+ls -lt .ariadna_planning/phases/*/PLAN.md 2>/dev/null | head -1 | grep -oP 'phases/\K[^/]+'
 ```
 
 If no active phase detected, ask user which phase they're pausing work on.
@@ -34,7 +34,7 @@ Ask user for clarifications if needed via conversational questions.
 </step>
 
 <step name="write">
-**Write handoff to `.planning/phases/XX-name/.continue-here.md`:**
+**Write handoff to `.ariadna_planning/phases/XX-name/.continue-here.md`:**
 
 ```markdown
 ---
@@ -92,13 +92,13 @@ timestamp=$(ariadna-tools current-timestamp full --raw)
 
 <step name="commit">
 ```bash
-ariadna-tools commit "wip: [phase-name] paused at task [X]/[Y]" --files .planning/phases/*/.continue-here.md
+ariadna-tools commit "wip: [phase-name] paused at task [X]/[Y]" --files .ariadna_planning/phases/*/.continue-here.md
 ```
 </step>
 
 <step name="confirm">
 ```
-✓ Handoff created: .planning/phases/[XX-name]/.continue-here.md
+✓ Handoff created: .ariadna_planning/phases/[XX-name]/.continue-here.md
 
 Current state:
 

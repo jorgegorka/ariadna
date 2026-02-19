@@ -21,7 +21,7 @@ module Ariadna
       }.freeze
 
       def self.load_config(cwd = Dir.pwd)
-        config_path = File.join(cwd, ".planning", "config.json")
+        config_path = File.join(cwd, ".ariadna_planning", "config.json")
         return DEFAULTS.dup unless File.exist?(config_path)
 
         raw = File.read(config_path)
@@ -77,8 +77,8 @@ module Ariadna
 
       def self.ensure_section(argv, raw: false)
         cwd = Dir.pwd
-        config_path = File.join(cwd, ".planning", "config.json")
-        planning_dir = File.join(cwd, ".planning")
+        config_path = File.join(cwd, ".ariadna_planning", "config.json")
+        planning_dir = File.join(cwd, ".ariadna_planning")
 
         FileUtils.mkdir_p(planning_dir) unless File.directory?(planning_dir)
 
@@ -105,7 +105,7 @@ module Ariadna
         }
 
         File.write(config_path, JSON.pretty_generate(defaults))
-        Output.json({ created: true, path: ".planning/config.json" }, raw: raw, raw_value: "created")
+        Output.json({ created: true, path: ".ariadna_planning/config.json" }, raw: raw, raw_value: "created")
       end
 
       def self.set(argv, raw: false)
@@ -114,7 +114,7 @@ module Ariadna
         Output.error("Usage: config-set <key.path> <value>") unless key_path
 
         cwd = Dir.pwd
-        config_path = File.join(cwd, ".planning", "config.json")
+        config_path = File.join(cwd, ".ariadna_planning", "config.json")
 
         config = {}
         if File.exist?(config_path)

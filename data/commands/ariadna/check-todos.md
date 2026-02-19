@@ -21,8 +21,8 @@ Routes to the check-todos workflow which handles:
 </objective>
 
 <execution_context>
-@.planning/STATE.md
-@.planning/ROADMAP.md
+@.ariadna_planning/STATE.md
+@.ariadna_planning/ROADMAP.md
 @~/.claude/ariadna/workflows/check-todos.md
 </execution_context>
 

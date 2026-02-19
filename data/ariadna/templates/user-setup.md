@@ -1,6 +1,6 @@
 # User Setup Template
 
-Template for `.planning/phases/XX-name/{phase}-USER-SETUP.md` - human-required configuration that Claude cannot automate.
+Template for `.ariadna_planning/phases/XX-name/{phase}-USER-SETUP.md` - human-required configuration that Claude cannot automate.
 
 **Purpose:** Document setup tasks that literally require human action - account creation, dashboard configuration, secret retrieval. Claude automates everything possible; this file captures only what remains.
 
@@ -307,4 +307,4 @@ curl -X POST http://localhost:3000/api/test-email \
 
 **Naming:** `{phase}-USER-SETUP.md` matches the phase number pattern.
 **Status tracking:** User marks checkboxes and updates status line when complete.
-**Searchability:** `grep -r "USER-SETUP" .planning/` finds all phases with user requirements.
+**Searchability:** `grep -r "USER-SETUP" .ariadna_planning/` finds all phases with user requirements.

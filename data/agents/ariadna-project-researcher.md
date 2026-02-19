@@ -1,6 +1,6 @@
 ---
 name: ariadna-project-researcher
-description: Researches domain ecosystem before roadmap creation. Produces files in .planning/research/ consumed during roadmap creation. Spawned by /ariadna:new-project or /ariadna:new-milestone orchestrators.
+description: Researches domain ecosystem before roadmap creation. Produces files in .ariadna_planning/research/ consumed during roadmap creation. Spawned by /ariadna:new-project or /ariadna:new-milestone orchestrators.
 tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch, mcp__context7__*
 color: cyan
 ---
@@ -8,7 +8,7 @@ color: cyan
 <role>
 You are an Ariadna project researcher spawned by `/ariadna:new-project` or `/ariadna:new-milestone` (Phase 6: Research).
 
-Answer "What does this domain ecosystem look like?" Write research files in `.planning/research/` that inform roadmap creation.
+Answer "What does this domain ecosystem look like?" Write research files in `.ariadna_planning/research/` that inform roadmap creation.
 
 Your files feed the roadmap:
 
@@ -167,7 +167,7 @@ Never present LOW confidence findings as authoritative.
 
 <output_formats>
 
-All files → `.planning/research/`
+All files → `.ariadna_planning/research/`
 
 ## SUMMARY.md
 
@@ -515,7 +515,7 @@ Run pre-submission checklist (see verification_protocol).
 
 ## Step 5: Write Output Files
 
-In `.planning/research/`:
+In `.ariadna_planning/research/`:
 1. **SUMMARY.md** — Always
 2. **STACK.md** — Always
 3. **FEATURES.md** — Always
@@ -549,11 +549,11 @@ In `.planning/research/`:
 
 | File | Purpose |
 |------|---------|
-| .planning/research/SUMMARY.md | Executive summary with roadmap implications |
-| .planning/research/STACK.md | Technology recommendations |
-| .planning/research/FEATURES.md | Feature landscape |
-| .planning/research/ARCHITECTURE.md | Architecture patterns |
-| .planning/research/PITFALLS.md | Domain pitfalls |
+| .ariadna_planning/research/SUMMARY.md | Executive summary with roadmap implications |
+| .ariadna_planning/research/STACK.md | Technology recommendations |
+| .ariadna_planning/research/FEATURES.md | Feature landscape |
+| .ariadna_planning/research/ARCHITECTURE.md | Architecture patterns |
+| .ariadna_planning/research/PITFALLS.md | Domain pitfalls |
 
 ### Confidence Assessment
 
@@ -608,7 +608,7 @@ Research is complete when:
 - [ ] Domain pitfalls catalogued
 - [ ] Source hierarchy followed (Context7 → Official → WebSearch)
 - [ ] All findings have confidence levels
-- [ ] Output files created in `.planning/research/`
+- [ ] Output files created in `.ariadna_planning/research/`
 - [ ] SUMMARY.md includes roadmap implications
 - [ ] Files written (DO NOT commit — orchestrator handles this)
 - [ ] Structured return provided to orchestrator

@@ -60,7 +60,7 @@ module Ariadna
         Output.error("phase identifier required") unless phase
 
         cwd = Dir.pwd
-        phases_dir = File.join(cwd, ".planning", "phases")
+        phases_dir = File.join(cwd, ".ariadna_planning", "phases")
         normalized = normalize_phase_name(phase)
         not_found = { found: false, directory: nil, phase_number: nil, phase_name: nil, plans: [], summaries: [] }
 
@@ -88,7 +88,7 @@ module Ariadna
 
         result = {
           found: true,
-          directory: File.join(".planning", "phases", match),
+          directory: File.join(".ariadna_planning", "phases", match),
           phase_number: phase_number,
           phase_name: phase_name,
           plans: plans,
@@ -104,7 +104,7 @@ module Ariadna
         Output.error("phase required") unless phase
 
         cwd = Dir.pwd
-        phases_dir = File.join(cwd, ".planning", "phases")
+        phases_dir = File.join(cwd, ".ariadna_planning", "phases")
         normalized = normalize_phase_name(phase)
 
         unless File.directory?(phases_dir)
@@ -154,7 +154,7 @@ module Ariadna
 
       def self.list(options, raw: false)
         cwd = Dir.pwd
-        phases_dir = File.join(cwd, ".planning", "phases")
+        phases_dir = File.join(cwd, ".ariadna_planning", "phases")
 
         unless File.directory?(phases_dir)
           key = options[:type] ? :files : :directories
@@ -192,7 +192,7 @@ module Ariadna
       def self.next_decimal(base_phase, raw: false)
         Output.error("base phase required") unless base_phase
         cwd = Dir.pwd
-        phases_dir = File.join(cwd, ".planning", "phases")
+        phases_dir = File.join(cwd, ".ariadna_planning", "phases")
         normalized = normalize_phase_name(base_phase)
 
         unless File.directory?(phases_dir)
@@ -222,8 +222,8 @@ module Ariadna
       def self.add(description, raw: false)
         Output.error("description required") unless description && !description.empty?
         cwd = Dir.pwd
-        phases_dir = File.join(cwd, ".planning", "phases")
-        roadmap_path = File.join(cwd, ".planning", "ROADMAP.md")
+        phases_dir = File.join(cwd, ".ariadna_planning", "phases")
+        roadmap_path = File.join(cwd, ".ariadna_planning", "ROADMAP.md")
 
         existing = if File.directory?(phases_dir)
                      Dir.children(phases_dir)
@@ -252,7 +252,7 @@ module Ariadna
       def self.insert(after, description, raw: false)
         Output.error("after phase and description required") unless after && description && !description.empty?
         cwd = Dir.pwd
-        phases_dir = File.join(cwd, ".planning", "phases")
+        phases_dir = File.join(cwd, ".ariadna_planning", "phases")
         normalized = normalize_phase_name(after)
 
         # Calculate next decimal
@@ -277,7 +277,7 @@ module Ariadna
       def self.remove(phase, force: false, raw: false)
         Output.error("phase required") unless phase
         cwd = Dir.pwd
-        phases_dir = File.join(cwd, ".planning", "phases")
+        phases_dir = File.join(cwd, ".ariadna_planning", "phases")
         normalized = normalize_phase_name(phase)
 
         unless File.directory?(phases_dir)
@@ -308,7 +308,7 @@ module Ariadna
       def self.complete(phase, raw: false)
         Output.error("phase required") unless phase
         cwd = Dir.pwd
-        roadmap_path = File.join(cwd, ".planning", "ROADMAP.md")
+        roadmap_path = File.join(cwd, ".ariadna_planning", "ROADMAP.md")
         normalized = normalize_phase_name(phase)
 
         # Mark in ROADMAP.md
@@ -327,7 +327,7 @@ module Ariadna
         cwd = Dir.pwd
 
         # Create milestone archive
-        archive_dir = File.join(cwd, ".planning", "milestones")
+        archive_dir = File.join(cwd, ".ariadna_planning", "milestones")
         FileUtils.mkdir_p(archive_dir)
 
         milestone_name = name || "v#{version}"

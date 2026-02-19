@@ -38,7 +38,7 @@ One command takes you from idea to ready-for-planning:
 - Requirements definition with v1/v2/out-of-scope scoping
 - Roadmap creation with phase breakdown and success criteria
 
-Creates all `.planning/` artifacts:
+Creates all `.ariadna_planning/` artifacts:
 - `PROJECT.md` — vision and requirements
 - `config.json` — workflow mode (interactive/yolo)
 - `research/` — domain research (if selected)
@@ -52,7 +52,7 @@ Usage: `/ariadna:new-project`
 Map an existing codebase for brownfield projects.
 
 - Analyzes codebase with parallel Explore agents
-- Creates `.planning/codebase/` with 7 focused documents
+- Creates `.ariadna_planning/codebase/` with 7 focused documents
 - Covers stack, architecture, structure, conventions, testing, integrations, concerns
 - Use before `/ariadna:new-project` on existing codebases
 
@@ -91,13 +91,13 @@ Usage: `/ariadna:list-phase-assumptions 3`
 **`/ariadna:plan-phase <number>`**
 Create detailed execution plan for a specific phase.
 
-- Generates `.planning/phases/XX-phase-name/XX-YY-PLAN.md`
+- Generates `.ariadna_planning/phases/XX-phase-name/XX-YY-PLAN.md`
 - Breaks phase into concrete, actionable tasks
 - Includes verification criteria and success measures
 - Multiple plans per phase supported (XX-01, XX-02, etc.)
 
 Usage: `/ariadna:plan-phase 1`
-Result: Creates `.planning/phases/01-foundation/01-01-PLAN.md`
+Result: Creates `.ariadna_planning/phases/01-foundation/01-01-PLAN.md`
 
 ### Execution
 
@@ -118,13 +118,13 @@ Execute small, ad-hoc tasks with Ariadna guarantees but skip optional agents.
 
 Quick mode uses the same system with a shorter path:
 - Spawns planner + executor (skips researcher, checker, verifier)
-- Quick tasks live in `.planning/quick/` separate from planned phases
+- Quick tasks live in `.ariadna_planning/quick/` separate from planned phases
 - Updates STATE.md tracking (not ROADMAP.md)
 
 Use when you know exactly what to do and the task is small enough to not need research or verification.
 
 Usage: `/ariadna:quick`
-Result: Creates `.planning/quick/NNN-slug/PLAN.md`, `.planning/quick/NNN-slug/SUMMARY.md`
+Result: Creates `.ariadna_planning/quick/NNN-slug/PLAN.md`, `.ariadna_planning/quick/NNN-slug/SUMMARY.md`
 
 ### Roadmap Management
 
@@ -222,10 +222,10 @@ Usage: `/ariadna:pause-work`
 Systematic debugging with persistent state across context resets.
 
 - Gathers symptoms through adaptive questioning
-- Creates `.planning/debug/[slug].md` to track investigation
+- Creates `.ariadna_planning/debug/[slug].md` to track investigation
 - Investigates using scientific method (evidence → hypothesis → test)
 - Survives `/clear` — run `/ariadna:debug` with no args to resume
-- Archives resolved issues to `.planning/debug/resolved/`
+- Archives resolved issues to `.ariadna_planning/debug/resolved/`
 
 Usage: `/ariadna:debug "login button doesn't work"`
 Usage: `/ariadna:debug` (resume active session)
@@ -236,7 +236,7 @@ Usage: `/ariadna:debug` (resume active session)
 Capture idea or task as todo from current conversation.
 
 - Extracts context from conversation (or uses provided description)
-- Creates structured todo file in `.planning/todos/pending/`
+- Creates structured todo file in `.ariadna_planning/todos/pending/`
 - Infers area from file paths for grouping
 - Checks for duplicates before creating
 - Updates STATE.md todo count
@@ -297,7 +297,7 @@ Configure workflow toggles and model profile interactively.
 
 - Toggle researcher, plan checker, verifier agents
 - Select model profile (quality/balanced/budget)
-- Updates `.planning/config.json`
+- Updates `.ariadna_planning/config.json`
 
 Usage: `/ariadna:settings`
 
@@ -337,7 +337,7 @@ Usage: `/ariadna:join-discord`
 ## Files & Structure
 
 ```
-.planning/
+.ariadna_planning/
 ├── PROJECT.md            # Project vision
 ├── ROADMAP.md            # Current phase breakdown
 ├── STATE.md              # Project memory & context
@@ -380,24 +380,24 @@ Set during `/ariadna:new-project`:
 - Executes plans without confirmation
 - Only stops for critical checkpoints
 
-Change anytime by editing `.planning/config.json`
+Change anytime by editing `.ariadna_planning/config.json`
 
 ## Planning Configuration
 
-Configure how planning artifacts are managed in `.planning/config.json`:
+Configure how planning artifacts are managed in `.ariadna_planning/config.json`:
 
 **`planning.commit_docs`** (default: `true`)
 - `true`: Planning artifacts committed to git (standard workflow)
 - `false`: Planning artifacts kept local-only, not committed
 
 When `commit_docs: false`:
-- Add `.planning/` to your `.gitignore`
+- Add `.ariadna_planning/` to your `.gitignore`
 - Useful for OSS contributions, client projects, or keeping planning private
 - All planning files still work normally, just not tracked in git
 
 **`planning.search_gitignored`** (default: `false`)
 - `true`: Add `--no-ignore` to broad ripgrep searches
-- Only needed when `.planning/` is gitignored and you want project-wide searches to include it
+- Only needed when `.ariadna_planning/` is gitignored and you want project-wide searches to include it
 
 Example config:
 ```json
@@ -463,8 +463,8 @@ Example config:
 
 ## Getting Help
 
-- Read `.planning/PROJECT.md` for project vision
-- Read `.planning/STATE.md` for current context
-- Check `.planning/ROADMAP.md` for phase status
+- Read `.ariadna_planning/PROJECT.md` for project vision
+- Read `.ariadna_planning/STATE.md` for current context
+- Check `.ariadna_planning/ROADMAP.md` for phase status
 - Run `/ariadna:progress` to check where you're up to
 </reference>

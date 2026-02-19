@@ -1,6 +1,6 @@
 # External Integrations Template
 
-Template for `.planning/codebase/INTEGRATIONS.md` - captures external service dependencies.
+Template for `.ariadna_planning/codebase/INTEGRATIONS.md` - captures external service dependencies.
 
 **Purpose:** Document what external systems this codebase communicates with. Focused on "what lives outside our code that we depend on."
 

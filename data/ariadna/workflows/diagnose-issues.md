@@ -7,9 +7,9 @@ Orchestrator stays lean: parse gaps, spawn agents, collect results, update UAT.
 </purpose>
 
 <paths>
-DEBUG_DIR=.planning/debug
+DEBUG_DIR=.ariadna_planning/debug
 
-Debug files use the `.planning/debug/` path (hidden directory with leading dot).
+Debug files use the `.ariadna_planning/debug/` path (hidden directory with leading dot).
 </paths>
 
 <core_principle>
@@ -151,14 +151,14 @@ For each gap in the Gaps section, add artifacts and missing fields:
   missing:
     - "Add after_commit callback to invalidate comment cache"
     - "Broadcast cache update via Turbo Stream"
-  debug_session: .planning/debug/comment-not-refreshing.md
+  debug_session: .ariadna_planning/debug/comment-not-refreshing.md
 ```
 
 Update status in frontmatter to "diagnosed".
 
 Commit the updated UAT.md:
 ```bash
-ariadna-tools commit "docs({phase}): add root causes from diagnosis" --files ".planning/phases/XX-name/{phase}-UAT.md"
+ariadna-tools commit "docs({phase}): add root causes from diagnosis" --files ".ariadna_planning/phases/XX-name/{phase}-UAT.md"
 ```
 </step>
 

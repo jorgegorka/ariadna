@@ -34,7 +34,7 @@ Parse JSON for: `planner_model`, `checker_model`, `commit_docs`, `phase_found`, 
 **First: Check for active UAT sessions**
 
 ```bash
-find .planning/phases -name "*-UAT.md" -type f 2>/dev/null | head -5
+find .ariadna_planning/phases -name "*-UAT.md" -type f 2>/dev/null | head -5
 ```
 
 **If active sessions exist AND no $ARGUMENTS provided:**
@@ -164,7 +164,7 @@ skipped: 0
 [none yet]
 ```
 
-Write to `.planning/phases/XX-name/{phase}-UAT.md`
+Write to `.ariadna_planning/phases/XX-name/{phase}-UAT.md`
 
 Proceed to `present_test`.
 </step>
@@ -292,7 +292,7 @@ Clear Current Test section:
 
 Commit the UAT file:
 ```bash
-ariadna-tools commit "test({phase}): complete UAT - {passed} passed, {issues} issues" --files ".planning/phases/XX-name/{phase}-UAT.md"
+ariadna-tools commit "test({phase}): complete UAT - {passed} passed, {issues} issues" --files ".ariadna_planning/phases/XX-name/{phase}-UAT.md"
 ```
 
 Present summary:
@@ -366,13 +366,13 @@ Task(
 **Mode:** gap_closure
 
 **UAT with diagnoses:**
-@.planning/phases/{phase_dir}/{phase}-UAT.md
+@.ariadna_planning/phases/{phase_dir}/{phase}-UAT.md
 
 **Project State:**
-@.planning/STATE.md
+@.ariadna_planning/STATE.md
 
 **Roadmap:**
-@.planning/ROADMAP.md
+@.ariadna_planning/ROADMAP.md
 
 </planning_context>
 
@@ -417,7 +417,7 @@ Task(
 **Phase Goal:** Close diagnosed gaps from UAT
 
 **Plans to verify:**
-@.planning/phases/{phase_dir}/*-PLAN.md
+@.ariadna_planning/phases/{phase_dir}/*-PLAN.md
 
 </verification_context>
 
@@ -456,7 +456,7 @@ Task(
 **Mode:** revision
 
 **Existing plans:**
-@.planning/phases/{phase_dir}/*-PLAN.md
+@.ariadna_planning/phases/{phase_dir}/*-PLAN.md
 
 **Checker issues:**
 {structured_issues_from_checker}

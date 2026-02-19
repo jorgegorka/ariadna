@@ -4,7 +4,7 @@ require "ariadna/tools/verification"
 class VerificationTest < Minitest::Test
   def setup
     @dir = Dir.mktmpdir
-    @planning_dir = File.join(@dir, ".planning")
+    @planning_dir = File.join(@dir, ".ariadna_planning")
     @phases_dir = File.join(@planning_dir, "phases")
     FileUtils.mkdir_p(@phases_dir)
   end
@@ -28,7 +28,7 @@ class VerificationTest < Minitest::Test
     File.write(File.join(@planning_dir, "test-SUMMARY.md"), summary)
 
     Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Verification.verify_summary([".planning/test-SUMMARY.md"]) }
+      result = capture_json { Ariadna::Tools::Verification.verify_summary([".ariadna_planning/test-SUMMARY.md"]) }
       assert result[:passed]
       assert result[:checks][:summary_exists]
     end
@@ -36,7 +36,7 @@ class VerificationTest < Minitest::Test
 
   def test_verify_summary_fails_for_missing_file
     Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Verification.verify_summary([".planning/missing-SUMMARY.md"]) }
+      result = capture_json { Ariadna::Tools::Verification.verify_summary([".ariadna_planning/missing-SUMMARY.md"]) }
       refute result[:passed]
       refute result[:checks][:summary_exists]
     end
@@ -47,7 +47,7 @@ class VerificationTest < Minitest::Test
     File.write(File.join(@planning_dir, "bad-SUMMARY.md"), summary)
 
     Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Verification.verify_summary([".planning/bad-SUMMARY.md"]) }
+      result = capture_json { Ariadna::Tools::Verification.verify_summary([".ariadna_planning/bad-SUMMARY.md"]) }
       refute result[:passed]
       assert_equal "failed", result[:checks][:self_check]
     end

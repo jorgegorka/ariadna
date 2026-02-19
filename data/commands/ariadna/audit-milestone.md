@@ -24,16 +24,16 @@ Verify milestone achieved its definition of done. Check requirements coverage, c
 Version: $ARGUMENTS (optional — defaults to current milestone)
 
 **Original Intent:**
-@.planning/PROJECT.md
-@.planning/REQUIREMENTS.md
+@.ariadna_planning/PROJECT.md
+@.ariadna_planning/REQUIREMENTS.md
 
 **Planned Work:**
-@.planning/ROADMAP.md
-@.planning/config.json (if exists)
+@.ariadna_planning/ROADMAP.md
+@.ariadna_planning/config.json (if exists)
 
 **Completed Work:**
-Glob: .planning/phases/*/*-SUMMARY.md
-Glob: .planning/phases/*/*-VERIFICATION.md
+Glob: .ariadna_planning/phases/*/*-SUMMARY.md
+Glob: .ariadna_planning/phases/*/*-VERIFICATION.md
 </context>
 
 <process>

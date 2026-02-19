@@ -29,8 +29,8 @@ Phase: $ARGUMENTS (optional)
 - If provided: Test specific phase (e.g., "4")
 - If not provided: Check for active sessions or prompt for phase
 
-@.planning/STATE.md
-@.planning/ROADMAP.md
+@.ariadna_planning/STATE.md
+@.ariadna_planning/ROADMAP.md
 </context>
 
 <process>

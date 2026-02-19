@@ -1,6 +1,6 @@
 # Verification Report Template
 
-Template for `.planning/phases/XX-name/{phase}-VERIFICATION.md` — phase goal verification results.
+Template for `.ariadna_planning/phases/XX-name/{phase}-VERIFICATION.md` — phase goal verification results.
 
 ---
 

@@ -19,7 +19,7 @@ Routes to the pause-work workflow which handles:
 </objective>
 
 <execution_context>
-@.planning/STATE.md
+@.ariadna_planning/STATE.md
 @~/.claude/ariadna/workflows/pause-work.md
 </execution_context>
 

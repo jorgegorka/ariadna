@@ -2,7 +2,7 @@
 
 ## Context
 
-The templates in `data/ariadna/templates/codebase/` are used by Ariadna's codebase mapping agents to generate `.planning/codebase/` documents when analyzing a Rails project. Currently, all templates except `architecture.md` are generic/framework-agnostic with JavaScript/TypeScript examples (Next.js, Vitest, npm, etc.). Since Ariadna is targeting Ruby on Rails applications, these templates should use Rails-specific terminology, examples, tools, and patterns.
+The templates in `data/ariadna/templates/codebase/` are used by Ariadna's codebase mapping agents to generate `.ariadna_planning/codebase/` documents when analyzing a Rails project. Currently, all templates except `architecture.md` are generic/framework-agnostic with JavaScript/TypeScript examples (Next.js, Vitest, npm, etc.). Since Ariadna is targeting Ruby on Rails applications, these templates should use Rails-specific terminology, examples, tools, and patterns.
 
 `architecture.md` has already been updated and serves as the reference for style and approach.
 

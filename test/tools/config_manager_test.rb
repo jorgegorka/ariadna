@@ -4,7 +4,7 @@ require "ariadna/tools/config_manager"
 class ConfigManagerTest < Minitest::Test
   def setup
     @dir = Dir.mktmpdir
-    @planning_dir = File.join(@dir, ".planning")
+    @planning_dir = File.join(@dir, ".ariadna_planning")
     FileUtils.mkdir_p(@planning_dir)
   end
 

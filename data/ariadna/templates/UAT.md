@@ -1,6 +1,6 @@
 # UAT Template
 
-Template for `.planning/phases/XX-name/{phase}-UAT.md` — persistent UAT session tracking.
+Template for `.ariadna_planning/phases/XX-name/{phase}-UAT.md` — persistent UAT session tracking.
 
 ---
 
@@ -129,7 +129,7 @@ skipped: [N]
       issue: "after_commit not invalidating counter cache"
   missing:
     - "Add counter cache invalidation to after_commit callback"
-  debug_session: ".planning/debug/comment-not-refreshing.md"
+  debug_session: ".ariadna_planning/debug/comment-not-refreshing.md"
 ```
 
 </diagnosis_lifecycle>
@@ -242,6 +242,6 @@ skipped: 0
       issue: "after_commit not invalidating counter cache"
   missing:
     - "Add counter cache invalidation to after_commit callback"
-  debug_session: ".planning/debug/comment-not-refreshing.md"
+  debug_session: ".ariadna_planning/debug/comment-not-refreshing.md"
 ```
 </good_example>

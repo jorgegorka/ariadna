@@ -71,7 +71,7 @@ Keep Accumulated Context section from previous milestone.
 Delete MILESTONE-CONTEXT.md if exists (consumed).
 
 ```bash
-ariadna-tools commit "docs: start milestone v[X.Y] [Name]" --files .planning/PROJECT.md .planning/STATE.md
+ariadna-tools commit "docs: start milestone v[X.Y] [Name]" --files .ariadna_planning/PROJECT.md .ariadna_planning/STATE.md
 ```
 
 ## 7. Load Context and Resolve Models
@@ -110,7 +110,7 @@ ariadna-tools config-set workflow.research false
 ```
 
 ```bash
-mkdir -p .planning/research
+mkdir -p .ariadna_planning/research
 ```
 
 Spawn 4 parallel ariadna-project-researcher agents. Each uses this template with dimension-specific fields:
@@ -135,7 +135,7 @@ Focus ONLY on what's needed for the NEW features.
 <quality_gate>{GATES}</quality_gate>
 
 <output>
-Write to: .planning/research/{FILE}
+Write to: .ariadna_planning/research/{FILE}
 Use template: ~/.claude/ariadna/templates/research-project/{FILE}
 </output>
 ", subagent_type="ariadna-project-researcher", model="{researcher_model}", description="{DIMENSION} research")
@@ -157,9 +157,9 @@ After all 4 complete, spawn synthesizer:
 Task(prompt="
 Synthesize research outputs into SUMMARY.md.
 
-Read: .planning/research/STACK.md, FEATURES.md, ARCHITECTURE.md, PITFALLS.md
+Read: .ariadna_planning/research/STACK.md, FEATURES.md, ARCHITECTURE.md, PITFALLS.md
 
-Write to: .planning/research/SUMMARY.md
+Write to: .ariadna_planning/research/SUMMARY.md
 Use template: ~/.claude/ariadna/templates/research-project/SUMMARY.md
 Commit after writing.
 ", subagent_type="ariadna-research-synthesizer", model="{synthesizer_model}", description="Synthesize research")
@@ -246,7 +246,7 @@ If "adjust": Return to scoping.
 
 **Commit requirements:**
 ```bash
-ariadna-tools commit "docs: define milestone v[X.Y] requirements" --files .planning/REQUIREMENTS.md
+ariadna-tools commit "docs: define milestone v[X.Y] requirements" --files .ariadna_planning/REQUIREMENTS.md
 ```
 
 ## 10. Create Roadmap
@@ -264,11 +264,11 @@ ariadna-tools commit "docs: define milestone v[X.Y] requirements" --files .plann
 ```
 Task(prompt="
 <planning_context>
-@.planning/PROJECT.md
-@.planning/REQUIREMENTS.md
-@.planning/research/SUMMARY.md (if exists)
-@.planning/config.json
-@.planning/MILESTONES.md
+@.ariadna_planning/PROJECT.md
+@.ariadna_planning/REQUIREMENTS.md
+@.ariadna_planning/research/SUMMARY.md (if exists)
+@.ariadna_planning/config.json
+@.ariadna_planning/MILESTONES.md
 </planning_context>
 
 <instructions>
@@ -321,7 +321,7 @@ Success criteria:
 
 **Commit roadmap** (after approval):
 ```bash
-ariadna-tools commit "docs: create milestone v[X.Y] roadmap ([N] phases)" --files .planning/ROADMAP.md .planning/STATE.md .planning/REQUIREMENTS.md
+ariadna-tools commit "docs: create milestone v[X.Y] roadmap ([N] phases)" --files .ariadna_planning/ROADMAP.md .ariadna_planning/STATE.md .ariadna_planning/REQUIREMENTS.md
 ```
 
 ## 11. Done
@@ -335,10 +335,10 @@ ariadna-tools commit "docs: create milestone v[X.Y] roadmap ([N] phases)" --file
 
 | Artifact       | Location                    |
 |----------------|-----------------------------|
-| Project        | `.planning/PROJECT.md`      |
-| Research       | `.planning/research/`       |
-| Requirements   | `.planning/REQUIREMENTS.md` |
-| Roadmap        | `.planning/ROADMAP.md`      |
+| Project        | `.ariadna_planning/PROJECT.md`      |
+| Research       | `.ariadna_planning/research/`       |
+| Requirements   | `.ariadna_planning/REQUIREMENTS.md` |
+| Roadmap        | `.ariadna_planning/ROADMAP.md`      |
 
 **[N] phases** | **[X] requirements** | Ready to build ✓
 

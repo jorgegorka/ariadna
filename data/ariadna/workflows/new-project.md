@@ -133,7 +133,7 @@ Loop until "Create PROJECT.md" selected.
 
 **If auto mode:** Synthesize from provided document. No "Ready?" gate was shown — proceed directly to commit.
 
-Synthesize all context into `.planning/PROJECT.md` using the template from `templates/project.md`.
+Synthesize all context into `.ariadna_planning/PROJECT.md` using the template from `templates/project.md`.
 
 **For greenfield projects:**
 
@@ -164,7 +164,7 @@ All Active requirements are hypotheses until shipped and validated.
 
 Infer Validated requirements from existing code:
 
-1. Read `.planning/codebase/ARCHITECTURE.md` and `STACK.md`
+1. Read `.ariadna_planning/codebase/ARCHITECTURE.md` and `STACK.md`
 2. Identify what the codebase already does
 3. These become the initial Validated set
 
@@ -211,15 +211,15 @@ Do not compress. Capture everything gathered.
 **Commit PROJECT.md:**
 
 ```bash
-mkdir -p .planning
-ariadna-tools commit "docs: initialize project" --files .planning/PROJECT.md
+mkdir -p .ariadna_planning
+ariadna-tools commit "docs: initialize project" --files .ariadna_planning/PROJECT.md
 ```
 
 ## 5. Workflow Configuration
 
 **Use opinionated defaults. Only ask if user wants to customize.**
 
-Apply these defaults directly to `.planning/config.json`:
+Apply these defaults directly to `.ariadna_planning/config.json`:
 
 ```json
 {
@@ -253,12 +253,12 @@ questions: [
 ]
 ```
 
-Create `.planning/config.json` with the defaults above, applying the user's depth selection.
+Create `.ariadna_planning/config.json` with the defaults above, applying the user's depth selection.
 
 **Commit config.json:**
 
 ```bash
-ariadna-tools commit "chore: add project config" --files .planning/config.json
+ariadna-tools commit "chore: add project config" --files .ariadna_planning/config.json
 ```
 
 **Note:** Run `/ariadna:settings` anytime to update these preferences (research, model profile, parallelization, etc.).
@@ -293,7 +293,7 @@ Researching [domain] ecosystem...
 
 Create research directory:
 ```bash
-mkdir -p .planning/research
+mkdir -p .ariadna_planning/research
 ```
 
 **Determine milestone context:**
@@ -349,7 +349,7 @@ Your STACK.md feeds into roadmap creation. Be prescriptive:
 </quality_gate>
 
 <output>
-Write to: .planning/research/STACK.md
+Write to: .ariadna_planning/research/STACK.md
 Use template: ~/.claude/ariadna/templates/research-project/STACK.md
 </output>
 ", subagent_type="general-purpose", model="{researcher_model}", description="Stack research")
@@ -389,7 +389,7 @@ Your FEATURES.md feeds into requirements definition. Categorize clearly:
 </quality_gate>
 
 <output>
-Write to: .planning/research/FEATURES.md
+Write to: .ariadna_planning/research/FEATURES.md
 Use template: ~/.claude/ariadna/templates/research-project/FEATURES.md
 </output>
 ", subagent_type="general-purpose", model="{researcher_model}", description="Features research")
@@ -429,7 +429,7 @@ Your ARCHITECTURE.md informs phase structure in roadmap. Include:
 </quality_gate>
 
 <output>
-Write to: .planning/research/ARCHITECTURE.md
+Write to: .ariadna_planning/research/ARCHITECTURE.md
 Use template: ~/.claude/ariadna/templates/research-project/ARCHITECTURE.md
 </output>
 ", subagent_type="general-purpose", model="{researcher_model}", description="Architecture research")
@@ -469,7 +469,7 @@ Your PITFALLS.md prevents mistakes in roadmap/planning. For each pitfall:
 </quality_gate>
 
 <output>
-Write to: .planning/research/PITFALLS.md
+Write to: .ariadna_planning/research/PITFALLS.md
 Use template: ~/.claude/ariadna/templates/research-project/PITFALLS.md
 </output>
 ", subagent_type="general-purpose", model="{researcher_model}", description="Pitfalls research")
@@ -485,14 +485,14 @@ Synthesize research outputs into SUMMARY.md.
 
 <research_files>
 Read these files:
-- .planning/research/STACK.md
-- .planning/research/FEATURES.md
-- .planning/research/ARCHITECTURE.md
-- .planning/research/PITFALLS.md
+- .ariadna_planning/research/STACK.md
+- .ariadna_planning/research/FEATURES.md
+- .ariadna_planning/research/ARCHITECTURE.md
+- .ariadna_planning/research/PITFALLS.md
 </research_files>
 
 <output>
-Write to: .planning/research/SUMMARY.md
+Write to: .ariadna_planning/research/SUMMARY.md
 Use template: ~/.claude/ariadna/templates/research-project/SUMMARY.md
 Commit after writing.
 </output>
@@ -511,7 +511,7 @@ Display research complete banner and key findings:
 **Table Stakes:** [from SUMMARY.md]
 **Watch Out For:** [from SUMMARY.md]
 
-Files: `.planning/research/`
+Files: `.ariadna_planning/research/`
 ```
 
 **If research not requested:** Continue to Step 7.
@@ -610,7 +610,7 @@ Cross-check requirements against Core Value from PROJECT.md. If gaps detected, s
 
 **Generate REQUIREMENTS.md:**
 
-Create `.planning/REQUIREMENTS.md` with:
+Create `.ariadna_planning/REQUIREMENTS.md` with:
 - v1 Requirements grouped by category (checkboxes, REQ-IDs)
 - v2 Requirements (deferred)
 - Out of Scope (explicit exclusions with reasoning)
@@ -658,7 +658,7 @@ If "adjust": Return to scoping.
 **Commit requirements:**
 
 ```bash
-ariadna-tools commit "docs: define v1 requirements" --files .planning/REQUIREMENTS.md
+ariadna-tools commit "docs: define v1 requirements" --files .ariadna_planning/REQUIREMENTS.md
 ```
 
 ## 8. Create Roadmap
@@ -679,19 +679,19 @@ Task(prompt="
 <planning_context>
 
 **Project:**
-@.planning/PROJECT.md
+@.ariadna_planning/PROJECT.md
 
 **Requirements:**
-@.planning/REQUIREMENTS.md
+@.ariadna_planning/REQUIREMENTS.md
 
 **Research (if exists):**
-@.planning/research/SUMMARY.md
+@.ariadna_planning/research/SUMMARY.md
 
 **Rails Conventions (pre-loaded domain knowledge):**
 @~/.claude/ariadna/references/rails-conventions.md
 
 **Config:**
-@.planning/config.json
+@.ariadna_planning/config.json
 
 </planning_context>
 
@@ -780,7 +780,7 @@ Use AskUserQuestion:
   User feedback on roadmap:
   [user's notes]
 
-  Current ROADMAP.md: @.planning/ROADMAP.md
+  Current ROADMAP.md: @.ariadna_planning/ROADMAP.md
 
   Update the roadmap based on feedback. Edit files in place.
   Return ROADMAP REVISED with changes made.
@@ -790,12 +790,12 @@ Use AskUserQuestion:
 - Present revised roadmap
 - Loop until user approves
 
-**If "Review full file":** Display raw `cat .planning/ROADMAP.md`, then re-ask.
+**If "Review full file":** Display raw `cat .ariadna_planning/ROADMAP.md`, then re-ask.
 
 **Commit roadmap (after approval or auto mode):**
 
 ```bash
-ariadna-tools commit "docs: create roadmap ([N] phases)" --files .planning/ROADMAP.md .planning/STATE.md .planning/REQUIREMENTS.md
+ariadna-tools commit "docs: create roadmap ([N] phases)" --files .ariadna_planning/ROADMAP.md .ariadna_planning/STATE.md .ariadna_planning/REQUIREMENTS.md
 ```
 
 ## 9. Done
@@ -811,11 +811,11 @@ Present completion with next steps:
 
 | Artifact       | Location                    |
 |----------------|-----------------------------|
-| Project        | `.planning/PROJECT.md`      |
-| Config         | `.planning/config.json`     |
-| Research       | `.planning/research/`       |
-| Requirements   | `.planning/REQUIREMENTS.md` |
-| Roadmap        | `.planning/ROADMAP.md`      |
+| Project        | `.ariadna_planning/PROJECT.md`      |
+| Config         | `.ariadna_planning/config.json`     |
+| Research       | `.ariadna_planning/research/`       |
+| Requirements   | `.ariadna_planning/REQUIREMENTS.md` |
+| Roadmap        | `.ariadna_planning/ROADMAP.md`      |
 
 **[N] phases** | **[X] requirements** | Ready to build ✓
 
@@ -842,23 +842,23 @@ Present completion with next steps:
 
 <output>
 
-- `.planning/PROJECT.md`
-- `.planning/config.json`
-- `.planning/research/` (if research selected)
+- `.ariadna_planning/PROJECT.md`
+- `.ariadna_planning/config.json`
+- `.ariadna_planning/research/` (if research selected)
   - `STACK.md`
   - `FEATURES.md`
   - `ARCHITECTURE.md`
   - `PITFALLS.md`
   - `SUMMARY.md`
-- `.planning/REQUIREMENTS.md`
-- `.planning/ROADMAP.md`
-- `.planning/STATE.md`
+- `.ariadna_planning/REQUIREMENTS.md`
+- `.ariadna_planning/ROADMAP.md`
+- `.ariadna_planning/STATE.md`
 
 </output>
 
 <success_criteria>
 
-- [ ] .planning/ directory created
+- [ ] .ariadna_planning/ directory created
 - [ ] Git repo initialized
 - [ ] Brownfield detection completed
 - [ ] Deep questioning completed (threads followed, not rushed)

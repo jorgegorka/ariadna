@@ -23,7 +23,7 @@ Routes to the add-todo workflow which handles:
 </objective>
 
 <execution_context>
-@.planning/STATE.md
+@.ariadna_planning/STATE.md
 @~/.claude/ariadna/workflows/add-todo.md
 </execution_context>
 

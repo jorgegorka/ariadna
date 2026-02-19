@@ -57,7 +57,7 @@ For each phase, extract what it provides and what it should consume.
 
 ```bash
 # Key modules and classes from each phase
-for summary in .planning/phases/*/*-SUMMARY.md; do
+for summary in .ariadna_planning/phases/*/*-SUMMARY.md; do
   echo "=== $summary ==="
   grep -A 10 "Key Files\|Exports\|Provides" "$summary" 2>/dev/null
 done

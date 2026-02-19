@@ -32,10 +32,10 @@ Extract implementation decisions that downstream agents need — researcher and 
 Phase number: $ARGUMENTS (required)
 
 **Load project state:**
-@.planning/STATE.md
+@.ariadna_planning/STATE.md
 
 **Load roadmap:**
-@.planning/ROADMAP.md
+@.ariadna_planning/ROADMAP.md
 </context>
 
 <process>

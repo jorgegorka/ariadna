@@ -1,6 +1,6 @@
 # Architecture Research Template
 
-Template for `.planning/research/ARCHITECTURE.md` — Rails application architecture discovery for the project.
+Template for `.ariadna_planning/research/ARCHITECTURE.md` — Rails application architecture discovery for the project.
 
 <template>
 

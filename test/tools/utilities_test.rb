@@ -17,8 +17,8 @@ class UtilitiesTest < Minitest::Test
 
   def test_todo_file_operations
     Dir.mktmpdir do |dir|
-      pending_dir = File.join(dir, ".planning", "todos", "pending")
-      completed_dir = File.join(dir, ".planning", "todos", "completed")
+      pending_dir = File.join(dir, ".ariadna_planning", "todos", "pending")
+      completed_dir = File.join(dir, ".ariadna_planning", "todos", "completed")
       FileUtils.mkdir_p(pending_dir)
 
       File.write(File.join(pending_dir, "todo-01.md"), "---\ntitle: Fix bug\narea: backend\ncreated: 2025-01-01\n---\n")

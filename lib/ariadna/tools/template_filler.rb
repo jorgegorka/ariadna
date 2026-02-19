@@ -135,7 +135,7 @@ module Ariadna
             "- **Why:** [Why it matters for the phase goal]",
             "- **Output:** [Concrete deliverable]", "",
             "## Context",
-            "@.planning/PROJECT.md", "@.planning/ROADMAP.md", "@.planning/STATE.md", "",
+            "@.ariadna_planning/PROJECT.md", "@.ariadna_planning/ROADMAP.md", "@.ariadna_planning/STATE.md", "",
             "## Tasks", "",
             "<task type=\"code\">",
             "  <name>[Task name]</name>",
@@ -227,11 +227,11 @@ module Ariadna
           Output.error("phase and name required for phase-dir scaffold") unless phase && name
           slug = generate_slug(name)
           dir_name = "#{padded}-#{slug}"
-          phases_parent = File.join(cwd, ".planning", "phases")
+          phases_parent = File.join(cwd, ".ariadna_planning", "phases")
           FileUtils.mkdir_p(phases_parent)
           dir_path = File.join(phases_parent, dir_name)
           FileUtils.mkdir_p(dir_path)
-          Output.json({ created: true, directory: ".planning/phases/#{dir_name}", path: dir_path }, raw: raw, raw_value: dir_path)
+          Output.json({ created: true, directory: ".ariadna_planning/phases/#{dir_name}", path: dir_path }, raw: raw, raw_value: dir_path)
           return
         else
           Output.error("Unknown scaffold type: #{type}. Available: context, uat, verification, phase-dir")
@@ -250,7 +250,7 @@ module Ariadna
       # --- Private helpers ---
 
       def self.find_phase_internal(cwd, phase)
-        phases_dir = File.join(cwd, ".planning", "phases")
+        phases_dir = File.join(cwd, ".ariadna_planning", "phases")
         normalized = normalize_phase(phase)
 
         return nil unless File.directory?(phases_dir)
@@ -264,7 +264,7 @@ module Ariadna
         phase_name = dir_match && !dir_match[2].empty? ? dir_match[2] : nil
         phase_slug = phase_name ? phase_name.downcase.gsub(/[^a-z0-9]+/, "-").gsub(/\A-+|-+\z/, "") : nil
 
-        { directory: File.join(".planning", "phases", match), phase_number: phase_number, phase_name: phase_name, phase_slug: phase_slug }
+        { directory: File.join(".ariadna_planning", "phases", match), phase_number: phase_number, phase_name: phase_name, phase_slug: phase_slug }
       rescue StandardError
         nil
       end

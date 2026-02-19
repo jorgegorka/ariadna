@@ -2,9 +2,9 @@
 
 **Read these files NOW:**
 
-1. `.planning/STATE.md`
-2. `.planning/PROJECT.md`
-3. `.planning/ROADMAP.md`
+1. `.ariadna_planning/STATE.md`
+2. `.ariadna_planning/PROJECT.md`
+3. `.ariadna_planning/ROADMAP.md`
 4. Current phase's plan files (`*-PLAN.md`)
 5. Current phase's summary files (`*-SUMMARY.md`)
 
@@ -25,8 +25,8 @@ Mark current phase complete and advance to next. This is the natural point where
 Before transition, read project state:
 
 ```bash
-cat .planning/STATE.md 2>/dev/null
-cat .planning/PROJECT.md 2>/dev/null
+cat .ariadna_planning/STATE.md 2>/dev/null
+cat .ariadna_planning/PROJECT.md 2>/dev/null
 ```
 
 Parse current position to verify we're transitioning the right phase.
@@ -39,8 +39,8 @@ Note accumulated context that may need updating after transition.
 Check current phase has all plan summaries:
 
 ```bash
-ls .planning/phases/XX-current/*-PLAN.md 2>/dev/null | sort
-ls .planning/phases/XX-current/*-SUMMARY.md 2>/dev/null | sort
+ls .ariadna_planning/phases/XX-current/*-PLAN.md 2>/dev/null | sort
+ls .ariadna_planning/phases/XX-current/*-SUMMARY.md 2>/dev/null | sort
 ```
 
 **Verification logic:**
@@ -53,7 +53,7 @@ ls .planning/phases/XX-current/*-SUMMARY.md 2>/dev/null | sort
 <config-check>
 
 ```bash
-cat .planning/config.json 2>/dev/null
+cat .ariadna_planning/config.json 2>/dev/null
 ```
 
 </config-check>
@@ -111,7 +111,7 @@ Wait for user decision.
 Check for lingering handoffs:
 
 ```bash
-ls .planning/phases/XX-current/.continue-here*.md 2>/dev/null
+ls .ariadna_planning/phases/XX-current/.continue-here*.md 2>/dev/null
 ```
 
 If found, delete them — phase is complete, handoffs are stale.
@@ -151,7 +151,7 @@ Evolve PROJECT.md to reflect learnings from completed phase.
 **Read phase summaries:**
 
 ```bash
-cat .planning/phases/XX-current/*-SUMMARY.md
+cat .ariadna_planning/phases/XX-current/*-SUMMARY.md
 ```
 
 **Assess requirement changes:**
@@ -259,7 +259,7 @@ Update Project Reference section in STATE.md.
 ```markdown
 ## Project Reference
 
-See: .planning/PROJECT.md (updated [today])
+See: .ariadna_planning/PROJECT.md (updated [today])
 
 **Core value:** [Current core value from PROJECT.md]
 **Current focus:** [Next phase name]

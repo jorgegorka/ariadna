@@ -1,6 +1,6 @@
 # Pitfalls Research Template
 
-Template for `.planning/research/PITFALLS.md` — common mistakes to avoid in Ruby on Rails applications.
+Template for `.ariadna_planning/research/PITFALLS.md` — common mistakes to avoid in Ruby on Rails applications.
 
 <template>
 

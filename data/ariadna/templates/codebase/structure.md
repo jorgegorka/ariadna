@@ -1,6 +1,6 @@
 # Structure Template
 
-Template for `.planning/codebase/STRUCTURE.md` - captures physical file organization.
+Template for `.ariadna_planning/codebase/STRUCTURE.md` - captures physical file organization.
 
 **Purpose:** Document where things physically live in the codebase. Answers "where do I put X?"
 

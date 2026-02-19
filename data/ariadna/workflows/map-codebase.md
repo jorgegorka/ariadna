@@ -1,9 +1,9 @@
 <purpose>
-Orchestrate parallel codebase mapper agents to analyze codebase and produce structured documents in .planning/codebase/
+Orchestrate parallel codebase mapper agents to analyze codebase and produce structured documents in .ariadna_planning/codebase/
 
 Each agent has fresh context, explores a specific focus area, and **writes documents directly**. The orchestrator only receives confirmation + line counts, then writes a summary.
 
-Output: .planning/codebase/ folder with 7 structured documents about the codebase state.
+Output: .ariadna_planning/codebase/ folder with 7 structured documents about the codebase state.
 </purpose>
 
 <philosophy>
@@ -33,17 +33,17 @@ Extract from init JSON: `mapper_model`, `commit_docs`, `codebase_dir`, `existing
 </step>
 
 <step name="check_existing">
-Check if .planning/codebase/ already exists using `has_maps` from init context.
+Check if .ariadna_planning/codebase/ already exists using `has_maps` from init context.
 
 If `codebase_dir_exists` is true:
 ```bash
-ls -la .planning/codebase/
+ls -la .ariadna_planning/codebase/
 ```
 
 **If exists:**
 
 ```
-.planning/codebase/ already exists with these documents:
+.ariadna_planning/codebase/ already exists with these documents:
 [List files found]
 
 What's next?
@@ -54,7 +54,7 @@ What's next?
 
 Wait for user response.
 
-If "Refresh": Delete .planning/codebase/, continue to create_structure
+If "Refresh": Delete .ariadna_planning/codebase/, continue to create_structure
 If "Update": Ask which documents to update, continue to spawn_agents (filtered)
 If "Skip": Exit workflow
 
@@ -63,10 +63,10 @@ Continue to create_structure.
 </step>
 
 <step name="create_structure">
-Create .planning/codebase/ directory:
+Create .ariadna_planning/codebase/ directory:
 
 ```bash
-mkdir -p .planning/codebase
+mkdir -p .ariadna_planning/codebase
 ```
 
 **Expected output files:**
@@ -104,7 +104,7 @@ Focus: tech
 
 Analyze this codebase for technology stack and external integrations.
 
-Write these documents to .planning/codebase/:
+Write these documents to .ariadna_planning/codebase/:
 - STACK.md - Languages, runtime, frameworks, dependencies, configuration
 - INTEGRATIONS.md - External APIs, databases, auth providers, webhooks
 
@@ -127,7 +127,7 @@ Focus: arch
 
 Analyze this codebase architecture and directory structure.
 
-Write these documents to .planning/codebase/:
+Write these documents to .ariadna_planning/codebase/:
 - ARCHITECTURE.md - Pattern, layers, data flow, abstractions, entry points
 - STRUCTURE.md - Directory layout, key locations, naming conventions
 
@@ -150,7 +150,7 @@ Focus: quality
 
 Analyze this codebase for coding conventions and testing patterns.
 
-Write these documents to .planning/codebase/:
+Write these documents to .ariadna_planning/codebase/:
 - CONVENTIONS.md - Code style, naming, patterns, error handling
 - TESTING.md - Framework, structure, mocking, coverage
 
@@ -173,7 +173,7 @@ Focus: concerns
 
 Analyze this codebase for technical debt, known issues, and areas of concern.
 
-Write this document to .planning/codebase/:
+Write this document to .ariadna_planning/codebase/:
 - CONCERNS.md - Tech debt, bugs, security, performance, fragile areas
 
 Explore thoroughly. Write document directly using template. Return confirmation only.
@@ -193,8 +193,8 @@ Read each agent's output file to collect confirmations.
 
 **Focus:** {focus}
 **Documents written:**
-- `.planning/codebase/{DOC1}.md` ({N} lines)
-- `.planning/codebase/{DOC2}.md` ({N} lines)
+- `.ariadna_planning/codebase/{DOC1}.md` ({N} lines)
+- `.ariadna_planning/codebase/{DOC2}.md` ({N} lines)
 
 Ready for orchestrator summary.
 ```
@@ -210,8 +210,8 @@ Continue to verify_output.
 Verify all documents created successfully:
 
 ```bash
-ls -la .planning/codebase/
-wc -l .planning/codebase/*.md
+ls -la .ariadna_planning/codebase/
+wc -l .ariadna_planning/codebase/*.md
 ```
 
 **Verification checklist:**
@@ -230,7 +230,7 @@ Run secret pattern detection:
 
 ```bash
 # Check for common API key patterns in generated docs
-grep -E '(sk-[a-zA-Z0-9]{20,}|sk_live_[a-zA-Z0-9]+|sk_test_[a-zA-Z0-9]+|ghp_[a-zA-Z0-9]{36}|gho_[a-zA-Z0-9]{36}|glpat-[a-zA-Z0-9_-]+|AKIA[A-Z0-9]{16}|xox[baprs]-[a-zA-Z0-9-]+|-----BEGIN.*PRIVATE KEY|eyJ[a-zA-Z0-9_-]+\.eyJ[a-zA-Z0-9_-]+\.)' .planning/codebase/*.md 2>/dev/null && SECRETS_FOUND=true || SECRETS_FOUND=false
+grep -E '(sk-[a-zA-Z0-9]{20,}|sk_live_[a-zA-Z0-9]+|sk_test_[a-zA-Z0-9]+|ghp_[a-zA-Z0-9]{36}|gho_[a-zA-Z0-9]{36}|glpat-[a-zA-Z0-9_-]+|AKIA[A-Z0-9]{16}|xox[baprs]-[a-zA-Z0-9-]+|-----BEGIN.*PRIVATE KEY|eyJ[a-zA-Z0-9_-]+\.eyJ[a-zA-Z0-9_-]+\.)' .ariadna_planning/codebase/*.md 2>/dev/null && SECRETS_FOUND=true || SECRETS_FOUND=false
 ```
 
 **If SECRETS_FOUND=true:**
@@ -262,7 +262,7 @@ Continue to commit_codebase_map.
 Commit the codebase map:
 
 ```bash
-ariadna-tools commit "docs: map existing codebase" --files .planning/codebase/*.md
+ariadna-tools commit "docs: map existing codebase" --files .ariadna_planning/codebase/*.md
 ```
 
 Continue to offer_next.
@@ -273,7 +273,7 @@ Present completion summary and next steps.
 
 **Get line counts:**
 ```bash
-wc -l .planning/codebase/*.md
+wc -l .ariadna_planning/codebase/*.md
 ```
 
 **Output format:**
@@ -281,7 +281,7 @@ wc -l .planning/codebase/*.md
 ```
 Codebase mapping complete.
 
-Created .planning/codebase/:
+Created .ariadna_planning/codebase/:
 - STACK.md ([N] lines) - Technologies and dependencies
 - ARCHITECTURE.md ([N] lines) - System design and patterns
 - STRUCTURE.md ([N] lines) - Directory layout and organization
@@ -305,7 +305,7 @@ Created .planning/codebase/:
 
 **Also available:**
 - Re-run mapping: `/ariadna:map-codebase`
-- Review specific file: `cat .planning/codebase/STACK.md`
+- Review specific file: `cat .ariadna_planning/codebase/STACK.md`
 - Edit any document before proceeding
 
 ---
@@ -317,7 +317,7 @@ End workflow.
 </process>
 
 <success_criteria>
-- .planning/codebase/ directory created
+- .ariadna_planning/codebase/ directory created
 - 4 parallel ariadna-codebase-mapper agents spawned with run_in_background=true
 - Agents write documents directly (orchestrator doesn't receive document contents)
 - Read agent output files to collect confirmations

@@ -88,14 +88,14 @@ module Ariadna
           backend_executor_model: resolve_model(cwd, "ariadna-backend-executor"),
           frontend_executor_model: resolve_model(cwd, "ariadna-frontend-executor"),
           test_executor_model: resolve_model(cwd, "ariadna-test-executor"),
-          state_exists: path_exists?(cwd, ".planning/STATE.md"),
-          roadmap_exists: path_exists?(cwd, ".planning/ROADMAP.md"),
-          config_exists: path_exists?(cwd, ".planning/config.json")
+          state_exists: path_exists?(cwd, ".ariadna_planning/STATE.md"),
+          roadmap_exists: path_exists?(cwd, ".ariadna_planning/ROADMAP.md"),
+          config_exists: path_exists?(cwd, ".ariadna_planning/config.json")
         }
 
-        result[:state_content] = safe_read_file(File.join(cwd, ".planning", "STATE.md")) if includes.include?("state")
-        result[:config_content] = safe_read_file(File.join(cwd, ".planning", "config.json")) if includes.include?("config")
-        result[:roadmap_content] = safe_read_file(File.join(cwd, ".planning", "ROADMAP.md")) if includes.include?("roadmap")
+        result[:state_content] = safe_read_file(File.join(cwd, ".ariadna_planning", "STATE.md")) if includes.include?("state")
+        result[:config_content] = safe_read_file(File.join(cwd, ".ariadna_planning", "config.json")) if includes.include?("config")
+        result[:roadmap_content] = safe_read_file(File.join(cwd, ".ariadna_planning", "ROADMAP.md")) if includes.include?("roadmap")
 
         Output.json(result, raw: raw)
       end
@@ -124,13 +124,13 @@ module Ariadna
           has_context: phase_info&.dig(:has_context) || false,
           has_plans: (phase_info&.dig(:plans)&.length || 0) > 0,
           plan_count: phase_info&.dig(:plans)&.length || 0,
-          planning_exists: path_exists?(cwd, ".planning"),
-          roadmap_exists: path_exists?(cwd, ".planning/ROADMAP.md")
+          planning_exists: path_exists?(cwd, ".ariadna_planning"),
+          roadmap_exists: path_exists?(cwd, ".ariadna_planning/ROADMAP.md")
         }
 
-        result[:state_content] = safe_read_file(File.join(cwd, ".planning", "STATE.md")) if includes.include?("state")
-        result[:roadmap_content] = safe_read_file(File.join(cwd, ".planning", "ROADMAP.md")) if includes.include?("roadmap")
-        result[:requirements_content] = safe_read_file(File.join(cwd, ".planning", "REQUIREMENTS.md")) if includes.include?("requirements")
+        result[:state_content] = safe_read_file(File.join(cwd, ".ariadna_planning", "STATE.md")) if includes.include?("state")
+        result[:roadmap_content] = safe_read_file(File.join(cwd, ".ariadna_planning", "ROADMAP.md")) if includes.include?("roadmap")
+        result[:requirements_content] = safe_read_file(File.join(cwd, ".ariadna_planning", "REQUIREMENTS.md")) if includes.include?("requirements")
 
         if includes.include?("context") && phase_info&.dig(:directory)
           phase_dir_full = File.join(cwd, phase_info[:directory])
@@ -181,13 +181,13 @@ module Ariadna
           synthesizer_model: resolve_model(cwd, "ariadna-research-synthesizer"),
           roadmapper_model: resolve_model(cwd, "ariadna-roadmapper"),
           commit_docs: config["commit_docs"],
-          project_exists: path_exists?(cwd, ".planning/PROJECT.md"),
-          has_codebase_map: path_exists?(cwd, ".planning/codebase"),
-          planning_exists: path_exists?(cwd, ".planning"),
+          project_exists: path_exists?(cwd, ".ariadna_planning/PROJECT.md"),
+          has_codebase_map: path_exists?(cwd, ".ariadna_planning/codebase"),
+          planning_exists: path_exists?(cwd, ".ariadna_planning"),
           has_existing_code: has_code,
           has_package_file: has_package_file,
           is_brownfield: has_code || has_package_file,
-          needs_codebase_map: (has_code || has_package_file) && !path_exists?(cwd, ".planning/codebase"),
+          needs_codebase_map: (has_code || has_package_file) && !path_exists?(cwd, ".ariadna_planning/codebase"),
           has_git: path_exists?(cwd, ".git")
         }
 
@@ -207,9 +207,9 @@ module Ariadna
           research_enabled: config["research"],
           current_milestone: milestone[:version],
           current_milestone_name: milestone[:name],
-          project_exists: path_exists?(cwd, ".planning/PROJECT.md"),
-          roadmap_exists: path_exists?(cwd, ".planning/ROADMAP.md"),
-          state_exists: path_exists?(cwd, ".planning/STATE.md")
+          project_exists: path_exists?(cwd, ".ariadna_planning/PROJECT.md"),
+          roadmap_exists: path_exists?(cwd, ".ariadna_planning/ROADMAP.md"),
+          state_exists: path_exists?(cwd, ".ariadna_planning/STATE.md")
         }
 
         Output.json(result, raw: raw)
@@ -221,7 +221,7 @@ module Ariadna
         now = Time.now.utc
         slug = description && !description.empty? ? generate_slug(description)&.slice(0, 40) : nil
 
-        quick_dir = File.join(cwd, ".planning", "quick")
+        quick_dir = File.join(cwd, ".ariadna_planning", "quick")
         next_num = 1
         if File.directory?(quick_dir)
           existing = Dir.children(quick_dir)
@@ -238,10 +238,10 @@ module Ariadna
           description: description && !description.empty? ? description : nil,
           date: now.strftime("%Y-%m-%d"),
           timestamp: now.iso8601,
-          quick_dir: ".planning/quick",
-          task_dir: slug ? ".planning/quick/#{next_num}-#{slug}" : nil,
-          roadmap_exists: path_exists?(cwd, ".planning/ROADMAP.md"),
-          planning_exists: path_exists?(cwd, ".planning")
+          quick_dir: ".ariadna_planning/quick",
+          task_dir: slug ? ".ariadna_planning/quick/#{next_num}-#{slug}" : nil,
+          roadmap_exists: path_exists?(cwd, ".ariadna_planning/ROADMAP.md"),
+          planning_exists: path_exists?(cwd, ".ariadna_planning")
         }
 
         Output.json(result, raw: raw)
@@ -252,14 +252,14 @@ module Ariadna
         config = ConfigManager.load_config(cwd)
 
         interrupted_agent_id = nil
-        agent_file = File.join(cwd, ".planning", "current-agent-id.txt")
+        agent_file = File.join(cwd, ".ariadna_planning", "current-agent-id.txt")
         interrupted_agent_id = File.read(agent_file).strip if File.exist?(agent_file)
 
         result = {
-          state_exists: path_exists?(cwd, ".planning/STATE.md"),
-          roadmap_exists: path_exists?(cwd, ".planning/ROADMAP.md"),
-          project_exists: path_exists?(cwd, ".planning/PROJECT.md"),
-          planning_exists: path_exists?(cwd, ".planning"),
+          state_exists: path_exists?(cwd, ".ariadna_planning/STATE.md"),
+          roadmap_exists: path_exists?(cwd, ".ariadna_planning/ROADMAP.md"),
+          project_exists: path_exists?(cwd, ".ariadna_planning/PROJECT.md"),
+          planning_exists: path_exists?(cwd, ".ariadna_planning"),
           has_interrupted_agent: !interrupted_agent_id.nil?,
           interrupted_agent_id: interrupted_agent_id,
           commit_docs: config["commit_docs"]
@@ -307,8 +307,8 @@ module Ariadna
           has_plans: (phase_info&.dig(:plans)&.length || 0) > 0,
           has_verification: phase_info&.dig(:has_verification) || false,
           plan_count: phase_info&.dig(:plans)&.length || 0,
-          roadmap_exists: path_exists?(cwd, ".planning/ROADMAP.md"),
-          planning_exists: path_exists?(cwd, ".planning")
+          roadmap_exists: path_exists?(cwd, ".ariadna_planning/ROADMAP.md"),
+          planning_exists: path_exists?(cwd, ".ariadna_planning")
         }
 
         Output.json(result, raw: raw)
@@ -319,7 +319,7 @@ module Ariadna
         config = ConfigManager.load_config(cwd)
         now = Time.now.utc
 
-        pending_dir = File.join(cwd, ".planning", "todos", "pending")
+        pending_dir = File.join(cwd, ".ariadna_planning", "todos", "pending")
         count = 0
         todo_list = []
 
@@ -335,7 +335,7 @@ module Ariadna
             count += 1
             todo_list << {
               file: File.basename(file), created: created, title: title, area: todo_area,
-              path: File.join(".planning", "todos", "pending", File.basename(file))
+              path: File.join(".ariadna_planning", "todos", "pending", File.basename(file))
             }
           end
         end
@@ -347,11 +347,11 @@ module Ariadna
           todo_count: count,
           todos: todo_list,
           area_filter: area,
-          pending_dir: ".planning/todos/pending",
-          completed_dir: ".planning/todos/completed",
-          planning_exists: path_exists?(cwd, ".planning"),
-          todos_dir_exists: path_exists?(cwd, ".planning/todos"),
-          pending_dir_exists: path_exists?(cwd, ".planning/todos/pending")
+          pending_dir: ".ariadna_planning/todos/pending",
+          completed_dir: ".ariadna_planning/todos/completed",
+          planning_exists: path_exists?(cwd, ".ariadna_planning"),
+          todos_dir_exists: path_exists?(cwd, ".ariadna_planning/todos"),
+          pending_dir_exists: path_exists?(cwd, ".ariadna_planning/todos/pending")
         }
 
         Output.json(result, raw: raw)
@@ -362,7 +362,7 @@ module Ariadna
         config = ConfigManager.load_config(cwd)
         milestone = get_milestone_info(cwd)
 
-        phases_dir = File.join(cwd, ".planning", "phases")
+        phases_dir = File.join(cwd, ".ariadna_planning", "phases")
         phase_count = 0
         completed_phases = 0
 
@@ -375,7 +375,7 @@ module Ariadna
           end
         end
 
-        archive_dir = File.join(cwd, ".planning", "archive")
+        archive_dir = File.join(cwd, ".ariadna_planning", "archive")
         archived_milestones = []
         if File.directory?(archive_dir)
           archived_milestones = Dir.children(archive_dir).select { |e| File.directory?(File.join(archive_dir, e)) }
@@ -391,11 +391,11 @@ module Ariadna
           all_phases_complete: phase_count > 0 && phase_count == completed_phases,
           archived_milestones: archived_milestones,
           archive_count: archived_milestones.length,
-          project_exists: path_exists?(cwd, ".planning/PROJECT.md"),
-          roadmap_exists: path_exists?(cwd, ".planning/ROADMAP.md"),
-          state_exists: path_exists?(cwd, ".planning/STATE.md"),
-          archive_exists: path_exists?(cwd, ".planning/archive"),
-          phases_dir_exists: path_exists?(cwd, ".planning/phases")
+          project_exists: path_exists?(cwd, ".ariadna_planning/PROJECT.md"),
+          roadmap_exists: path_exists?(cwd, ".ariadna_planning/ROADMAP.md"),
+          state_exists: path_exists?(cwd, ".ariadna_planning/STATE.md"),
+          archive_exists: path_exists?(cwd, ".ariadna_planning/archive"),
+          phases_dir_exists: path_exists?(cwd, ".ariadna_planning/phases")
         }
 
         Output.json(result, raw: raw)
@@ -405,7 +405,7 @@ module Ariadna
         cwd = Dir.pwd
         config = ConfigManager.load_config(cwd)
 
-        codebase_dir = File.join(cwd, ".planning", "codebase")
+        codebase_dir = File.join(cwd, ".ariadna_planning", "codebase")
         existing_maps = []
         existing_maps = Dir.children(codebase_dir).select { |f| f.end_with?(".md") } if File.directory?(codebase_dir)
 
@@ -414,11 +414,11 @@ module Ariadna
           commit_docs: config["commit_docs"],
           search_gitignored: config["search_gitignored"],
           parallelization: config["parallelization"],
-          codebase_dir: ".planning/codebase",
+          codebase_dir: ".ariadna_planning/codebase",
           existing_maps: existing_maps,
           has_maps: existing_maps.any?,
-          planning_exists: path_exists?(cwd, ".planning"),
-          codebase_dir_exists: path_exists?(cwd, ".planning/codebase")
+          planning_exists: path_exists?(cwd, ".ariadna_planning"),
+          codebase_dir_exists: path_exists?(cwd, ".ariadna_planning/codebase")
         }
 
         Output.json(result, raw: raw)
@@ -429,7 +429,7 @@ module Ariadna
         config = ConfigManager.load_config(cwd)
         milestone = get_milestone_info(cwd)
 
-        phases_dir = File.join(cwd, ".planning", "phases")
+        phases_dir = File.join(cwd, ".ariadna_planning", "phases")
         phases = []
         current_phase = nil
         next_phase = nil
@@ -463,7 +463,7 @@ module Ariadna
 
             phase_entry = {
               number: phase_number, name: phase_name,
-              directory: File.join(".planning", "phases", dir),
+              directory: File.join(".ariadna_planning", "phases", dir),
               status: status, plan_count: plans.length,
               summary_count: summaries.length, has_research: has_research
             }
@@ -475,7 +475,7 @@ module Ariadna
         end
 
         paused_at = nil
-        state_path = File.join(cwd, ".planning", "STATE.md")
+        state_path = File.join(cwd, ".ariadna_planning", "STATE.md")
         if File.exist?(state_path)
           state_content = File.read(state_path)
           pause_match = state_content.match(/\*\*Paused At:\*\*\s*(.+)/)
@@ -496,15 +496,15 @@ module Ariadna
           next_phase: next_phase,
           paused_at: paused_at,
           has_work_in_progress: !current_phase.nil?,
-          project_exists: path_exists?(cwd, ".planning/PROJECT.md"),
-          roadmap_exists: path_exists?(cwd, ".planning/ROADMAP.md"),
-          state_exists: path_exists?(cwd, ".planning/STATE.md")
+          project_exists: path_exists?(cwd, ".ariadna_planning/PROJECT.md"),
+          roadmap_exists: path_exists?(cwd, ".ariadna_planning/ROADMAP.md"),
+          state_exists: path_exists?(cwd, ".ariadna_planning/STATE.md")
         }
 
-        result[:state_content] = safe_read_file(File.join(cwd, ".planning", "STATE.md")) if includes.include?("state")
-        result[:roadmap_content] = safe_read_file(File.join(cwd, ".planning", "ROADMAP.md")) if includes.include?("roadmap")
-        result[:project_content] = safe_read_file(File.join(cwd, ".planning", "PROJECT.md")) if includes.include?("project")
-        result[:config_content] = safe_read_file(File.join(cwd, ".planning", "config.json")) if includes.include?("config")
+        result[:state_content] = safe_read_file(File.join(cwd, ".ariadna_planning", "STATE.md")) if includes.include?("state")
+        result[:roadmap_content] = safe_read_file(File.join(cwd, ".ariadna_planning", "ROADMAP.md")) if includes.include?("roadmap")
+        result[:project_content] = safe_read_file(File.join(cwd, ".ariadna_planning", "PROJECT.md")) if includes.include?("project")
+        result[:config_content] = safe_read_file(File.join(cwd, ".ariadna_planning", "config.json")) if includes.include?("config")
 
         Output.json(result, raw: raw)
       end
@@ -514,7 +514,7 @@ module Ariadna
       def self.find_phase_internal(cwd, phase)
         return nil unless phase
 
-        phases_dir = File.join(cwd, ".planning", "phases")
+        phases_dir = File.join(cwd, ".ariadna_planning", "phases")
         normalized = normalize_phase(phase)
 
         return nil unless File.directory?(phases_dir)
@@ -544,7 +544,7 @@ module Ariadna
         end
 
         {
-          directory: File.join(".planning", "phases", match),
+          directory: File.join(".ariadna_planning", "phases", match),
           phase_number: phase_number,
           phase_name: phase_name,
           phase_slug: phase_slug,
@@ -560,7 +560,7 @@ module Ariadna
       end
 
       def self.get_milestone_info(cwd)
-        roadmap = File.read(File.join(cwd, ".planning", "ROADMAP.md"))
+        roadmap = File.read(File.join(cwd, ".ariadna_planning", "ROADMAP.md"))
         version_match = roadmap.match(/v(\d+\.\d+)/)
         name_match = roadmap.match(/## .*v\d+\.\d+[:\s]+([^\n(]+)/)
         {

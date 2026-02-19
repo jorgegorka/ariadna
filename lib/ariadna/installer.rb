@@ -7,9 +7,10 @@ module Ariadna
     MANIFEST_NAME = "ariadna-manifest.json"
     PATCHES_DIR = "ariadna-local-patches"
 
-    def initialize(target_dir: nil, local: false)
+    def initialize(target_dir: nil, local: false, force_statusline: false)
       @local = local
       @target_dir = target_dir || default_target_dir
+      @force_statusline = force_statusline
     end
 
     def install
@@ -23,6 +24,7 @@ module Ariadna
       copy_guides
       copy_content
       write_version
+      install_statusline
       write_manifest
 
       report_local_patches
@@ -135,6 +137,7 @@ module Ariadna
           keys << rel
         end
       end
+      keys << "ariadna-statusline.sh"
       keys
     end
 
@@ -152,6 +155,28 @@ module Ariadna
           # not empty, skip
         end
       end
+    end
+
+    # --- Statusline ---
+
+    def install_statusline
+      src = File.join(source_dir, "statusline", "ariadna-statusline.sh")
+      dest = File.join(@target_dir, "ariadna-statusline.sh")
+
+      FileUtils.cp(src, dest)
+      FileUtils.chmod(0o755, dest)
+
+      settings_path = File.join(@target_dir, "settings.json")
+      settings = File.exist?(settings_path) ? JSON.parse(File.read(settings_path)) : {}
+
+      if settings.key?("statusLine") && !@force_statusline
+        puts "  i  Existing statusLine config found \u2014 skipping (use --force-statusline to replace)"
+        return
+      end
+
+      settings["statusLine"] = { "type" => "command", "command" => dest }
+      File.write(settings_path, JSON.pretty_generate(settings))
+      puts "  \u2713 Installed statusline"
     end
 
     # --- Copy operations ---
@@ -226,6 +251,10 @@ module Ariadna
           entries[rel] = Digest::SHA256.file(file).hexdigest
         end
       end
+
+      statusline_path = File.join(@target_dir, "ariadna-statusline.sh")
+      entries["ariadna-statusline.sh"] = Digest::SHA256.file(statusline_path).hexdigest if File.exist?(statusline_path)
+
       entries
     end
 

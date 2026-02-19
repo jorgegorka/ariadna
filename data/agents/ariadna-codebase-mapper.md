@@ -6,7 +6,7 @@ color: cyan
 ---
 
 <role>
-You are an Ariadna codebase mapper. You explore a codebase for a specific focus area and write analysis documents directly to `.planning/codebase/`.
+You are an Ariadna codebase mapper. You explore a codebase for a specific focus area and write analysis documents directly to `.ariadna_planning/codebase/`.
 
 You are spawned by `/ariadna:map-codebase` with one of four focus areas:
 - **tech**: Analyze technology stack and external integrations → write STACK.md and INTEGRATIONS.md
@@ -135,7 +135,7 @@ Read key files identified during exploration. Use Glob and Grep liberally.
 </step>
 
 <step name="write_documents">
-Write document(s) to `.planning/codebase/` using the templates below.
+Write document(s) to `.ariadna_planning/codebase/` using the templates below.
 
 **Document naming:** UPPERCASE.md (e.g., STACK.md, ARCHITECTURE.md)
 
@@ -157,8 +157,8 @@ Format:
 
 **Focus:** {focus}
 **Documents written:**
-- `.planning/codebase/{DOC1}.md` ({N} lines)
-- `.planning/codebase/{DOC2}.md` ({N} lines)
+- `.ariadna_planning/codebase/{DOC1}.md` ({N} lines)
+- `.ariadna_planning/codebase/{DOC2}.md` ({N} lines)
 
 Ready for orchestrator summary.
 ```
@@ -754,7 +754,7 @@ Ready for orchestrator summary.
 <success_criteria>
 - [ ] Focus area parsed correctly
 - [ ] Codebase explored thoroughly for focus area
-- [ ] All documents for focus area written to `.planning/codebase/`
+- [ ] All documents for focus area written to `.ariadna_planning/codebase/`
 - [ ] Documents follow template structure
 - [ ] File paths included throughout documents
 - [ ] Confirmation returned (not document contents)

@@ -2,7 +2,7 @@
 Use this workflow when:
 - Starting a new session on an existing project
 - User says "continue", "what's next", "where were we", "resume"
-- Any planning operation when .planning/ already exists
+- Any planning operation when .ariadna_planning/ already exists
 - User returns after time away from project
 </trigger>
 
@@ -35,8 +35,8 @@ Parse JSON for: `state_exists`, `roadmap_exists`, `project_exists`, `planning_ex
 Read and parse STATE.md, then PROJECT.md:
 
 ```bash
-cat .planning/STATE.md
-cat .planning/PROJECT.md
+cat .ariadna_planning/STATE.md
+cat .ariadna_planning/PROJECT.md
 ```
 
 **From STATE.md extract:**
@@ -63,10 +63,10 @@ Look for incomplete work that needs attention:
 
 ```bash
 # Check for continue-here files (mid-plan resumption)
-ls .planning/phases/*/.continue-here*.md 2>/dev/null
+ls .ariadna_planning/phases/*/.continue-here*.md 2>/dev/null
 
 # Check for plans without summaries (incomplete execution)
-for plan in .planning/phases/*/*-PLAN.md; do
+for plan in .ariadna_planning/phases/*/*-PLAN.md; do
   summary="${plan/PLAN/SUMMARY}"
   [ ! -f "$summary" ] && echo "Incomplete: $plan"
 done 2>/dev/null
@@ -196,7 +196,7 @@ What would you like to do?
 **Note:** When offering phase planning, check for CONTEXT.md existence first:
 
 ```bash
-ls .planning/phases/XX-name/*-CONTEXT.md 2>/dev/null
+ls .ariadna_planning/phases/XX-name/*-CONTEXT.md 2>/dev/null
 ```
 
 If missing, suggest discuss-phase before plan. If exists, offer plan directly.
@@ -242,7 +242,7 @@ Based on user selection, route to appropriate workflow:
   ---
   ```
 - **Transition** → ./transition.md
-- **Check todos** → Read .planning/todos/pending/, present summary
+- **Check todos** → Read .ariadna_planning/todos/pending/, present summary
 - **Review alignment** → Read PROJECT.md, compare to current state
 - **Something else** → Ask what they need
 </step>
@@ -273,7 +273,7 @@ If STATE.md is missing but other artifacts exist:
 1. Read PROJECT.md → Extract "What This Is" and Core Value
 2. Read ROADMAP.md → Determine phases, find current position
 3. Scan \*-SUMMARY.md files → Extract decisions, concerns
-4. Count pending todos in .planning/todos/pending/
+4. Count pending todos in .ariadna_planning/todos/pending/
 5. Check for .continue-here files → Session continuity
 
 Reconstruct and write STATE.md, then proceed normally.
@@ -282,7 +282,7 @@ This handles cases where:
 
 - Project predates STATE.md introduction
 - File was accidentally deleted
-- Cloning repo without full .planning/ state
+- Cloning repo without full .ariadna_planning/ state
   </reconstruction>
 
 <quick_resume>

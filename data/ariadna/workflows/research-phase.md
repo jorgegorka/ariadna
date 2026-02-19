@@ -26,7 +26,7 @@ If `found` is false: Error and exit.
 ## Step 2: Check Existing Research
 
 ```bash
-ls .planning/phases/${PHASE}-*/RESEARCH.md 2>/dev/null
+ls .ariadna_planning/phases/${PHASE}-*/RESEARCH.md 2>/dev/null
 ```
 
 If exists: Offer update/view/skip options.
@@ -36,8 +36,8 @@ If exists: Offer update/view/skip options.
 ```bash
 # Phase section from roadmap (already loaded in PHASE_INFO)
 echo "$PHASE_INFO" | jq -r '.section'
-cat .planning/REQUIREMENTS.md 2>/dev/null
-cat .planning/phases/${PHASE}-*/*-CONTEXT.md 2>/dev/null
+cat .ariadna_planning/REQUIREMENTS.md 2>/dev/null
+cat .ariadna_planning/phases/${PHASE}-*/*-CONTEXT.md 2>/dev/null
 # Decisions from state-snapshot (structured JSON)
 ariadna-tools state-snapshot | jq '.decisions'
 ```
@@ -58,7 +58,7 @@ Phase context: {context_md}
 </context>
 
 <output>
-Write to: .planning/phases/${PHASE}-{slug}/${PHASE}-RESEARCH.md
+Write to: .ariadna_planning/phases/${PHASE}-{slug}/${PHASE}-RESEARCH.md
 </output>",
   subagent_type="ariadna-phase-researcher",
   model="{researcher_model}"

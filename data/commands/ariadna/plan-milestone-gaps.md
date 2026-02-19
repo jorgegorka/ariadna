@@ -23,15 +23,15 @@ One command creates all fix phases — no manual `/ariadna:add-phase` per gap.
 
 <context>
 **Audit results:**
-Glob: .planning/v*-MILESTONE-AUDIT.md (use most recent)
+Glob: .ariadna_planning/v*-MILESTONE-AUDIT.md (use most recent)
 
 **Original intent (for prioritization):**
-@.planning/PROJECT.md
-@.planning/REQUIREMENTS.md
+@.ariadna_planning/PROJECT.md
+@.ariadna_planning/REQUIREMENTS.md
 
 **Current state:**
-@.planning/ROADMAP.md
-@.planning/STATE.md
+@.ariadna_planning/ROADMAP.md
+@.ariadna_planning/STATE.md
 </context>
 
 <process>

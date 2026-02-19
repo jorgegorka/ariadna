@@ -15,11 +15,11 @@ Start a new milestone: questioning → research (optional) → requirements → 
 Brownfield equivalent of new-project. Project exists, PROJECT.md has history. Gathers "what's next", updates PROJECT.md, then runs requirements → roadmap cycle.
 
 **Creates/Updates:**
-- `.planning/PROJECT.md` — updated with new milestone goals
-- `.planning/research/` — domain research (optional, NEW features only)
-- `.planning/REQUIREMENTS.md` — scoped requirements for this milestone
-- `.planning/ROADMAP.md` — phase structure (continues numbering)
-- `.planning/STATE.md` — reset for new milestone
+- `.ariadna_planning/PROJECT.md` — updated with new milestone goals
+- `.ariadna_planning/research/` — domain research (optional, NEW features only)
+- `.ariadna_planning/REQUIREMENTS.md` — scoped requirements for this milestone
+- `.ariadna_planning/ROADMAP.md` — phase structure (continues numbering)
+- `.ariadna_planning/STATE.md` — reset for new milestone
 
 **After:** `/ariadna:plan-phase [N]` to start execution.
 </objective>
@@ -36,13 +36,13 @@ Brownfield equivalent of new-project. Project exists, PROJECT.md has history. Ga
 Milestone name: $ARGUMENTS (optional - will prompt if not provided)
 
 **Load project context:**
-@.planning/PROJECT.md
-@.planning/STATE.md
-@.planning/MILESTONES.md
-@.planning/config.json
+@.ariadna_planning/PROJECT.md
+@.ariadna_planning/STATE.md
+@.ariadna_planning/MILESTONES.md
+@.ariadna_planning/config.json
 
 **Load milestone context (if exists, from /ariadna:discuss-milestone):**
-@.planning/MILESTONE-CONTEXT.md
+@.ariadna_planning/MILESTONE-CONTEXT.md
 </context>
 
 <process>

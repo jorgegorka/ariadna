@@ -4,7 +4,7 @@ require "ariadna/tools/template_filler"
 class TemplateFillerTest < Minitest::Test
   def setup
     @dir = Dir.mktmpdir
-    @planning_dir = File.join(@dir, ".planning")
+    @planning_dir = File.join(@dir, ".ariadna_planning")
     @phases_dir = File.join(@planning_dir, "phases")
     @phase_dir = File.join(@phases_dir, "01-setup")
     FileUtils.mkdir_p(@phase_dir)
@@ -123,7 +123,7 @@ class TemplateFillerTest < Minitest::Test
       result = capture_json { Ariadna::Tools::TemplateFiller.scaffold(["phase-dir", "--phase", "3", "--name", "Deploy"]) }
       assert result[:created]
       assert_includes result[:directory], "03-deploy"
-      assert File.directory?(File.join(@dir, ".planning", "phases", "03-deploy"))
+      assert File.directory?(File.join(@dir, ".ariadna_planning", "phases", "03-deploy"))
     end
   end
 

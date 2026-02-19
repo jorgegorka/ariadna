@@ -4,20 +4,20 @@ Commit planning artifacts using the ariadna-tools CLI, which automatically check
 
 ## Commit via CLI
 
-Always use `ariadna-tools commit` for `.planning/` files — it handles `commit_docs` and gitignore checks automatically:
+Always use `ariadna-tools commit` for `.ariadna_planning/` files — it handles `commit_docs` and gitignore checks automatically:
 
 ```bash
-ariadna-tools commit "docs({scope}): {description}" --files .planning/STATE.md .planning/ROADMAP.md
+ariadna-tools commit "docs({scope}): {description}" --files .ariadna_planning/STATE.md .ariadna_planning/ROADMAP.md
 ```
 
-The CLI will return `skipped` (with reason) if `commit_docs` is `false` or `.planning/` is gitignored. No manual conditional checks needed.
+The CLI will return `skipped` (with reason) if `commit_docs` is `false` or `.ariadna_planning/` is gitignored. No manual conditional checks needed.
 
 ## Amend previous commit
 
-To fold `.planning/` file changes into the previous commit:
+To fold `.ariadna_planning/` file changes into the previous commit:
 
 ```bash
-ariadna-tools commit "" --files .planning/codebase/*.md --amend
+ariadna-tools commit "" --files .ariadna_planning/codebase/*.md --amend
 ```
 
 ## Commit Message Patterns
@@ -34,5 +34,5 @@ ariadna-tools commit "" --files .planning/codebase/*.md --amend
 ## When to Skip
 
 - `commit_docs: false` in config
-- `.planning/` is gitignored
-- No changes to commit (check with `git status --porcelain .planning/`)
+- `.ariadna_planning/` is gitignored
+- No changes to commit (check with `git status --porcelain .ariadna_planning/`)

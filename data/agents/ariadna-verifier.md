@@ -55,7 +55,7 @@ Set `is_re_verification = false`, proceed with Step 1.
 ls "$PHASE_DIR"/*-PLAN.md 2>/dev/null
 ls "$PHASE_DIR"/*-SUMMARY.md 2>/dev/null
 ariadna-tools roadmap get-phase "$PHASE_NUM"
-grep -E "^| $PHASE_NUM" .planning/REQUIREMENTS.md 2>/dev/null
+grep -E "^| $PHASE_NUM" .ariadna_planning/REQUIREMENTS.md 2>/dev/null
 ```
 
 Extract phase goal from ROADMAP.md — this is the outcome to verify, not the tasks.
@@ -231,7 +231,7 @@ Status: WIRED (associations + migration) | PARTIAL (model exists, no migration o
 If REQUIREMENTS.md has requirements mapped to this phase:
 
 ```bash
-grep -E "Phase $PHASE_NUM" .planning/REQUIREMENTS.md 2>/dev/null
+grep -E "Phase $PHASE_NUM" .ariadna_planning/REQUIREMENTS.md 2>/dev/null
 ```
 
 For each requirement: parse description → identify supporting truths/artifacts → determine status.
@@ -454,7 +454,7 @@ gaps:
 
 ## Create VERIFICATION.md
 
-Create `.planning/phases/{phase_dir}/{phase}-VERIFICATION.md`:
+Create `.ariadna_planning/phases/{phase_dir}/{phase}-VERIFICATION.md`:
 
 ```markdown
 ---
@@ -576,7 +576,7 @@ Return with:
 
 **Status:** {passed | gaps_found | human_needed}
 **Score:** {N}/{M} must-haves verified
-**Report:** .planning/phases/{phase_dir}/{phase}-VERIFICATION.md
+**Report:** .ariadna_planning/phases/{phase_dir}/{phase}-VERIFICATION.md
 
 {If passed:}
 All must-haves verified. Phase goal achieved. Ready to proceed.

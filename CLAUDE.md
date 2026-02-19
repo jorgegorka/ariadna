@@ -62,11 +62,11 @@ Content installed into user's `.claude/` directory:
 
 Each module follows the pattern: `Ariadna::Tools::ModuleName` with a `dispatch(args, raw:)` method handling subcommands. Key modules:
 
-- **`StateManager`** — Load/update `.planning/STATE.md`, history digest, metrics, decisions, blockers
+- **`StateManager`** — Load/update `.ariadna_planning/STATE.md`, history digest, metrics, decisions, blockers
 - **`PhaseManager`** — Phase directory operations, plan listing, milestone operations
 - **`RoadmapAnalyzer`** — Parse `ROADMAP.md`, extract phase info, track progress
 - **`Init`** — Workflow initialization; single call loads all context via `--include` flag, returns JSON
-- **`ConfigManager`** — `.planning/config.json` management
+- **`ConfigManager`** — `.ariadna_planning/config.json` management
 - **`Installer`** — Manifest-based installation with SHA256 integrity, local patch backup on upgrade
 
 ### Typical Runtime Flow (inside a Claude Code session)
@@ -76,7 +76,7 @@ Each module follows the pattern: `Ariadna::Tools::ModuleName` with a `dispatch(a
 3. Workflow calls `ariadna-tools init <workflow> <args>` to load context as JSON
 4. Orchestrator spawns specialized agents (planner, executor, verifier) via Claude's Task tool
 5. Agents execute, commit atomically, create summaries
-6. State updated in `.planning/STATE.md`
+6. State updated in `.ariadna_planning/STATE.md`
 
 ### Model Profiles
 
