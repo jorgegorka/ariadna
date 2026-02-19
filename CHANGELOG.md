@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-02-19
+
+### Added
+
+- Team execution auto-detection: `team_execution: "auto"` config activates team mode for phases with 3+ plans across 2+ domains
+- `--no-team` flag for `execute-phase` to force wave-based execution
+- `--skip-approval` flag for `plan-phase` to bypass user approval gate
+- User plan approval gate in `plan-phase` workflow with requirements cross-referencing
+- User acceptance gate in `execute-phase` after verification (reviewable before marking phase complete)
+- Requirements traceability in summaries and plan execution (REQUIREMENTS.md cross-referencing)
+- Progress reporting table during team execution
+- Domain analysis in plan index (domain, dependencies, file ownership, task count)
+- Comprehensive frontend guide: Turbo (Drive, Frames, Streams), Stimulus controllers, view templates & partials
+
+### Changed
+
+- Execute-phase workflow refactored: `decide_execution_mode` step replaces simple flag check
+- Executor agents skip STATE.md updates in team mode; orchestrator aggregates state sequentially to prevent concurrent write corruption
+- Plan-phase context categorization: Category A (infrastructure) auto-skips context, Category B recommends quick discussion first
+- Plan index returns enriched data per plan (domain, depends_on, files_modified, autonomous, objective, task_count)
+- Init outputs team execution config and domain-specific executor models
+- Summary template includes `requirements_covered` frontmatter and markdown section
+
 ## [1.2.0] - 2026-02-17
 
 ### Added
@@ -91,6 +114,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Wave-based plan execution with parallelism support
 - Guides for backend, frontend, and testing workflows
 
+[1.2.1]: https://github.com/jorgegorka/ariadna/releases/tag/v1.2.1
 [1.2.0]: https://github.com/jorgegorka/ariadna/releases/tag/v1.2.0
 [1.1.4]: https://github.com/jorgegorka/ariadna/releases/tag/v1.1.4
 [1.1.3]: https://github.com/jorgegorka/ariadna/releases/tag/v1.1.3
