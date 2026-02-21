@@ -4,9 +4,9 @@ Gem::Specification.new do |s|
   s.name        = "ariadna"
   s.version     = Ariadna::VERSION
   s.summary     = "A meta-prompting and context engineering system for Claude Code"
-  s.description = "Ariadna ports the GSD (Get Shit Done) system to Ruby, providing structured " \
-                  "planning, multi-agent orchestration, and verification workflows via Claude Code " \
-                  "slash commands."
+  s.description = "Ariadna helps you to create ruby on rails applications (or new features in existing ones)" \
+                  "providing structured planning, multi-agent orchestration, and verification workflows " \
+                  "via Claude Code slash commands."
   s.authors     = ["Jorge Alvarez"]
   s.email       = "jorge@alvareznavarro.es"
   s.homepage    = "https://github.com/jorgegorka/ariadna"

@@ -17,6 +17,23 @@ Use the user's language and framing. Update whenever reality drifts from this de
 [The ONE thing that matters most. If everything else fails, this must work.
 One sentence that drives prioritization when tradeoffs arise.]
 
+## Who This Serves
+
+[Who uses this and what they care about. Not formal personas — just enough
+that downstream planning knows whose problem each feature solves.
+
+Examples:
+- **Solo creator** — Wants to publish without fighting tools. Cares about speed, not features.
+- **Small team lead** — Needs visibility into what everyone's doing. Frustrated by status meetings.
+
+If it's just you, say so: "Me — I want X because Y."]
+
+## Product Vision
+
+- **Success means:** [The outcome that justifies the effort — "teams stop using spreadsheets", "I can charge $X/month", "my workflow drops from 2 hours to 10 minutes"]
+- **Bigger picture:** [Is this standalone? Part of a platform? An experiment? A business?]
+- **Not optimizing for:** [What you're deliberately NOT chasing — growth, scale, polish, monetization, etc.]
+
 ## Requirements
 
 ### Validated
@@ -83,6 +100,20 @@ Common types: Tech stack, Timeline, Budget, Dependencies, Compatibility, Perform
 - Drives prioritization when tradeoffs arise
 - Rarely changes; if it does, it's a significant pivot
 
+**Who This Serves:**
+- Informal user descriptions, not enterprise personas
+- Focus on what they care about and what frustrates them
+- "Me" is a valid answer if building for yourself
+- Drives feature prioritization: which user does this feature serve?
+- Updated when you learn more about actual users
+
+**Product Vision:**
+- The "why build this" beyond individual features
+- Success means: measurable or observable outcome that justifies the work
+- Bigger picture: product direction, not a detailed roadmap
+- Not optimizing for: explicit de-priorities that prevent scope creep
+- Rarely changes; if it does, revisit roadmap structure
+
 **Requirements — Validated:**
 - Requirements that shipped and proved valuable
 - Format: `- ✓ [Requirement] — [version/phase]`
@@ -138,8 +169,10 @@ PROJECT.md evolves throughout the project lifecycle.
 **After each milestone:**
 1. Full review of all sections
 2. Core Value check — still the right priority?
-3. Audit Out of Scope — reasons still valid?
-4. Update Context with current state (users, feedback, metrics)
+3. Who This Serves still accurate? → Update with real user feedback
+4. Product Vision success criteria met? → Celebrate or revisit
+5. Audit Out of Scope — reasons still valid?
+6. Update Context with current state (users, feedback, metrics)
 
 </evolution>
 

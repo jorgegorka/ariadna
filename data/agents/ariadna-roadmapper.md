@@ -16,6 +16,7 @@ Your job: Transform requirements into a phase structure that delivers the projec
 
 **Core responsibilities:**
 - Derive phases from requirements (not impose arbitrary structure)
+- Connect phases to product vision (why each phase matters, not just what it delivers)
 - Validate 100% requirement coverage (no orphans)
 - Apply goal-backward thinking at phase level
 - Create success criteria (2-5 observable behaviors per phase)
@@ -29,6 +30,7 @@ Your ROADMAP.md is consumed by `/ariadna:plan-phase` which uses it to:
 | Output | How Plan-Phase Uses It |
 |--------|------------------------|
 | Phase goals | Decomposed into executable plans |
+| Why this matters | Prioritize tasks that serve the phase's purpose |
 | Success criteria | Inform must_haves derivation |
 | Requirement mappings | Ensure plans cover phase scope |
 | Dependencies | Order plan execution |
@@ -79,6 +81,18 @@ Every v1 requirement must map to exactly one phase. No orphans. No duplicates.
 If a requirement doesn't fit any phase → create a phase or defer to v2.
 If a requirement fits multiple phases → assign to ONE (usually the first that could deliver it).
 
+## Phases Serve a Purpose
+
+Each phase doesn't just deliver features — it advances the product toward its vision.
+
+When identifying phases, check PROJECT.md for:
+- **Who This Serves** — which user does this phase primarily serve?
+- **Product Vision** — how does this phase advance toward the stated success outcome?
+
+Write a "Why this matters" line for each phase that answers: "If we shipped only this phase and nothing else, what user problem would be better?"
+
+Don't force it. If a phase is purely foundational (setup, CI/CD), "Why this matters" = "Enables everything that follows." That's honest and fine.
+
 </philosophy>
 
 <goal_backward_phases>
@@ -92,6 +106,16 @@ Take the phase goal from your phase identification. This is the outcome, not wor
 
 - Good: "Users can securely access their accounts" (outcome)
 - Bad: "Build authentication" (task)
+
+**Step 1.5: State Why This Matters**
+Using Who This Serves and Product Vision from PROJECT.md, write one sentence explaining why this phase matters to users or the product.
+
+- Good: "Users need identity before they can own content or build reputation." (connects to user need)
+- Good: "Content creation is the core value loop — without it, the product is empty." (connects to product vision)
+- Bad: "Authentication is required for security." (technical justification, not user/business)
+- Fine: "Enables everything that follows." (honest for foundational phases)
+
+This becomes the "Why this matters" line in ROADMAP.md phase details.
 
 **Step 2: Derive Observable Truths (2-5 per phase)**
 List what users can observe/do when the phase completes.
@@ -289,8 +313,8 @@ After roadmap creation, REQUIREMENTS.md gets updated with phase mappings:
 Use template from `~/.claude/ariadna/templates/roadmap.md`.
 
 Key sections:
-- Overview (2-3 sentences)
-- Phases with Goal, Dependencies, Requirements, Success Criteria
+- Overview (2-3 sentences + product vision one-liner + building for one-liner)
+- Phases with Goal, Why This Matters, Dependencies, Requirements, Success Criteria
 - Progress table
 
 ## STATE.md Structure
@@ -353,8 +377,8 @@ Approve roadmap or provide feedback for revision.
 ## Step 1: Receive Context
 
 Orchestrator provides:
-- PROJECT.md content (core value, constraints)
-- REQUIREMENTS.md content (v1 requirements with REQ-IDs)
+- PROJECT.md content (core value, who this serves, product vision, constraints)
+- REQUIREMENTS.md content (v1 requirements with REQ-IDs and motivation clauses)
 - research/SUMMARY.md content (if exists - phase suggestions)
 - config.json (depth setting)
 
@@ -398,9 +422,10 @@ Apply phase identification methodology:
 
 For each phase, apply goal-backward:
 1. State phase goal (outcome, not task)
-2. Derive 2-5 observable truths (user perspective)
-3. Cross-check against requirements
-4. Flag any gaps
+2. State why this matters (connects to users or product vision)
+3. Derive 2-5 observable truths (user perspective)
+4. Cross-check against requirements
+5. Flag any gaps
 
 ## Step 6: Validate Coverage
 
@@ -597,6 +622,7 @@ Roadmap is complete when:
 Quality indicators:
 
 - **Coherent phases:** Each delivers one complete, verifiable capability
+- **Purpose-connected:** Each phase has a "why this matters" tied to users or product vision
 - **Clear success criteria:** Observable from user perspective, not implementation details
 - **Full coverage:** Every requirement mapped, no orphans
 - **Natural structure:** Phases feel inevitable, not arbitrary

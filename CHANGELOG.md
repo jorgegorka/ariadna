@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.3] - 2026-02-21
+
+### Added
+
+- "Who This Serves" and "Product Vision" sections in PROJECT.md template
+- "Why this matters" field for every phase in ROADMAP.md template
+- Requirement motivation clauses (`— *why this matters*`) in requirements template
+- User-focused and bigger-picture question types in questioning reference
+- Purpose-connected phase validation in roadmapper agent quality checklist
+
+### Changed
+
+- Gem description updated to focus on Ruby on Rails application development
+- Roadmapper agent derives phase purpose from PROJECT.md user/vision context
+- Planner agent reads "Why this matters" from ROADMAP.md to prioritize tasks
+- New-project workflow includes requirement motivation guidance and examples
+- Context checklist expanded from 4 to 6 items (adds success criteria and bigger picture)
+- Requirements template examples include motivation clauses throughout
+
 ## [1.2.2] - 2026-02-19
 
 ### Changed
@@ -120,6 +139,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Wave-based plan execution with parallelism support
 - Guides for backend, frontend, and testing workflows
 
+[1.2.3]: https://github.com/jorgegorka/ariadna/releases/tag/v1.2.3
 [1.2.2]: https://github.com/jorgegorka/ariadna/releases/tag/v1.2.2
 [1.2.1]: https://github.com/jorgegorka/ariadna/releases/tag/v1.2.1
 [1.2.0]: https://github.com/jorgegorka/ariadna/releases/tag/v1.2.0

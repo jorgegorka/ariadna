@@ -64,6 +64,16 @@ Use these as inspiration, not a checklist. Pick what's relevant to the thread.
 - "How will you know this is working?"
 - "What does done look like?"
 
+**Users — who this serves:**
+- "Who's the person using this? Walk me through their day."
+- "What are they doing right now without this?"
+- "What would make them stop using this?"
+
+**Bigger picture — where this is going:**
+- "Is this the whole thing, or part of something bigger?"
+- "What does success look like in 6 months?"
+- "If this works perfectly, what do you do next?"
+
 </question_types>
 
 <using_askuserquestion>
@@ -102,10 +112,12 @@ Use this as a **background checklist**, not a conversation structure. Check thes
 
 - [ ] What they're building (concrete enough to explain to a stranger)
 - [ ] Why it needs to exist (the problem or desire driving it)
-- [ ] Who it's for (even if just themselves)
+- [ ] Who it's for (what do they care about? what frustrates them?)
+- [ ] What success looks like for the builder (what outcome makes this worth building?)
 - [ ] What "done" looks like (observable outcomes)
+- [ ] What's the bigger picture (standalone tool? part of something larger? stepping stone?)
 
-Four things. If they volunteer more, capture it.
+Six things. If they volunteer more, capture it.
 
 </context_checklist>
 

@@ -16,21 +16,21 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Authentication
 
-- [ ] **AUTH-01**: User can sign up with email and password
-- [ ] **AUTH-02**: User receives email verification after signup
-- [ ] **AUTH-03**: User can reset password via email link
-- [ ] **AUTH-04**: User session persists across browser refresh
+- [ ] **AUTH-01**: User can sign up with email and password — *enables personalized experience*
+- [ ] **AUTH-02**: User receives email verification after signup — *prevents spam accounts*
+- [ ] **AUTH-03**: User can reset password via email link — *reduces support burden*
+- [ ] **AUTH-04**: User session persists across browser refresh — *removes friction from daily use*
 
 ### [Category 2]
 
-- [ ] **[CAT]-01**: [Requirement description]
-- [ ] **[CAT]-02**: [Requirement description]
-- [ ] **[CAT]-03**: [Requirement description]
+- [ ] **[CAT]-01**: [Requirement description] — *[why this matters]*
+- [ ] **[CAT]-02**: [Requirement description] — *[why this matters]*
+- [ ] **[CAT]-03**: [Requirement description] — *[why this matters]*
 
 ### [Category 3]
 
-- [ ] **[CAT]-01**: [Requirement description]
-- [ ] **[CAT]-02**: [Requirement description]
+- [ ] **[CAT]-01**: [Requirement description] — *[why this matters]*
+- [ ] **[CAT]-02**: [Requirement description] — *[why this matters]*
 
 ## v2 Requirements
 
@@ -79,7 +79,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 **Requirement Format:**
 - ID: `[CATEGORY]-[NUMBER]` (AUTH-01, CONTENT-02, SOCIAL-03)
 - Description: User-centric, testable, atomic
+- Motivation: brief "why" clause after em-dash — `— *reason this matters*`
 - Checkbox: Only for v1 requirements (v2 are not yet actionable)
+
+**Requirement Motivation:**
+- Each requirement gets a brief "why" clause: `— *reason this matters*`
+- Connects features to user needs or business goals from Product Vision
+- Helps the roadmapper understand WHY requirements cluster, not just WHAT they are
+- Helps the verifier check "did we solve the problem?" not just "did we ship the feature?"
+- Keep it short: one clause, italicized, after an em-dash
+- Draw from Who This Serves and Product Vision in PROJECT.md
 
 **Categories:**
 - Derive from research FEATURES.md categories
@@ -141,33 +150,33 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ### Authentication
 
-- [ ] **AUTH-01**: User can sign up with email and password
-- [ ] **AUTH-02**: User receives email verification after signup
-- [ ] **AUTH-03**: User can reset password via email link
-- [ ] **AUTH-04**: User session persists across browser refresh
+- [ ] **AUTH-01**: User can sign up with email and password — *enables personalized experience*
+- [ ] **AUTH-02**: User receives email verification after signup — *prevents spam accounts*
+- [ ] **AUTH-03**: User can reset password via email link — *reduces support burden*
+- [ ] **AUTH-04**: User session persists across browser refresh — *removes friction from daily use*
 
 ### Profiles
 
-- [ ] **PROF-01**: User can create profile with display name
-- [ ] **PROF-02**: User can upload avatar image
-- [ ] **PROF-03**: User can write bio (max 500 chars)
-- [ ] **PROF-04**: User can view other users' profiles
+- [ ] **PROF-01**: User can create profile with display name — *gives users identity in the community*
+- [ ] **PROF-02**: User can upload avatar image — *makes profiles recognizable*
+- [ ] **PROF-03**: User can write bio (max 500 chars) — *enables self-expression and discovery*
+- [ ] **PROF-04**: User can view other users' profiles — *supports finding people with shared interests*
 
 ### Content
 
-- [ ] **CONT-01**: User can create text post
-- [ ] **CONT-02**: User can upload image with post
-- [ ] **CONT-03**: User can edit own posts
-- [ ] **CONT-04**: User can delete own posts
-- [ ] **CONT-05**: User can view feed of posts
+- [ ] **CONT-01**: User can create text post — *core content creation loop*
+- [ ] **CONT-02**: User can upload image with post — *richer content drives engagement*
+- [ ] **CONT-03**: User can edit own posts — *reduces friction of sharing (can fix mistakes)*
+- [ ] **CONT-04**: User can delete own posts — *user controls their own content*
+- [ ] **CONT-05**: User can view feed of posts — *content consumption is the primary activity*
 
 ### Social
 
-- [ ] **SOCL-01**: User can follow other users
-- [ ] **SOCL-02**: User can unfollow users
-- [ ] **SOCL-03**: User can like posts
-- [ ] **SOCL-04**: User can comment on posts
-- [ ] **SOCL-05**: User can view activity feed (followed users' posts)
+- [ ] **SOCL-01**: User can follow other users — *builds the social graph that makes the feed work*
+- [ ] **SOCL-02**: User can unfollow users — *user controls their experience*
+- [ ] **SOCL-03**: User can like posts — *lightweight engagement signal*
+- [ ] **SOCL-04**: User can comment on posts — *discussion is core to community value*
+- [ ] **SOCL-05**: User can view activity feed (followed users' posts) — *personalized content keeps users returning*
 
 ## v2 Requirements
 

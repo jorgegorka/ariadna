@@ -562,6 +562,10 @@ Take phase goal from ROADMAP.md. Must be outcome-shaped, not task-shaped.
 - Good: "Working chat interface" (outcome)
 - Bad: "Build chat components" (task)
 
+Also read the "Why this matters" line from ROADMAP.md for this phase. This tells you the PURPOSE behind the goal. Use it to prioritize truths: truths that directly serve the stated purpose are more critical than nice-to-haves.
+
+Example: If "Why this matters" = "Users need identity before they can own content", then "User can create account" is more critical than "Password has strength indicator."
+
 **Step 2: Derive Observable Truths**
 "What must be TRUE for this goal to be achieved?" List 3-7 truths from USER's perspective.
 

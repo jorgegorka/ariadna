@@ -630,6 +630,14 @@ Reject vague requirements. Push for specificity:
 - "Handle authentication" → "User can log in with email/password and stay logged in across sessions"
 - "Support sharing" → "User can share post via link that opens in recipient's browser"
 
+**Requirement motivation:**
+
+Each requirement should include a brief "why" clause connecting it to Who This Serves or Product Vision from PROJECT.md:
+- `User can reset password via email link — *reduces support burden*`
+- `User can create text post — *core content creation loop*`
+- Draw the "why" from the user descriptions and product vision captured earlier
+- If the "why" is obvious, it's still worth stating — it helps the roadmapper cluster phases by purpose
+
 **Present full requirements list (interactive mode only):**
 
 Show every requirement (not counts) for user confirmation:
@@ -638,13 +646,13 @@ Show every requirement (not counts) for user confirmation:
 ## v1 Requirements
 
 ### Authentication
-- [ ] **AUTH-01**: User can create account with email/password
-- [ ] **AUTH-02**: User can log in and stay logged in across sessions
-- [ ] **AUTH-03**: User can log out from any page
+- [ ] **AUTH-01**: User can create account with email/password — *enables personalized experience*
+- [ ] **AUTH-02**: User can log in and stay logged in across sessions — *removes friction from daily use*
+- [ ] **AUTH-03**: User can log out from any page — *user controls their session*
 
 ### Content
-- [ ] **CONT-01**: User can create posts with text
-- [ ] **CONT-02**: User can edit their own posts
+- [ ] **CONT-01**: User can create posts with text — *core content creation loop*
+- [ ] **CONT-02**: User can edit their own posts — *reduces friction of sharing*
 
 [... full list ...]
 

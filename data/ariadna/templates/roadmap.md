@@ -11,6 +11,9 @@ Template for `.ariadna_planning/ROADMAP.md`.
 
 [One paragraph describing the journey from start to finish]
 
+**Product vision:** [One-liner from PROJECT.md Product Vision — what success means]
+**Building for:** [One-liner from PROJECT.md Who This Serves — who benefits]
+
 ## Phases
 
 **Phase Numbering:**
@@ -28,6 +31,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 ### Phase 1: [Name]
 **Goal**: [What this phase delivers]
+**Why this matters**: [How this serves users or advances the product vision — one sentence]
 **Depends on**: Nothing (first phase)
 **Requirements**: [REQ-01, REQ-02, REQ-03]
 **Success Criteria** (what must be TRUE):
@@ -43,6 +47,7 @@ Plans:
 
 ### Phase 2: [Name]
 **Goal**: [What this phase delivers]
+**Why this matters**: [How this serves users or advances the product vision — one sentence]
 **Depends on**: Phase 1
 **Requirements**: [REQ-04, REQ-05]
 **Success Criteria** (what must be TRUE):
@@ -66,6 +71,7 @@ Plans:
 
 ### Phase 3: [Name]
 **Goal**: [What this phase delivers]
+**Why this matters**: [How this serves users or advances the product vision — one sentence]
 **Depends on**: Phase 2
 **Requirements**: [REQ-06, REQ-07, REQ-08]
 **Success Criteria** (what must be TRUE):
@@ -80,6 +86,7 @@ Plans:
 
 ### Phase 4: [Name]
 **Goal**: [What this phase delivers]
+**Why this matters**: [How this serves users or advances the product vision — one sentence]
 **Depends on**: Phase 3
 **Requirements**: [REQ-09, REQ-10]
 **Success Criteria** (what must be TRUE):
@@ -112,6 +119,14 @@ Phases execute in numeric order: 2 → 2.1 → 2.2 → 3 → 3.1 → 4
 - No time estimates (this isn't enterprise PM)
 - Progress table updated by execute workflow
 - Plan count can be "TBD" initially, refined during planning
+
+**Why this matters:**
+- One sentence connecting the phase to user needs or product vision
+- Pulled from PROJECT.md Who This Serves and Product Vision
+- NOT implementation justification ("we need auth before content")
+- IS user/business justification ("users need identity before they can own content")
+- Helps planner understand the phase's purpose, not just its scope
+- For foundational phases, "Enables everything that follows" is honest and fine
 
 **Success criteria:**
 - 2-5 observable behaviors per phase (from user's perspective)
@@ -170,6 +185,7 @@ Plans:
 
 #### Phase 5: [Name]
 **Goal**: [What this phase delivers]
+**Why this matters**: [How this serves users or advances the product vision — one sentence]
 **Depends on**: Phase 4
 **Plans**: 2 plans
 
