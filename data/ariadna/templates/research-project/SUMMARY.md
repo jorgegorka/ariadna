@@ -53,7 +53,7 @@ Template for `.ariadna_planning/research/SUMMARY.md` — executive summary of pr
 
 **Authentication & authorization:**
 - [Auth solution]: [purpose] — [why recommended — e.g., Rails authentication generator for session-based auth]
-- [Authorization]: [purpose] — [why recommended — e.g., before_action, Pundit for policies, Action Policy for scalable rules]
+- [Authorization]: [purpose] — [why recommended — e.g., before_action + Current context (default), Pundit only if explicitly requested]
 
 **Additional gems:**
 - [Gem]: [purpose] — [why recommended]

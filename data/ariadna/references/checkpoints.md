@@ -124,30 +124,32 @@ Plans execute autonomously. Checkpoints formalize interaction points where human
 ```
 
 **Example: Auth Provider Selection**
+Note: Only present this checkpoint if the user explicitly asks to evaluate auth gems. For new projects, default to `has_secure_password` (Rails 8 auth generator) without asking.
 ```xml
 <task type="checkpoint:decision" gate="blocking">
   <decision>Select authentication approach</decision>
   <context>
-    Need user authentication for the app. Three solid options with different tradeoffs.
+    Need user authentication for the app. Rails built-in auth is the recommended default.
+    Only consider external gems if the user explicitly requests them.
   </context>
   <options>
+    <option id="has_secure_password">
+      <name>has_secure_password (built-in) — Recommended</name>
+      <pros>No dependencies, full control, simple and lightweight, easy to understand, Rails 8 auth generator scaffolds everything</pros>
+      <cons>More manual setup for advanced features (OAuth, 2FA)</cons>
+    </option>
     <option id="devise">
-      <name>Devise</name>
-      <pros>Most popular Rails auth gem, full-featured (registration, password reset, OAuth), well-maintained</pros>
+      <name>Devise (only if explicitly requested)</name>
+      <pros>Full-featured (registration, password reset, OAuth), well-maintained</pros>
       <cons>Heavy dependency, opinionated, can be hard to customize deeply</cons>
     </option>
-    <option id="has_secure_password">
-      <name>has_secure_password (built-in)</name>
-      <pros>No dependencies, full control, simple and lightweight, easy to understand</pros>
-      <cons>More manual setup, you build everything yourself (password reset, OAuth)</cons>
-    </option>
     <option id="rodauth">
-      <name>Rodauth</name>
+      <name>Rodauth (only if explicitly requested)</name>
       <pros>Security-focused, modular features, database-backed configuration, excellent 2FA</pros>
-      <cons>Smaller community than Devise, different conventions, steeper learning curve</cons>
+      <cons>Smaller community, different conventions, steeper learning curve</cons>
     </option>
   </options>
-  <resume-signal>Select: devise, has_secure_password, or rodauth</resume-signal>
+  <resume-signal>Select: has_secure_password (default), devise, or rodauth</resume-signal>
 </task>
 ```
 
@@ -314,20 +316,20 @@ Decision: Which auth approach should we use?
 Context: Need user authentication. Three options with different tradeoffs.
 
 Options:
-  1. devise - Full-featured auth gem, batteries included
+  1. has_secure_password - Built-in Rails (Recommended)
+     Pros: No dependencies, full control, simple, Rails 8 auth generator scaffolds everything
+     Cons: More manual setup for advanced features (OAuth, 2FA)
+
+  2. devise - Full-featured auth gem (only if explicitly requested)
      Pros: Registration, password reset, OAuth support, well-maintained
      Cons: Heavy dependency, opinionated, hard to customize deeply
 
-  2. has_secure_password - Built-in Rails, lightweight
-     Pros: No dependencies, full control, simple and easy to understand
-     Cons: More manual setup, build password reset and OAuth yourself
-
-  3. rodauth - Security-focused, modular
+  3. rodauth - Security-focused, modular (only if explicitly requested)
      Pros: Excellent 2FA, database-backed config, modular features
      Cons: Smaller community, different conventions, steeper learning curve
 
 ────────────────────────────────────────────────────────
-→ YOUR ACTION: Select devise, has_secure_password, or rodauth
+→ YOUR ACTION: Select has_secure_password (default), devise, or rodauth
 ────────────────────────────────────────────────────────
 ```
 
@@ -581,7 +583,7 @@ timeout 30 bash -c 'until curl -s localhost:3000 > /dev/null 2>&1; do sleep 1; d
 <task type="auto">
   <name>Create user model and migration</name>
   <files>app/models/user.rb, db/migrate/xxx_create_users.rb</files>
-  <action>Generate User model with Devise or has_secure_password, run migration</action>
+  <action>Generate User model with has_secure_password (Rails 8 auth generator), run migration</action>
   <verify>bin/rails db:migrate succeeds, User.count returns 0</verify>
 </task>
 

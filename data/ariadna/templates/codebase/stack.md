@@ -123,7 +123,7 @@ Template for `.ariadna_planning/codebase/STACK.md` - captures the technology fou
 
 **Critical:**
 - authentication (built-in) — Session-based auth
-- authorization - custom implementation (no gem) — Role-based access control, pundit
+- authorization - custom implementation (before_action + Current) — Role-based access control
 - solid_queue — Background jobs (Rails 8 default)
 
 **Infrastructure:**

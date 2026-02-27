@@ -460,7 +460,7 @@ Research is complete when:
 
 Quality indicators:
 
-- **Specific, not vague:** "Devise 4.9 with OmniAuth 2.1" not "use Devise"
+- **Specific, not vague:** "Rails 8 auth generator with has_secure_password" not "add authentication"
 - **Verified, not assumed:** Findings cite Context7 or official docs
 - **Honest about gaps:** LOW confidence items flagged, unknowns admitted
 - **Actionable:** Planner could create tasks based on this research

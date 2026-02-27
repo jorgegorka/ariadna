@@ -16,7 +16,7 @@ Pre-baked Rails knowledge for Ariadna planning and execution agents. This docume
 | Real-time UI | Turbo (Hotwire) | Turbo Drive, Frames, Streams |
 | JS Sprinkles | Stimulus (Hotwire) | Controllers for interactive behavior |
 | CSS | Tailwind CSS or Propshaft | Rails 8 defaults to Propshaft asset pipeline |
-| Auth | Rails built-in `has_secure_password` or Devise | Rails 8 includes auth generator |
+| Auth | Rails 8 built-in authentication (`has_secure_password` + auth generator) | No external gems needed |
 | Email | Action Mailer | Built-in |
 | File Upload | Active Storage | Built-in |
 | API | Rails API mode or Jbuilder | Built-in |
@@ -24,6 +24,9 @@ Pre-baked Rails knowledge for Ariadna planning and execution agents. This docume
 | Linting | RuboCop + rubocop-rails | Standard community linting |
 
 **What NOT to use (and why):**
+- Devise unless explicitly requested by the user — Rails 8 auth generator + `has_secure_password` covers signup, login, password reset, session management out of the box
+- Pundit/CanCanCan unless explicitly requested — `before_action` checks + `Current` context handle authorization for most apps without adding a gem
+- acts_as_tenant — use `Current.account` scoping with explicit scopes (see backend guide); no gem needed for path-based multi-tenancy
 - Factories (FactoryBot) when fixtures suffice — fixtures are faster, declarative, and Rails-native
 - RSpec unless the project already uses it — Minitest is simpler and Rails-native
 - Webpacker/Shakapacker — replaced by importmap-rails or jsbundling-rails
@@ -31,6 +34,28 @@ Pre-baked Rails knowledge for Ariadna planning and execution agents. This docume
 - Redis for jobs/cache — Solid Queue/Cache use the database, simpler ops
 
 </standard_stack>
+
+<rails_defaults_first>
+
+## Rails Defaults First (Opinionated)
+
+For new projects, ALWAYS start with Rails built-in solutions. Only introduce external gems when the user explicitly requests them or requirements demonstrably exceed what Rails provides.
+
+| Need | Rails Default | External Gem (only if explicitly requested) |
+|------|--------------|---------------------------------------------|
+| Authentication | `has_secure_password` + Rails 8 auth generator | Devise |
+| Authorization | `before_action` + `Current` context | Pundit, CanCanCan |
+| Multi-tenancy | `Current.account` + explicit scoping | acts_as_tenant |
+| Background Jobs | Solid Queue | Sidekiq |
+| Caching | Solid Cache | Redis |
+| WebSockets | Solid Cable | Redis + AnyCable |
+| Testing | Minitest + fixtures | RSpec + FactoryBot |
+
+**Why:** External gems add dependencies, upgrade burden, and conceptual overhead. Rails 8 ships with excellent defaults that cover 90% of use cases. Starting with built-ins keeps the app simple and maintainable.
+
+**The rule:** Never recommend Devise, Pundit, acts_as_tenant, or similar gems as the default choice for new projects. If the user hasn't asked for them, use Rails built-ins. If the user asks for "authentication", build it with `has_secure_password`. If they ask for "authorization", use `before_action` checks. If they ask for "multi-tenancy", use `Current.account` scoping.
+
+</rails_defaults_first>
 
 <architecture_patterns>
 
@@ -369,8 +394,8 @@ These domains are well-understood in Rails and don't need web research:
 | Models & Migrations | ActiveRecord, validations, associations, concerns | No |
 | Controllers & Routes | RESTful resources, before_action, strong params | No |
 | Views & Templates | ERB, partials, layouts, content_for | No |
-| Authentication | has_secure_password, Devise, Rails 8 auth generator | No |
-| Authorization | Pundit, CanCanCan, or hand-rolled | No |
+| Authentication | Rails 8 auth generator, has_secure_password | No |
+| Authorization | before_action + Current context, hand-rolled | No |
 | Background Jobs | Solid Queue, ActiveJob | No |
 | Email | Action Mailer, letter_opener | No |
 | File Uploads | Active Storage | No |

@@ -214,7 +214,7 @@ Template for `.ariadna_planning/codebase/ARCHITECTURE.md` - captures conceptual 
 - [Approach: e.g., "Rails authentication generator with `Authentication` concern", "has_secure_password with custom auth", "OmniAuth for OAuth"]
 
 **Authorization:**
-- [Approach: e.g., "Pundit policies", "CanCanCan abilities", "Custom `before_action` checks"]
+- [Approach: e.g., "Custom `before_action` checks with `Current` context", "Pundit policies (if explicitly chosen)", "CanCanCan abilities (if explicitly chosen)"]
 
 **Caching:**
 - [Approach: e.g., "Fragment caching in views", "Russian doll caching", "Rails.cache with Solid Cache/Redis"]
