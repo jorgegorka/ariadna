@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-02-27
+
+### Changed
+
+- Opinionated Rails defaults: Devise, Pundit, CanCanCan, and acts_as_tenant are no longer recommended as default choices for new projects
+- New `Rails Defaults First` section in rails-conventions reference with comparison table and explicit rule
+- Authentication defaults to `has_secure_password` + Rails 8 auth generator; Devise only if user explicitly requests it
+- Authorization defaults to `before_action` + `Current` context; Pundit/CanCanCan only if user explicitly requests it
+- Multi-tenancy defaults to `Current.account` scoping; acts_as_tenant only if user explicitly requests it
+- Auth checkpoint reordered: `has_secure_password` is now the recommended first option
+- Updated all research-project and codebase templates to lead with Rails built-in approaches
+- Updated phase-researcher agent quality examples to reference Rails defaults
+
 ## [1.2.3] - 2026-02-21
 
 ### Added
@@ -139,6 +152,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Wave-based plan execution with parallelism support
 - Guides for backend, frontend, and testing workflows
 
+[1.3.0]: https://github.com/jorgegorka/ariadna/releases/tag/v1.3.0
 [1.2.3]: https://github.com/jorgegorka/ariadna/releases/tag/v1.2.3
 [1.2.2]: https://github.com/jorgegorka/ariadna/releases/tag/v1.2.2
 [1.2.1]: https://github.com/jorgegorka/ariadna/releases/tag/v1.2.1
