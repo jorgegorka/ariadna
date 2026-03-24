@@ -6,10 +6,13 @@ class InitTest < Minitest::Test
     @dir = Dir.mktmpdir
     @planning_dir = File.join(@dir, ".ariadna_planning")
     @phases_dir = File.join(@planning_dir, "phases")
+    @memory_dir = File.join(@planning_dir, "memory")
     FileUtils.mkdir_p(@phases_dir)
+    FileUtils.mkdir_p(@memory_dir)
 
     # Create minimal ROADMAP.md for milestone info
-    File.write(File.join(@planning_dir, "ROADMAP.md"), "# ROADMAP\n\n## v1.0: MVP Release\n\n### Phase 1: Setup\n\n**Goal:** TBD\n")
+    File.write(File.join(@planning_dir, "ROADMAP.md"),
+               "# ROADMAP\n\n## v1.0: MVP Release\n\n### Phase 1: Setup\n\n**Goal:** TBD\n")
     File.write(File.join(@planning_dir, "config.json"), '{"model_profile":"balanced"}')
   end
 
@@ -17,249 +20,269 @@ class InitTest < Minitest::Test
     FileUtils.rm_rf(@dir)
   end
 
-  def test_init_execute_phase
+  # --- execute-phase ---
+
+  def test_execute_phase_returns_paths_not_content # rubocop:disable Metrics/AbcSize
     phase_dir = File.join(@phases_dir, "01-setup")
     FileUtils.mkdir_p(phase_dir)
-    File.write(File.join(phase_dir, "01-01-PLAN.md"), "---\nphase: 1\nplan: 01\n---\n")
+    File.write(File.join(phase_dir, "01-01-PLAN.md"),
+               "---\nphase: 1\nplan: 01\ndomain: backend\nwave: 1\n---\n# Plan\n")
 
     Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Init.dispatch(["execute-phase", "1"]) }
+      result = capture_json { Ariadna::Tools::Init.dispatch(%w[execute-phase 1]) }
       assert result[:phase_found]
+      assert_equal ".ariadna_planning/phases/01-setup", result[:phase_dir]
       assert_equal "01", result[:phase_number]
       assert_equal "setup", result[:phase_name]
-      assert_equal 1, result[:plan_count]
-      assert_equal "v1.0", result[:milestone_version]
+
+      # Must NOT contain file contents
+      refute result.key?(:state_content)
+      refute result.key?(:roadmap_content)
+      refute result.key?(:state_path)
+
+      # Must return memory_dir
+      assert_equal ".ariadna_planning/memory", result[:memory_dir]
+
+      # Must return inline config
+      assert result.key?(:config)
+      assert_equal "balanced", result[:config][:model_profile]
+
+      # Must return executor_model
       assert_includes result[:executor_model], "sonnet"
     end
   end
 
-  def test_init_execute_phase_includes_team_fields
+  def test_execute_phase_plans_include_domain_and_wave
     phase_dir = File.join(@phases_dir, "01-setup")
     FileUtils.mkdir_p(phase_dir)
-    File.write(File.join(phase_dir, "01-01-PLAN.md"), "---\nphase: 1\nplan: 01\n---\n")
+    File.write(File.join(phase_dir, "01-01-PLAN.md"),
+               "---\nphase: 1\nplan: 01\ndomain: backend\nwave: 1\n---\n# Plan A\n")
+    File.write(File.join(phase_dir, "01-02-PLAN.md"),
+               "---\nphase: 1\nplan: 02\ndomain: frontend\nwave: 2\n---\n# Plan B\n")
 
     Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Init.dispatch(["execute-phase", "1"]) }
-      assert_equal false, result[:team_execution]
-      assert_equal "vertical", result[:execution_mode]
-      assert_includes result.keys, :backend_executor_model
-      assert_includes result.keys, :frontend_executor_model
-      assert_includes result.keys, :test_executor_model
+      result = capture_json { Ariadna::Tools::Init.dispatch(%w[execute-phase 1]) }
+      plans = result[:plans]
+      assert_equal 2, plans.length
+
+      plan_a = plans.find { |p| p[:file] == "01-01-PLAN.md" }
+      assert_equal "backend", plan_a[:domain]
+      assert_equal "1", plan_a[:wave]
+
+      plan_b = plans.find { |p| p[:file] == "01-02-PLAN.md" }
+      assert_equal "frontend", plan_b[:domain]
+      assert_equal "2", plan_b[:wave]
     end
   end
 
-  def test_init_execute_phase_auto_team_execution
+  def test_execute_phase_tracks_incomplete_plans
     phase_dir = File.join(@phases_dir, "01-setup")
     FileUtils.mkdir_p(phase_dir)
-    File.write(File.join(phase_dir, "01-01-PLAN.md"), "---\nphase: 1\nplan: 01\n---\n")
-    File.write(File.join(@planning_dir, "config.json"), '{"model_profile":"balanced","team_execution":"auto"}')
+    File.write(File.join(phase_dir, "01-01-PLAN.md"),
+               "---\nphase: 1\nplan: 01\ndomain: backend\nwave: 1\n---\n")
+    File.write(File.join(phase_dir, "01-01-SUMMARY.md"), "done")
+    File.write(File.join(phase_dir, "01-02-PLAN.md"),
+               "---\nphase: 1\nplan: 02\ndomain: frontend\nwave: 1\n---\n")
 
     Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Init.dispatch(["execute-phase", "1"]) }
-      assert_equal "auto", result[:team_execution]
+      result = capture_json { Ariadna::Tools::Init.dispatch(%w[execute-phase 1]) }
+      assert_equal 2, result[:plan_count]
+      assert_equal 1, result[:incomplete_count]
+      assert_equal ["01-02-PLAN.md"], result[:incomplete_plans]
     end
   end
 
-  def test_init_execute_phase_with_includes
-    phase_dir = File.join(@phases_dir, "01-setup")
-    FileUtils.mkdir_p(phase_dir)
-    File.write(File.join(@planning_dir, "STATE.md"), "**Status:** Active\n")
-
+  def test_execute_phase_missing_phase_arg
     Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Init.dispatch(["execute-phase", "1", "--include", "state,roadmap"]) }
-      assert result[:state_content]
-      assert result[:roadmap_content]
+      assert_raises(SystemExit) do
+        suppress_stderr { Ariadna::Tools::Init.dispatch(["execute-phase"]) }
+      end
     end
   end
 
-  def test_init_plan_phase
+  # --- plan-phase ---
+
+  def test_plan_phase_returns_paths_not_content
     phase_dir = File.join(@phases_dir, "01-setup")
     FileUtils.mkdir_p(phase_dir)
 
     Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Init.dispatch(["plan-phase", "1"]) }
+      result = capture_json { Ariadna::Tools::Init.dispatch(%w[plan-phase 1]) }
       assert result[:phase_found]
-      assert_includes result.keys, :researcher_model
-      assert_includes result.keys, :planner_model
-      assert_includes result.keys, :research_enabled
+      assert_equal ".ariadna_planning/phases/01-setup", result[:phase_dir]
+
+      # Must NOT contain file contents
+      refute result.key?(:state_content)
+      refute result.key?(:roadmap_content)
+      refute result.key?(:requirements_content)
+      refute result.key?(:context_content)
+      refute result.key?(:research_content)
+
+      # Must return memory_dir and config
+      assert_equal ".ariadna_planning/memory", result[:memory_dir]
+      assert result.key?(:config)
+
+      # Must return planner_model
+      assert result.key?(:planner_model)
     end
   end
 
-  def test_init_new_project
-    Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Init.dispatch(["new-project"]) }
-      assert_includes result.keys, :researcher_model
-      assert_includes result.keys, :is_brownfield
-      assert_includes result.keys, :has_git
-      assert result[:roadmap_exists] || !result[:roadmap_exists] # just check key exists
-    end
-  end
-
-  def test_init_new_milestone
-    Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Init.dispatch(["new-milestone"]) }
-      assert_equal "v1.0", result[:current_milestone]
-      assert_includes result.keys, :researcher_model
-      assert_includes result.keys, :roadmapper_model
-    end
-  end
-
-  def test_init_quick
-    Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Init.dispatch(["quick", "fix", "login", "bug"]) }
-      assert_equal 1, result[:next_num]
-      assert_equal "fix-login-bug", result[:slug]
-      assert_includes result[:task_dir], "1-fix-login-bug"
-    end
-  end
-
-  def test_init_quick_increments_number
-    quick_dir = File.join(@planning_dir, "quick")
-    FileUtils.mkdir_p(File.join(quick_dir, "1-first-task"))
-
-    Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Init.dispatch(["quick", "second", "task"]) }
-      assert_equal 2, result[:next_num]
-    end
-  end
-
-  def test_init_resume
-    File.write(File.join(@planning_dir, "STATE.md"), "state content")
-    File.write(File.join(@planning_dir, "PROJECT.md"), "project content")
-
-    Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Init.dispatch(["resume"]) }
-      assert result[:state_exists]
-      assert result[:project_exists]
-      assert result[:planning_exists]
-      refute result[:has_interrupted_agent]
-    end
-  end
-
-  def test_init_resume_with_interrupted_agent
-    File.write(File.join(@planning_dir, "current-agent-id.txt"), "agent-123")
-
-    Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Init.dispatch(["resume"]) }
-      assert result[:has_interrupted_agent]
-      assert_equal "agent-123", result[:interrupted_agent_id]
-    end
-  end
-
-  def test_init_verify_work
+  def test_plan_phase_returns_phase_metadata
     phase_dir = File.join(@phases_dir, "01-setup")
     FileUtils.mkdir_p(phase_dir)
+
+    Dir.chdir(@dir) do
+      result = capture_json { Ariadna::Tools::Init.dispatch(%w[plan-phase 1]) }
+      assert_equal "01", result[:phase_number]
+      assert_equal "setup", result[:phase_name]
+      assert_equal "01", result[:padded_phase]
+    end
+  end
+
+  # --- verify-work ---
+
+  def test_verify_work_returns_summary_paths # rubocop:disable Metrics/AbcSize
+    phase_dir = File.join(@phases_dir, "01-setup")
+    FileUtils.mkdir_p(phase_dir)
+    File.write(File.join(phase_dir, "01-01-SUMMARY.md"), "summary 1")
+    File.write(File.join(phase_dir, "01-02-SUMMARY.md"), "summary 2")
     File.write(File.join(phase_dir, "01-VERIFICATION.md"), "verification")
 
     Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Init.dispatch(["verify-work", "1"]) }
+      result = capture_json { Ariadna::Tools::Init.dispatch(%w[verify-work 1]) }
       assert result[:phase_found]
       assert result[:has_verification]
+
+      # Must return summary_paths
+      assert_equal 2, result[:summary_paths].length
+      assert(result[:summary_paths].all? { |p| p.end_with?("-SUMMARY.md") })
+
+      # Must NOT contain file contents
+      refute result.key?(:state_content)
+
+      # Must return memory_dir and config
+      assert_equal ".ariadna_planning/memory", result[:memory_dir]
+      assert result.key?(:config)
+
+      # Must return verifier_model
+      assert result.key?(:verifier_model)
     end
   end
 
-  def test_init_phase_op
-    phase_dir = File.join(@phases_dir, "01-setup")
-    FileUtils.mkdir_p(phase_dir)
-    File.write(File.join(phase_dir, "01-RESEARCH.md"), "research")
-    File.write(File.join(phase_dir, "01-01-PLAN.md"), "plan")
-
+  def test_verify_work_missing_phase_arg
     Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Init.dispatch(["phase-op", "1"]) }
-      assert result[:phase_found]
-      assert result[:has_research]
-      assert result[:has_plans]
-      assert_equal 1, result[:plan_count]
+      assert_raises(SystemExit) do
+        suppress_stderr { Ariadna::Tools::Init.dispatch(["verify-work"]) }
+      end
     end
   end
 
-  def test_init_todos
-    pending_dir = File.join(@planning_dir, "todos", "pending")
-    FileUtils.mkdir_p(pending_dir)
-    File.write(File.join(pending_dir, "todo1.md"), "title: Fix bug\narea: code\ncreated: 2024-01-01\n")
-    File.write(File.join(pending_dir, "todo2.md"), "title: Write docs\narea: docs\ncreated: 2024-01-02\n")
+  # --- new-project ---
 
+  def test_new_project_returns_memory_dir_and_config
     Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Init.dispatch(["todos"]) }
-      assert_equal 2, result[:todo_count]
-      assert_equal 2, result[:todos].length
+      result = capture_json { Ariadna::Tools::Init.dispatch(["new-project"]) }
+      assert_equal ".ariadna_planning/memory", result[:memory_dir]
+      assert result.key?(:config)
+      assert result.key?(:researcher_model)
+      assert result.key?(:is_brownfield)
     end
   end
 
-  def test_init_todos_with_area_filter
-    pending_dir = File.join(@planning_dir, "todos", "pending")
-    FileUtils.mkdir_p(pending_dir)
-    File.write(File.join(pending_dir, "todo1.md"), "title: Fix bug\narea: code\ncreated: 2024-01-01\n")
-    File.write(File.join(pending_dir, "todo2.md"), "title: Write docs\narea: docs\ncreated: 2024-01-02\n")
+  # --- new-milestone ---
 
+  def test_new_milestone_returns_memory_dir_and_config
     Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Init.dispatch(["todos", "code"]) }
-      assert_equal 1, result[:todo_count]
-      assert_equal "code", result[:todos].first[:area]
+      result = capture_json { Ariadna::Tools::Init.dispatch(["new-milestone"]) }
+      assert_equal ".ariadna_planning/memory", result[:memory_dir]
+      assert result.key?(:config)
+      assert_equal "v1.0", result[:current_milestone]
     end
   end
 
-  def test_init_milestone_op
-    phase_dir = File.join(@phases_dir, "01-setup")
-    FileUtils.mkdir_p(phase_dir)
-    File.write(File.join(phase_dir, "01-01-SUMMARY.md"), "summary")
+  # --- quick ---
 
+  def test_quick_returns_memory_dir_and_config
     Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Init.dispatch(["milestone-op"]) }
-      assert_equal "v1.0", result[:milestone_version]
-      assert_equal 1, result[:phase_count]
-      assert_equal 1, result[:completed_phases]
-      assert result[:all_phases_complete]
+      result = capture_json { Ariadna::Tools::Init.dispatch(%w[quick fix login bug]) }
+      assert_equal ".ariadna_planning/memory", result[:memory_dir]
+      assert result.key?(:config)
+      assert_equal 1, result[:next_num]
+      assert_equal "fix-login-bug", result[:slug]
     end
   end
 
-  def test_init_map_codebase
-    codebase_dir = File.join(@planning_dir, "codebase")
-    FileUtils.mkdir_p(codebase_dir)
-    File.write(File.join(codebase_dir, "architecture.md"), "arch")
+  # --- progress ---
 
-    Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Init.dispatch(["map-codebase"]) }
-      assert result[:has_maps]
-      assert_equal ["architecture.md"], result[:existing_maps]
-      assert result[:codebase_dir_exists]
-    end
-  end
-
-  def test_init_progress
+  def test_progress_returns_memory_dir_and_config
     phase1_dir = File.join(@phases_dir, "01-setup")
     FileUtils.mkdir_p(phase1_dir)
     File.write(File.join(phase1_dir, "01-01-PLAN.md"), "plan")
     File.write(File.join(phase1_dir, "01-01-SUMMARY.md"), "summary")
 
-    phase2_dir = File.join(@phases_dir, "02-auth")
-    FileUtils.mkdir_p(phase2_dir)
-    File.write(File.join(phase2_dir, "02-01-PLAN.md"), "plan")
-
     Dir.chdir(@dir) do
       result = capture_json { Ariadna::Tools::Init.dispatch(["progress"]) }
-      assert_equal 2, result[:phase_count]
+      assert_equal ".ariadna_planning/memory", result[:memory_dir]
+      assert result.key?(:config)
+      assert_equal 1, result[:phase_count]
       assert_equal 1, result[:completed_count]
-      assert_equal 1, result[:in_progress_count]
-      assert result[:has_work_in_progress]
-      assert_equal "v1.0", result[:milestone_version]
+
+      # Must NOT contain file contents
+      refute result.key?(:state_content)
+      refute result.key?(:roadmap_content)
     end
   end
 
-  def test_init_progress_detects_paused
-    File.write(File.join(@planning_dir, "STATE.md"), "**Paused At:** Task 3 of Plan 02\n")
+  # --- map-codebase ---
+
+  def test_map_codebase_returns_memory_dir_and_config
+    Dir.chdir(@dir) do
+      result = capture_json { Ariadna::Tools::Init.dispatch(["map-codebase"]) }
+      assert_equal ".ariadna_planning/memory", result[:memory_dir]
+      assert result.key?(:config)
+      assert result.key?(:mapper_model)
+    end
+  end
+
+  # --- unknown workflow ---
+
+  def test_unknown_workflow_errors
+    Dir.chdir(@dir) do
+      assert_raises(SystemExit) do
+        suppress_stderr { Ariadna::Tools::Init.dispatch(["nonexistent"]) }
+      end
+    end
+  end
+
+  # --- no --include flag handling ---
+
+  def test_no_include_flag_handling
+    phase_dir = File.join(@phases_dir, "01-setup")
+    FileUtils.mkdir_p(phase_dir)
+    File.write(File.join(phase_dir, "01-01-PLAN.md"),
+               "---\nphase: 1\nplan: 01\ndomain: backend\nwave: 1\n---\n")
+    File.write(File.join(@planning_dir, "STATE.md"), "**Status:** Active\n")
 
     Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Init.dispatch(["progress"]) }
-      assert_equal "Task 3 of Plan 02", result[:paused_at]
+      # Even if we pass --include, it should be ignored (no state_content returned)
+      result = capture_json { Ariadna::Tools::Init.dispatch(["execute-phase", "1", "--include", "state"]) }
+      refute result.key?(:state_content)
     end
   end
 
   private
 
-  def capture_json(&block)
-    output = capture_output(&block)
+  def capture_json(&)
+    output = capture_output(&)
     JSON.parse(output, symbolize_names: true)
+  end
+
+  def suppress_stderr
+    old_stderr = $stderr
+    $stderr = StringIO.new
+    yield
+  ensure
+    $stderr = old_stderr
   end
 
   def capture_output
@@ -271,6 +294,6 @@ class InitTest < Minitest::Test
   ensure
     result = $stdout.string
     $stdout = old_stdout
-    return result
+    return result # rubocop:disable Lint/EnsureReturn
   end
 end
