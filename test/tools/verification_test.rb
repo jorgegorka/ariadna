@@ -28,7 +28,7 @@ class VerificationTest < Minitest::Test
   def test_verify_commits_invalid
     Dir.chdir(@dir) do
       system("git init -q && git commit --allow-empty -m 'init' -q")
-      result = capture_json { Ariadna::Tools::Verification.dispatch(["commits", "deadbeef123456"]) }
+      result = capture_json { Ariadna::Tools::Verification.dispatch(%w[commits deadbeef123456]) }
       refute result[:all_valid]
       assert_includes result[:invalid], "deadbeef123456"
     end
@@ -43,7 +43,7 @@ class VerificationTest < Minitest::Test
     File.write(File.join(phase_dir, "01-01-SUMMARY.md"), "summary")
 
     Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Verification.dispatch(["phase-completeness", "1"]) }
+      result = capture_json { Ariadna::Tools::Verification.dispatch(%w[phase-completeness 1]) }
       assert result[:complete]
       assert_equal 1, result[:plan_count]
       assert_equal 1, result[:summary_count]
@@ -59,7 +59,7 @@ class VerificationTest < Minitest::Test
     File.write(File.join(phase_dir, "01-01-SUMMARY.md"), "summary")
 
     Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Verification.dispatch(["phase-completeness", "1"]) }
+      result = capture_json { Ariadna::Tools::Verification.dispatch(%w[phase-completeness 1]) }
       refute result[:complete]
       assert_equal 1, result[:incomplete_plans].length
     end
@@ -125,8 +125,8 @@ class VerificationTest < Minitest::Test
 
   private
 
-  def capture_json(&block)
-    output = capture_output(&block)
+  def capture_json(&)
+    output = capture_output(&)
     JSON.parse(output, symbolize_names: true)
   end
 
