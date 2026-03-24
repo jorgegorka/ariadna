@@ -13,92 +13,28 @@ class VerificationTest < Minitest::Test
     FileUtils.rm_rf(@dir)
   end
 
-  def test_verify_summary_passes_for_valid_summary
-    summary = <<~MD
-      ---
-      phase: 01-setup
-      plan: 01
-      ---
+  # --- verify commits ---
 
-      # Summary
-
-      ## Self-Check
-      All checks pass ✅
-    MD
-    File.write(File.join(@planning_dir, "test-SUMMARY.md"), summary)
-
+  def test_verify_commits_valid
     Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Verification.verify_summary([".ariadna_planning/test-SUMMARY.md"]) }
-      assert result[:passed]
-      assert result[:checks][:summary_exists]
+      system("git init -q && git commit --allow-empty -m 'init' -q")
+      sha = `git rev-parse HEAD`.strip
+      result = capture_json { Ariadna::Tools::Verification.dispatch(["commits", sha]) }
+      assert result[:all_valid]
+      assert_includes result[:valid], sha
     end
   end
 
-  def test_verify_summary_fails_for_missing_file
+  def test_verify_commits_invalid
     Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Verification.verify_summary([".ariadna_planning/missing-SUMMARY.md"]) }
-      refute result[:passed]
-      refute result[:checks][:summary_exists]
+      system("git init -q && git commit --allow-empty -m 'init' -q")
+      result = capture_json { Ariadna::Tools::Verification.dispatch(["commits", "deadbeef123456"]) }
+      refute result[:all_valid]
+      assert_includes result[:invalid], "deadbeef123456"
     end
   end
 
-  def test_verify_summary_detects_failed_self_check
-    summary = "---\nphase: 01\n---\n\n## Self-Check\nSome tests failed ❌\n"
-    File.write(File.join(@planning_dir, "bad-SUMMARY.md"), summary)
-
-    Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Verification.verify_summary([".ariadna_planning/bad-SUMMARY.md"]) }
-      refute result[:passed]
-      assert_equal "failed", result[:checks][:self_check]
-    end
-  end
-
-  def test_verify_plan_structure_valid
-    plan = <<~MD
-      ---
-      phase: 01-setup
-      plan: 01
-      type: execute
-      wave: 1
-      depends_on: []
-      files_modified: []
-      autonomous: true
-      must_haves:
-        truths: []
-        artifacts: []
-        key_links: []
-      ---
-
-      # Plan
-
-      <task type="code">
-        <name>Create files</name>
-        <files>src/main.rb</files>
-        <action>Create the main file</action>
-        <verify>File exists</verify>
-        <done>File created</done>
-      </task>
-    MD
-    File.write(File.join(@dir, "test-PLAN.md"), plan)
-
-    Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Verification.verify_plan_structure("test-PLAN.md") }
-      assert result[:valid]
-      assert_equal 1, result[:task_count]
-      assert_empty result[:errors]
-    end
-  end
-
-  def test_verify_plan_structure_missing_fields
-    plan = "---\nphase: 01\n---\n\n# Plan\n"
-    File.write(File.join(@dir, "bad-PLAN.md"), plan)
-
-    Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Verification.verify_plan_structure("bad-PLAN.md") }
-      refute result[:valid]
-      assert result[:errors].any? { |e| e.include?("Missing required frontmatter") }
-    end
-  end
+  # --- phase-completeness ---
 
   def test_verify_phase_completeness_complete
     phase_dir = File.join(@phases_dir, "01-setup")
@@ -107,7 +43,7 @@ class VerificationTest < Minitest::Test
     File.write(File.join(phase_dir, "01-01-SUMMARY.md"), "summary")
 
     Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Verification.verify_phase_completeness("1") }
+      result = capture_json { Ariadna::Tools::Verification.dispatch(["phase-completeness", "1"]) }
       assert result[:complete]
       assert_equal 1, result[:plan_count]
       assert_equal 1, result[:summary_count]
@@ -123,73 +59,68 @@ class VerificationTest < Minitest::Test
     File.write(File.join(phase_dir, "01-01-SUMMARY.md"), "summary")
 
     Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Verification.verify_phase_completeness("1") }
+      result = capture_json { Ariadna::Tools::Verification.dispatch(["phase-completeness", "1"]) }
       refute result[:complete]
       assert_equal 1, result[:incomplete_plans].length
     end
   end
 
-  def test_verify_references_finds_existing_files
+  # --- artifacts ---
+
+  def test_verify_artifacts_all_exist
     FileUtils.mkdir_p(File.join(@dir, "src"))
-    File.write(File.join(@dir, "src", "main.rb"), "code")
+    File.write(File.join(@dir, "src", "main.rb"), "class Main\nend\n")
 
-    content = "Check `src/main.rb` and @src/main.rb for details."
-    File.write(File.join(@dir, "test.md"), content)
+    plan = <<~MD
+      ---
+      phase: 01-setup
+      plan: 01
+      must_haves:
+          artifacts:
+            - path: src/main.rb
+              min_lines: 2
+      ---
+      # Plan
+    MD
+    File.write(File.join(@dir, "test-PLAN.md"), plan)
 
     Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Verification.verify_references("test.md") }
-      assert result[:valid]
-      assert_equal 0, result[:missing].length
+      result = capture_json { Ariadna::Tools::Verification.dispatch(["artifacts", "test-PLAN.md"]) }
+      assert result[:all_passed]
     end
   end
 
-  def test_verify_references_reports_missing
-    content = "Check `nonexistent/file.rb` for details."
-    File.write(File.join(@dir, "test.md"), content)
+  def test_verify_artifacts_missing_file
+    plan = <<~MD
+      ---
+      phase: 01-setup
+      plan: 01
+      must_haves:
+          artifacts:
+            - path: nonexistent/file.rb
+      ---
+      # Plan
+    MD
+    File.write(File.join(@dir, "test-PLAN.md"), plan)
 
     Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Verification.verify_references("test.md") }
-      refute result[:valid]
-      assert_includes result[:missing], "nonexistent/file.rb"
+      result = capture_json { Ariadna::Tools::Verification.dispatch(["artifacts", "test-PLAN.md"]) }
+      refute result[:all_passed]
     end
   end
 
-  def test_validate_consistency_passes
-    roadmap = "# ROADMAP\n\n### Phase 1: Setup\n\n**Goal:** TBD\n\n### Phase 2: Auth\n\n**Goal:** TBD\n"
-    File.write(File.join(@planning_dir, "ROADMAP.md"), roadmap)
+  # --- removed subcommands ---
 
-    FileUtils.mkdir_p(File.join(@phases_dir, "01-setup"))
-    FileUtils.mkdir_p(File.join(@phases_dir, "02-auth"))
-
+  def test_removed_subcommands_return_error
     Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Verification.validate_consistency }
-      assert result[:passed]
-      assert_empty result[:errors]
+      %w[plan-structure references key-links].each do |cmd|
+        assert_raises(SystemExit) { Ariadna::Tools::Verification.dispatch([cmd, "test.md"]) }
+      end
     end
   end
 
-  def test_validate_consistency_detects_gaps
-    roadmap = "# ROADMAP\n\n### Phase 1: Setup\n\n### Phase 3: Deploy\n"
-    File.write(File.join(@planning_dir, "ROADMAP.md"), roadmap)
-
-    FileUtils.mkdir_p(File.join(@phases_dir, "01-setup"))
-    FileUtils.mkdir_p(File.join(@phases_dir, "03-deploy"))
-
-    Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Verification.validate_consistency }
-      assert result[:passed] # gaps are warnings, not errors
-      assert result[:warnings].any? { |w| w.include?("Gap in phase numbering") }
-    end
-  end
-
-  def test_validate_consistency_no_roadmap
-    FileUtils.rm_f(File.join(@planning_dir, "ROADMAP.md"))
-
-    Dir.chdir(@dir) do
-      result = capture_json { Ariadna::Tools::Verification.validate_consistency }
-      refute result[:passed]
-      assert_includes result[:errors], "ROADMAP.md not found"
-    end
+  def test_dispatch_unknown_subcommand
+    assert_raises(SystemExit) { Ariadna::Tools::Verification.dispatch(["nonexistent"]) }
   end
 
   private
