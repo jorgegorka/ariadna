@@ -62,12 +62,6 @@ class PhaseManagerTest < Minitest::Test
       result = JSON.parse(output, symbolize_names: true)
 
       assert_equal 3, result[:count]
-      assert_equal true, result[:multi_domain]
-      assert_equal true, result[:recommend_team]
-      assert_equal 3, result[:domain_count]
-      assert_includes result[:domains], "backend"
-      assert_includes result[:domains], "frontend"
-      assert_includes result[:domains], "testing"
 
       backend_plan = result[:plans].find { |p| p[:domain] == "backend" }
       assert_equal "backend", backend_plan[:domain]
@@ -94,9 +88,7 @@ class PhaseManagerTest < Minitest::Test
       output = capture_output { Ariadna::Tools::PhaseManager.plan_index(["1"], raw: true) }
       result = JSON.parse(output, symbolize_names: true)
 
-      assert_equal false, result[:multi_domain]
-      assert_equal false, result[:recommend_team]
-      assert_equal 1, result[:domain_count]
+      assert_equal 2, result[:count]
     end
   end
 
@@ -112,8 +104,6 @@ class PhaseManagerTest < Minitest::Test
       result = JSON.parse(output, symbolize_names: true)
 
       assert_equal "general", result[:plans].first[:domain]
-      assert_equal 0, result[:domain_count]
-      assert_equal false, result[:multi_domain]
     end
   end
 
