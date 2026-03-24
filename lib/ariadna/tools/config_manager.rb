@@ -7,70 +7,25 @@ module Ariadna
     module ConfigManager
       DEFAULTS = {
         "model_profile" => "balanced",
-        "commit_docs" => true,
-        "search_gitignored" => false,
+        "verifier" => true,
         "branching_strategy" => "none",
         "phase_branch_template" => "ariadna/phase-{phase}-{slug}",
         "milestone_branch_template" => "ariadna/{milestone}-{slug}",
-        "research" => false,
-        "plan_checker" => true,
-        "verifier" => true,
-        "parallelization" => true,
-        "execution_mode" => "vertical",
-        "team_execution" => false
+        "commit_docs" => true,
+        "search_gitignored" => false,
+        "parallelization" => true
       }.freeze
 
       def self.load_config(cwd = Dir.pwd)
         config_path = File.join(cwd, ".ariadna_planning", "config.json")
         return DEFAULTS.dup unless File.exist?(config_path)
 
-        raw = File.read(config_path)
-        parsed = JSON.parse(raw)
-
-        get = lambda do |key, nested = nil|
-          return parsed[key] if parsed.key?(key)
-
-          if nested && parsed[nested[:section]].is_a?(Hash)
-            val = parsed[nested[:section]][nested[:field]]
-            return val unless val.nil?
-          end
-          nil
+        parsed = JSON.parse(File.read(config_path))
+        result = DEFAULTS.dup
+        DEFAULTS.each_key do |key|
+          result[key] = parsed[key] unless parsed[key].nil?
         end
-
-        parallelization = begin
-          val = get.call("parallelization")
-          if val.is_a?(Hash) && val.key?("enabled")
-            val["enabled"]
-          elsif [true, false].include?(val)
-            val
-          else
-            DEFAULTS["parallelization"]
-          end
-        end
-
-        # nil_or helper: use default only when value is nil (preserves false)
-        nil_or = ->(val, default) { val.nil? ? default : val }
-
-        {
-          "model_profile" => get.call("model_profile") || DEFAULTS["model_profile"],
-          "commit_docs" => nil_or.call(get.call("commit_docs", { section: "planning", field: "commit_docs" }), DEFAULTS["commit_docs"]),
-          "search_gitignored" => nil_or.call(get.call("search_gitignored", { section: "planning", field: "search_gitignored" }), DEFAULTS["search_gitignored"]),
-          "branching_strategy" => get.call("branching_strategy", { section: "git", field: "branching_strategy" }) || DEFAULTS["branching_strategy"],
-          "phase_branch_template" => get.call("phase_branch_template", { section: "git", field: "phase_branch_template" }) || DEFAULTS["phase_branch_template"],
-          "milestone_branch_template" => get.call("milestone_branch_template", { section: "git", field: "milestone_branch_template" }) || DEFAULTS["milestone_branch_template"],
-          "research" => nil_or.call(get.call("research", { section: "workflow", field: "research" }), DEFAULTS["research"]),
-          "plan_checker" => nil_or.call(get.call("plan_checker", { section: "workflow", field: "plan_check" }), DEFAULTS["plan_checker"]),
-          "verifier" => nil_or.call(get.call("verifier", { section: "workflow", field: "verifier" }), DEFAULTS["verifier"]),
-          "parallelization" => parallelization,
-          "execution_mode" => get.call("execution_mode", { section: "execution", field: "mode" }) || DEFAULTS["execution_mode"],
-          "team_execution" => begin
-            val = get.call("team_execution", { section: "execution", field: "team" })
-            case val
-            when "auto", true, false then val
-            else DEFAULTS["team_execution"]
-            end
-          end
-        }
+        result
       rescue JSON::ParserError
         DEFAULTS.dup
       end
@@ -87,24 +42,7 @@ module Ariadna
           return
         end
 
-        defaults = {
-          model_profile: "balanced",
-          commit_docs: true,
-          search_gitignored: false,
-          branching_strategy: "none",
-          phase_branch_template: "ariadna/phase-{phase}-{slug}",
-          milestone_branch_template: "ariadna/{milestone}-{slug}",
-          workflow: {
-            research: false,
-            plan_check: true,
-            verifier: true
-          },
-          parallelization: true,
-          execution_mode: "vertical",
-          team_execution: false
-        }
-
-        File.write(config_path, JSON.pretty_generate(defaults))
+        File.write(config_path, JSON.pretty_generate(DEFAULTS))
         Output.json({ created: true, path: ".ariadna_planning/config.json" }, raw: raw, raw_value: "created")
       end
 
