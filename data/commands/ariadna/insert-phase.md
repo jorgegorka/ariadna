@@ -7,27 +7,20 @@ allowed-tools:
   - Write
   - Bash
 ---
-
 <objective>
-Insert a decimal phase for urgent work discovered mid-milestone that must be completed between existing integer phases.
-
-Uses decimal numbering (72.1, 72.2, etc.) to preserve the logical sequence of planned phases while accommodating urgent insertions.
-
-Purpose: Handle urgent work discovered during execution without renumbering entire roadmap.
+Insert a decimal phase for urgent work discovered mid-milestone between existing integer phases. Uses decimal numbering (72.1, 72.2, etc.) to preserve logical sequence without renumbering the entire roadmap.
 </objective>
-
-<execution_context>
-@~/.claude/ariadna/workflows/insert-phase.md
-</execution_context>
 
 <context>
 Arguments: $ARGUMENTS (format: <after-phase-number> <description>)
 
-@.ariadna_planning/ROADMAP.md
-@.ariadna_planning/STATE.md
+Follow the workflow in `~/.claude/ariadna/workflows/insert-phase.md` end-to-end.
 </context>
 
 <process>
-Execute the insert-phase workflow from @~/.claude/ariadna/workflows/insert-phase.md end-to-end.
-Preserve all validation gates (argument parsing, phase verification, decimal calculation, roadmap updates).
+1. Parse $ARGUMENTS: first token = integer phase to insert after, rest = description. Error if missing.
+2. Run `ariadna-tools init phase-op "$AFTER"` — check `roadmap_exists`.
+3. Run `ariadna-tools phase insert "$AFTER" "$DESCRIPTION"` — calculates decimal number, creates directory, updates ROADMAP.md with (INSERTED) marker.
+4. Update STATE.md "Roadmap Evolution" section with urgent insertion note.
+5. Display decimal phase number, directory, and next step: `/ariadna:plan-phase {N.M}`.
 </process>

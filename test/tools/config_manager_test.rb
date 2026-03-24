@@ -12,12 +12,21 @@ class ConfigManagerTest < Minitest::Test
     FileUtils.rm_rf(@dir)
   end
 
-  def test_load_defaults_when_no_config
+  def test_default_config_2_0
     config = Ariadna::Tools::ConfigManager.load_config(@dir)
     assert_equal "balanced", config["model_profile"]
-    assert_equal true, config["commit_docs"]
+    assert_equal true, config["verifier"]
     assert_equal "none", config["branching_strategy"]
+    assert_equal "ariadna/phase-{phase}-{slug}", config["phase_branch_template"]
+    assert_equal "ariadna/{milestone}-{slug}", config["milestone_branch_template"]
+    assert_equal true, config["commit_docs"]
+    assert_equal false, config["search_gitignored"]
     assert_equal true, config["parallelization"]
+    # Removed settings should not be present
+    refute config.key?("team_execution")
+    refute config.key?("research")
+    refute config.key?("plan_checker")
+    refute config.key?("execution_mode")
   end
 
   def test_load_custom_config
@@ -34,22 +43,15 @@ class ConfigManagerTest < Minitest::Test
     assert_equal false, config["parallelization"]
   end
 
-  def test_load_nested_workflow_config
-    config_data = {
-      "model_profile" => "budget",
-      "workflow" => {
-        "research" => false,
-        "plan_check" => false,
-        "verifier" => true
-      }
-    }
+  def test_load_partial_config_fills_defaults
+    config_data = { "model_profile" => "budget" }
     File.write(File.join(@planning_dir, "config.json"), JSON.pretty_generate(config_data))
 
     config = Ariadna::Tools::ConfigManager.load_config(@dir)
     assert_equal "budget", config["model_profile"]
-    assert_equal false, config["research"]
-    assert_equal false, config["plan_checker"]
     assert_equal true, config["verifier"]
+    assert_equal "none", config["branching_strategy"]
+    assert_equal true, config["parallelization"]
   end
 
   def test_load_malformed_json_returns_defaults
@@ -58,59 +60,21 @@ class ConfigManagerTest < Minitest::Test
     assert_equal "balanced", config["model_profile"]
   end
 
-  def test_load_defaults_include_execution_mode
-    config = Ariadna::Tools::ConfigManager.load_config(@dir)
-    assert_equal "vertical", config["execution_mode"]
-    assert_equal false, config["team_execution"]
-  end
-
-  def test_load_custom_execution_mode
-    config_data = {
-      "execution_mode" => "domain-split",
-      "team_execution" => true
-    }
+  def test_load_preserves_false_values
+    config_data = { "verifier" => false, "commit_docs" => false }
     File.write(File.join(@planning_dir, "config.json"), JSON.pretty_generate(config_data))
 
     config = Ariadna::Tools::ConfigManager.load_config(@dir)
-    assert_equal "domain-split", config["execution_mode"]
-    assert_equal true, config["team_execution"]
+    assert_equal false, config["verifier"]
+    assert_equal false, config["commit_docs"]
   end
 
-  def test_load_auto_team_execution
-    config_data = { "team_execution" => "auto" }
+  def test_load_ignores_unknown_keys
+    config_data = { "model_profile" => "quality", "unknown_setting" => true }
     File.write(File.join(@planning_dir, "config.json"), JSON.pretty_generate(config_data))
 
     config = Ariadna::Tools::ConfigManager.load_config(@dir)
-    assert_equal "auto", config["team_execution"]
-  end
-
-  def test_load_auto_team_execution_nested
-    config_data = { "execution" => { "team" => "auto" } }
-    File.write(File.join(@planning_dir, "config.json"), JSON.pretty_generate(config_data))
-
-    config = Ariadna::Tools::ConfigManager.load_config(@dir)
-    assert_equal "auto", config["team_execution"]
-  end
-
-  def test_load_invalid_team_execution_returns_default
-    config_data = { "team_execution" => "invalid" }
-    File.write(File.join(@planning_dir, "config.json"), JSON.pretty_generate(config_data))
-
-    config = Ariadna::Tools::ConfigManager.load_config(@dir)
-    assert_equal false, config["team_execution"]
-  end
-
-  def test_load_nested_execution_config
-    config_data = {
-      "execution" => {
-        "mode" => "domain-split",
-        "team" => true
-      }
-    }
-    File.write(File.join(@planning_dir, "config.json"), JSON.pretty_generate(config_data))
-
-    config = Ariadna::Tools::ConfigManager.load_config(@dir)
-    assert_equal "domain-split", config["execution_mode"]
-    assert_equal true, config["team_execution"]
+    assert_equal "quality", config["model_profile"]
+    refute config.key?("unknown_setting")
   end
 end

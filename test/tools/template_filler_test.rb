@@ -14,36 +14,39 @@ class TemplateFillerTest < Minitest::Test
     FileUtils.rm_rf(@dir)
   end
 
-  def test_select_minimal_template
+  def test_select_template
     plan = "---\nphase: 01\nplan: 01\n---\n\n# Plan\n\n### Task 1\nDo something\n"
     File.write(File.join(@dir, "test-PLAN.md"), plan)
 
     Dir.chdir(@dir) do
       result = capture_json { Ariadna::Tools::TemplateFiller.select("test-PLAN.md") }
-      assert_equal "minimal", result[:type]
-      assert_includes result[:template], "minimal"
+      assert_equal "summary", result[:type]
+      assert_includes result[:template], "summary"
     end
   end
 
-  def test_select_complex_template
+  def test_select_template_with_many_tasks
     plan = "---\nphase: 01\nplan: 01\n---\n\n# Plan\n\n"
     plan += (1..6).map { |i| "### Task #{i}\nDo something with `src/file#{i}.rb`\n\nA decision was made.\n" }.join("\n")
     File.write(File.join(@dir, "complex-PLAN.md"), plan)
 
     Dir.chdir(@dir) do
       result = capture_json { Ariadna::Tools::TemplateFiller.select("complex-PLAN.md") }
-      assert_equal "complex", result[:type]
+      assert_equal "summary", result[:type]
+      assert result[:taskCount] > 5
+      assert result[:hasDecisions]
     end
   end
 
-  def test_select_standard_template
+  def test_select_template_returns_task_metadata
     plan = "---\nphase: 01\nplan: 01\n---\n\n# Plan\n\n"
     plan += (1..3).map { |i| "### Task #{i}\nDo something with `src/path/file#{i}.rb`\n" }.join("\n")
     File.write(File.join(@dir, "std-PLAN.md"), plan)
 
     Dir.chdir(@dir) do
       result = capture_json { Ariadna::Tools::TemplateFiller.select("std-PLAN.md") }
-      assert_equal "standard", result[:type]
+      assert_equal "summary", result[:type]
+      assert_equal 3, result[:taskCount]
     end
   end
 

@@ -4,19 +4,22 @@ require_relative "output"
 require_relative "config_manager"
 require_relative "model_profiles"
 require_relative "frontmatter"
+require_relative "state_manager"
 
 module Ariadna
   module Tools
-    module Init
-      def self.dispatch(argv, raw: false)
+    # Lightweight workflow initialization: returns paths, metadata, and config.
+    module Init # rubocop:disable Metrics/ModuleLength
+      def self.dispatch(argv, raw: false) # rubocop:disable Metrics/CyclomaticComplexity
         workflow = argv.shift
-        includes = parse_include_flag(argv)
 
         case workflow
         when "execute-phase"
-          execute_phase(argv.first, includes, raw: raw)
+          execute_phase(argv.first, raw: raw)
         when "plan-phase"
-          plan_phase(argv.first, includes, raw: raw)
+          plan_phase(argv.first, raw: raw)
+        when "verify-work"
+          verify_work(argv.first, raw: raw)
         when "new-project"
           new_project(raw: raw)
         when "new-milestone"
@@ -25,8 +28,6 @@ module Ariadna
           quick(argv.join(" "), raw: raw)
         when "resume"
           resume(raw: raw)
-        when "verify-work"
-          verify_work(argv.first, raw: raw)
         when "phase-op"
           phase_op(argv.first, raw: raw)
         when "todos"
@@ -36,234 +37,55 @@ module Ariadna
         when "map-codebase"
           map_codebase(raw: raw)
         when "progress"
-          init_progress(includes, raw: raw)
+          init_progress(raw: raw)
         else
-          Output.error("Unknown init workflow: #{workflow}\nAvailable: execute-phase, plan-phase, new-project, new-milestone, quick, resume, verify-work, phase-op, todos, milestone-op, map-codebase, progress")
+          Output.error("Unknown init workflow: #{workflow}")
         end
       end
 
-      def self.execute_phase(phase, includes, raw: false)
+      def self.execute_phase(phase, raw: false)
         Output.error("phase required for init execute-phase") unless phase
 
         cwd = Dir.pwd
         config = ConfigManager.load_config(cwd)
-        phase_info = find_phase_internal(cwd, phase)
-        milestone = get_milestone_info(cwd)
+        phase_info = find_phase(cwd, phase)
+        plans = build_plan_metadata(cwd, phase_info)
+        incomplete = incomplete_plan_files(cwd, phase_info)
 
-        branch_name = if config["branching_strategy"] == "phase" && phase_info
-                        config["phase_branch_template"]
-                          .gsub("{phase}", phase_info[:phase_number])
-                          .gsub("{slug}", phase_info[:phase_slug] || "phase")
-                      elsif config["branching_strategy"] == "milestone"
-                        config["milestone_branch_template"]
-                          .gsub("{milestone}", milestone[:version])
-                          .gsub("{slug}", generate_slug(milestone[:name]) || "milestone")
-                      end
-
-        result = {
+        result = base_result(config).merge(
           executor_model: resolve_model(cwd, "ariadna-executor"),
-          verifier_model: resolve_model(cwd, "ariadna-verifier"),
-          commit_docs: config["commit_docs"],
-          parallelization: config["parallelization"],
-          branching_strategy: config["branching_strategy"],
-          phase_branch_template: config["phase_branch_template"],
-          milestone_branch_template: config["milestone_branch_template"],
-          verifier_enabled: config["verifier"],
           phase_found: !phase_info.nil?,
           phase_dir: phase_info&.dig(:directory),
           phase_number: phase_info&.dig(:phase_number),
           phase_name: phase_info&.dig(:phase_name),
-          phase_slug: phase_info&.dig(:phase_slug),
-          plans: phase_info&.dig(:plans) || [],
-          summaries: phase_info&.dig(:summaries) || [],
-          incomplete_plans: phase_info&.dig(:incomplete_plans) || [],
-          plan_count: phase_info&.dig(:plans)&.length || 0,
-          incomplete_count: phase_info&.dig(:incomplete_plans)&.length || 0,
-          branch_name: branch_name,
-          milestone_version: milestone[:version],
-          milestone_name: milestone[:name],
-          milestone_slug: generate_slug(milestone[:name]),
-          team_execution: config["team_execution"],
-          execution_mode: config["execution_mode"],
-          backend_executor_model: resolve_model(cwd, "ariadna-backend-executor"),
-          frontend_executor_model: resolve_model(cwd, "ariadna-frontend-executor"),
-          test_executor_model: resolve_model(cwd, "ariadna-test-executor"),
-          state_exists: path_exists?(cwd, ".ariadna_planning/STATE.md"),
-          roadmap_exists: path_exists?(cwd, ".ariadna_planning/ROADMAP.md"),
-          config_exists: path_exists?(cwd, ".ariadna_planning/config.json")
-        }
-
-        result[:state_content] = safe_read_file(File.join(cwd, ".ariadna_planning", "STATE.md")) if includes.include?("state")
-        result[:config_content] = safe_read_file(File.join(cwd, ".ariadna_planning", "config.json")) if includes.include?("config")
-        result[:roadmap_content] = safe_read_file(File.join(cwd, ".ariadna_planning", "ROADMAP.md")) if includes.include?("roadmap")
+          plans: plans,
+          plan_count: plans.length,
+          incomplete_plans: incomplete,
+          incomplete_count: incomplete.length,
+          milestone_version: milestone_version(cwd)
+        )
 
         Output.json(result, raw: raw)
       end
 
-      def self.plan_phase(phase, includes, raw: false)
+      def self.plan_phase(phase, raw: false) # rubocop:disable Metrics/CyclomaticComplexity
         Output.error("phase required for init plan-phase") unless phase
 
         cwd = Dir.pwd
         config = ConfigManager.load_config(cwd)
-        phase_info = find_phase_internal(cwd, phase)
+        phase_info = find_phase(cwd, phase)
 
-        result = {
-          researcher_model: resolve_model(cwd, "ariadna-phase-researcher"),
+        result = base_result(config).merge(
           planner_model: resolve_model(cwd, "ariadna-planner"),
-          checker_model: resolve_model(cwd, "ariadna-plan-checker"),
-          research_enabled: config["research"],
-          plan_checker_enabled: config["plan_checker"],
-          commit_docs: config["commit_docs"],
           phase_found: !phase_info.nil?,
           phase_dir: phase_info&.dig(:directory),
           phase_number: phase_info&.dig(:phase_number),
           phase_name: phase_info&.dig(:phase_name),
-          phase_slug: phase_info&.dig(:phase_slug),
           padded_phase: phase_info&.dig(:phase_number)&.rjust(2, "0"),
           has_research: phase_info&.dig(:has_research) || false,
           has_context: phase_info&.dig(:has_context) || false,
-          has_plans: (phase_info&.dig(:plans)&.length || 0) > 0,
-          plan_count: phase_info&.dig(:plans)&.length || 0,
-          planning_exists: path_exists?(cwd, ".ariadna_planning"),
-          roadmap_exists: path_exists?(cwd, ".ariadna_planning/ROADMAP.md")
-        }
-
-        result[:state_content] = safe_read_file(File.join(cwd, ".ariadna_planning", "STATE.md")) if includes.include?("state")
-        result[:roadmap_content] = safe_read_file(File.join(cwd, ".ariadna_planning", "ROADMAP.md")) if includes.include?("roadmap")
-        result[:requirements_content] = safe_read_file(File.join(cwd, ".ariadna_planning", "REQUIREMENTS.md")) if includes.include?("requirements")
-
-        if includes.include?("context") && phase_info&.dig(:directory)
-          phase_dir_full = File.join(cwd, phase_info[:directory])
-          context_file = Dir.children(phase_dir_full).find { |f| f.end_with?("-CONTEXT.md") || f == "CONTEXT.md" } rescue nil
-          result[:context_content] = safe_read_file(File.join(phase_dir_full, context_file)) if context_file
-        end
-
-        if includes.include?("research") && phase_info&.dig(:directory)
-          phase_dir_full = File.join(cwd, phase_info[:directory])
-          research_file = Dir.children(phase_dir_full).find { |f| f.end_with?("-RESEARCH.md") || f == "RESEARCH.md" } rescue nil
-          result[:research_content] = safe_read_file(File.join(phase_dir_full, research_file)) if research_file
-        end
-
-        if includes.include?("verification") && phase_info&.dig(:directory)
-          phase_dir_full = File.join(cwd, phase_info[:directory])
-          verification_file = Dir.children(phase_dir_full).find { |f| f.end_with?("-VERIFICATION.md") || f == "VERIFICATION.md" } rescue nil
-          result[:verification_content] = safe_read_file(File.join(phase_dir_full, verification_file)) if verification_file
-        end
-
-        if includes.include?("uat") && phase_info&.dig(:directory)
-          phase_dir_full = File.join(cwd, phase_info[:directory])
-          uat_file = Dir.children(phase_dir_full).find { |f| f.end_with?("-UAT.md") || f == "UAT.md" } rescue nil
-          result[:uat_content] = safe_read_file(File.join(phase_dir_full, uat_file)) if uat_file
-        end
-
-        Output.json(result, raw: raw)
-      end
-
-      def self.new_project(raw: false)
-        cwd = Dir.pwd
-        config = ConfigManager.load_config(cwd)
-
-        # Detect existing code
-        has_code = false
-        begin
-          files = `find #{cwd} -maxdepth 3 \\( -name "*.ts" -o -name "*.js" -o -name "*.py" -o -name "*.go" -o -name "*.rs" -o -name "*.swift" -o -name "*.java" -o -name "*.rb" \\) 2>/dev/null | grep -v node_modules | grep -v .git | head -5`
-          has_code = !files.strip.empty?
-        rescue StandardError
-          # ignore
-        end
-
-        has_package_file = %w[package.json requirements.txt Cargo.toml go.mod Package.swift Gemfile].any? do |f|
-          File.exist?(File.join(cwd, f))
-        end
-
-        result = {
-          researcher_model: resolve_model(cwd, "ariadna-project-researcher"),
-          synthesizer_model: resolve_model(cwd, "ariadna-research-synthesizer"),
-          roadmapper_model: resolve_model(cwd, "ariadna-roadmapper"),
-          commit_docs: config["commit_docs"],
-          project_exists: path_exists?(cwd, ".ariadna_planning/PROJECT.md"),
-          has_codebase_map: path_exists?(cwd, ".ariadna_planning/codebase"),
-          planning_exists: path_exists?(cwd, ".ariadna_planning"),
-          has_existing_code: has_code,
-          has_package_file: has_package_file,
-          is_brownfield: has_code || has_package_file,
-          needs_codebase_map: (has_code || has_package_file) && !path_exists?(cwd, ".ariadna_planning/codebase"),
-          has_git: path_exists?(cwd, ".git")
-        }
-
-        Output.json(result, raw: raw)
-      end
-
-      def self.new_milestone(raw: false)
-        cwd = Dir.pwd
-        config = ConfigManager.load_config(cwd)
-        milestone = get_milestone_info(cwd)
-
-        result = {
-          researcher_model: resolve_model(cwd, "ariadna-project-researcher"),
-          synthesizer_model: resolve_model(cwd, "ariadna-research-synthesizer"),
-          roadmapper_model: resolve_model(cwd, "ariadna-roadmapper"),
-          commit_docs: config["commit_docs"],
-          research_enabled: config["research"],
-          current_milestone: milestone[:version],
-          current_milestone_name: milestone[:name],
-          project_exists: path_exists?(cwd, ".ariadna_planning/PROJECT.md"),
-          roadmap_exists: path_exists?(cwd, ".ariadna_planning/ROADMAP.md"),
-          state_exists: path_exists?(cwd, ".ariadna_planning/STATE.md")
-        }
-
-        Output.json(result, raw: raw)
-      end
-
-      def self.quick(description, raw: false)
-        cwd = Dir.pwd
-        config = ConfigManager.load_config(cwd)
-        now = Time.now.utc
-        slug = description && !description.empty? ? generate_slug(description)&.slice(0, 40) : nil
-
-        quick_dir = File.join(cwd, ".ariadna_planning", "quick")
-        next_num = 1
-        if File.directory?(quick_dir)
-          existing = Dir.children(quick_dir)
-                        .filter_map { |f| m = f.match(/\A(\d+)-/); m ? m[1].to_i : nil }
-          next_num = existing.max + 1 if existing.any?
-        end
-
-        result = {
-          planner_model: resolve_model(cwd, "ariadna-planner"),
-          executor_model: resolve_model(cwd, "ariadna-executor"),
-          commit_docs: config["commit_docs"],
-          next_num: next_num,
-          slug: slug,
-          description: description && !description.empty? ? description : nil,
-          date: now.strftime("%Y-%m-%d"),
-          timestamp: now.iso8601,
-          quick_dir: ".ariadna_planning/quick",
-          task_dir: slug ? ".ariadna_planning/quick/#{next_num}-#{slug}" : nil,
-          roadmap_exists: path_exists?(cwd, ".ariadna_planning/ROADMAP.md"),
-          planning_exists: path_exists?(cwd, ".ariadna_planning")
-        }
-
-        Output.json(result, raw: raw)
-      end
-
-      def self.resume(raw: false)
-        cwd = Dir.pwd
-        config = ConfigManager.load_config(cwd)
-
-        interrupted_agent_id = nil
-        agent_file = File.join(cwd, ".ariadna_planning", "current-agent-id.txt")
-        interrupted_agent_id = File.read(agent_file).strip if File.exist?(agent_file)
-
-        result = {
-          state_exists: path_exists?(cwd, ".ariadna_planning/STATE.md"),
-          roadmap_exists: path_exists?(cwd, ".ariadna_planning/ROADMAP.md"),
-          project_exists: path_exists?(cwd, ".ariadna_planning/PROJECT.md"),
-          planning_exists: path_exists?(cwd, ".ariadna_planning"),
-          has_interrupted_agent: !interrupted_agent_id.nil?,
-          interrupted_agent_id: interrupted_agent_id,
-          commit_docs: config["commit_docs"]
-        }
+          plan_count: phase_info&.dig(:plans)&.length || 0
+        )
 
         Output.json(result, raw: raw)
       end
@@ -273,43 +95,104 @@ module Ariadna
 
         cwd = Dir.pwd
         config = ConfigManager.load_config(cwd)
-        phase_info = find_phase_internal(cwd, phase)
+        phase_info = find_phase(cwd, phase)
+        summaries = phase_info&.dig(:summaries) || []
 
-        result = {
-          planner_model: resolve_model(cwd, "ariadna-planner"),
-          checker_model: resolve_model(cwd, "ariadna-plan-checker"),
-          commit_docs: config["commit_docs"],
+        summary_paths = summaries.map do |s|
+          File.join(phase_info[:directory], s)
+        end
+
+        result = base_result(config).merge(
+          verifier_model: resolve_model(cwd, "ariadna-verifier"),
           phase_found: !phase_info.nil?,
           phase_dir: phase_info&.dig(:directory),
           phase_number: phase_info&.dig(:phase_number),
           phase_name: phase_info&.dig(:phase_name),
-          has_verification: phase_info&.dig(:has_verification) || false
-        }
+          has_verification: phase_info&.dig(:has_verification) || false,
+          summary_paths: summary_paths
+        )
 
         Output.json(result, raw: raw)
       end
 
-      def self.phase_op(phase, raw: false)
+      def self.new_project(raw: false)
         cwd = Dir.pwd
         config = ConfigManager.load_config(cwd)
-        phase_info = find_phase_internal(cwd, phase)
 
-        result = {
-          commit_docs: config["commit_docs"],
+        result = base_result(config).merge(
+          researcher_model: resolve_model(cwd, "ariadna-project-researcher"),
+          roadmapper_model: resolve_model(cwd, "ariadna-roadmapper"),
+          is_brownfield: detect_brownfield(cwd),
+          has_git: File.exist?(File.join(cwd, ".git")),
+          planning_exists: File.directory?(File.join(cwd, ".ariadna_planning"))
+        )
+
+        Output.json(result, raw: raw)
+      end
+
+      def self.new_milestone(raw: false)
+        cwd = Dir.pwd
+        config = ConfigManager.load_config(cwd)
+
+        result = base_result(config).merge(
+          roadmapper_model: resolve_model(cwd, "ariadna-roadmapper"),
+          current_milestone: milestone_version(cwd)
+        )
+
+        Output.json(result, raw: raw)
+      end
+
+      def self.quick(description, raw: false)
+        cwd = Dir.pwd
+        config = ConfigManager.load_config(cwd)
+        slug = generate_slug(description)&.slice(0, 40) if description && !description.empty?
+        next_num = next_quick_number(cwd)
+
+        result = base_result(config).merge(
+          planner_model: resolve_model(cwd, "ariadna-planner"),
+          executor_model: resolve_model(cwd, "ariadna-executor"),
+          next_num: next_num,
+          slug: slug,
+          description: description && !description.empty? ? description : nil,
+          quick_dir: ".ariadna_planning/quick",
+          task_dir: slug ? ".ariadna_planning/quick/#{next_num}-#{slug}" : nil
+        )
+
+        Output.json(result, raw: raw)
+      end
+
+      def self.resume(raw: false)
+        cwd = Dir.pwd
+        config = ConfigManager.load_config(cwd)
+
+        agent_file = File.join(cwd, ".ariadna_planning", "current-agent-id.txt")
+        agent_id = File.exist?(agent_file) ? File.read(agent_file).strip : nil
+
+        result = base_result(config).merge(
+          has_interrupted_agent: !agent_id.nil?,
+          interrupted_agent_id: agent_id,
+          planning_exists: File.directory?(File.join(cwd, ".ariadna_planning"))
+        )
+
+        Output.json(result, raw: raw)
+      end
+
+      def self.phase_op(phase, raw: false) # rubocop:disable Metrics/CyclomaticComplexity
+        cwd = Dir.pwd
+        config = ConfigManager.load_config(cwd)
+        phase_info = find_phase(cwd, phase)
+
+        result = base_result(config).merge(
           phase_found: !phase_info.nil?,
           phase_dir: phase_info&.dig(:directory),
           phase_number: phase_info&.dig(:phase_number),
           phase_name: phase_info&.dig(:phase_name),
-          phase_slug: phase_info&.dig(:phase_slug),
           padded_phase: phase_info&.dig(:phase_number)&.rjust(2, "0"),
           has_research: phase_info&.dig(:has_research) || false,
           has_context: phase_info&.dig(:has_context) || false,
-          has_plans: (phase_info&.dig(:plans)&.length || 0) > 0,
           has_verification: phase_info&.dig(:has_verification) || false,
-          plan_count: phase_info&.dig(:plans)&.length || 0,
-          roadmap_exists: path_exists?(cwd, ".ariadna_planning/ROADMAP.md"),
-          planning_exists: path_exists?(cwd, ".ariadna_planning")
-        }
+          plan_count: phase_info&.dig(:plans)&.length || 0
+        )
 
         Output.json(result, raw: raw)
       end
@@ -317,42 +200,14 @@ module Ariadna
       def self.todos(area, raw: false)
         cwd = Dir.pwd
         config = ConfigManager.load_config(cwd)
-        now = Time.now.utc
+        todo_list = collect_todos(cwd, area)
 
-        pending_dir = File.join(cwd, ".ariadna_planning", "todos", "pending")
-        count = 0
-        todo_list = []
-
-        if File.directory?(pending_dir)
-          Dir[File.join(pending_dir, "*.md")].each do |file|
-            content = File.read(file)
-            created = content[/^created:\s*(.+)$/i, 1]&.strip || "unknown"
-            title = content[/^title:\s*(.+)$/i, 1]&.strip || "Untitled"
-            todo_area = content[/^area:\s*(.+)$/i, 1]&.strip || "general"
-
-            next if area && todo_area != area
-
-            count += 1
-            todo_list << {
-              file: File.basename(file), created: created, title: title, area: todo_area,
-              path: File.join(".ariadna_planning", "todos", "pending", File.basename(file))
-            }
-          end
-        end
-
-        result = {
-          commit_docs: config["commit_docs"],
-          date: now.strftime("%Y-%m-%d"),
-          timestamp: now.iso8601,
-          todo_count: count,
+        result = base_result(config).merge(
+          todo_count: todo_list.length,
           todos: todo_list,
           area_filter: area,
-          pending_dir: ".ariadna_planning/todos/pending",
-          completed_dir: ".ariadna_planning/todos/completed",
-          planning_exists: path_exists?(cwd, ".ariadna_planning"),
-          todos_dir_exists: path_exists?(cwd, ".ariadna_planning/todos"),
-          pending_dir_exists: path_exists?(cwd, ".ariadna_planning/todos/pending")
-        }
+          pending_dir: ".ariadna_planning/todos/pending"
+        )
 
         Output.json(result, raw: raw)
       end
@@ -360,43 +215,11 @@ module Ariadna
       def self.milestone_op(raw: false)
         cwd = Dir.pwd
         config = ConfigManager.load_config(cwd)
-        milestone = get_milestone_info(cwd)
 
-        phases_dir = File.join(cwd, ".ariadna_planning", "phases")
-        phase_count = 0
-        completed_phases = 0
-
-        if File.directory?(phases_dir)
-          dirs = Dir.children(phases_dir).select { |d| File.directory?(File.join(phases_dir, d)) }
-          phase_count = dirs.length
-          dirs.each do |dir|
-            phase_files = Dir.children(File.join(phases_dir, dir))
-            completed_phases += 1 if phase_files.any? { |f| f.end_with?("-SUMMARY.md") || f == "SUMMARY.md" }
-          end
-        end
-
-        archive_dir = File.join(cwd, ".ariadna_planning", "archive")
-        archived_milestones = []
-        if File.directory?(archive_dir)
-          archived_milestones = Dir.children(archive_dir).select { |e| File.directory?(File.join(archive_dir, e)) }
-        end
-
-        result = {
-          commit_docs: config["commit_docs"],
-          milestone_version: milestone[:version],
-          milestone_name: milestone[:name],
-          milestone_slug: generate_slug(milestone[:name]),
-          phase_count: phase_count,
-          completed_phases: completed_phases,
-          all_phases_complete: phase_count > 0 && phase_count == completed_phases,
-          archived_milestones: archived_milestones,
-          archive_count: archived_milestones.length,
-          project_exists: path_exists?(cwd, ".ariadna_planning/PROJECT.md"),
-          roadmap_exists: path_exists?(cwd, ".ariadna_planning/ROADMAP.md"),
-          state_exists: path_exists?(cwd, ".ariadna_planning/STATE.md"),
-          archive_exists: path_exists?(cwd, ".ariadna_planning/archive"),
-          phases_dir_exists: path_exists?(cwd, ".ariadna_planning/phases")
-        }
+        result = base_result(config).merge(
+          milestone_version: milestone_version(cwd),
+          planning_exists: File.directory?(File.join(cwd, ".ariadna_planning"))
+        )
 
         Output.json(result, raw: raw)
       end
@@ -405,170 +228,89 @@ module Ariadna
         cwd = Dir.pwd
         config = ConfigManager.load_config(cwd)
 
-        codebase_dir = File.join(cwd, ".ariadna_planning", "codebase")
-        existing_maps = []
-        existing_maps = Dir.children(codebase_dir).select { |f| f.end_with?(".md") } if File.directory?(codebase_dir)
-
-        result = {
+        result = base_result(config).merge(
           mapper_model: resolve_model(cwd, "ariadna-codebase-mapper"),
-          commit_docs: config["commit_docs"],
-          search_gitignored: config["search_gitignored"],
-          parallelization: config["parallelization"],
-          codebase_dir: ".ariadna_planning/codebase",
-          existing_maps: existing_maps,
-          has_maps: existing_maps.any?,
-          planning_exists: path_exists?(cwd, ".ariadna_planning"),
-          codebase_dir_exists: path_exists?(cwd, ".ariadna_planning/codebase")
-        }
+          codebase_dir: ".ariadna_planning/codebase"
+        )
 
         Output.json(result, raw: raw)
       end
 
-      def self.init_progress(includes, raw: false)
+      def self.init_progress(raw: false)
         cwd = Dir.pwd
         config = ConfigManager.load_config(cwd)
-        milestone = get_milestone_info(cwd)
+        phases = scan_phases(cwd)
 
-        phases_dir = File.join(cwd, ".ariadna_planning", "phases")
-        phases = []
-        current_phase = nil
-        next_phase = nil
-
-        if File.directory?(phases_dir)
-          dirs = Dir.children(phases_dir)
-                    .select { |d| File.directory?(File.join(phases_dir, d)) }
-                    .sort
-
-          dirs.each do |dir|
-            m = dir.match(/\A(\d+(?:\.\d+)?)-?(.*)/)
-            phase_number = m ? m[1] : dir
-            phase_name = m && !m[2].empty? ? m[2] : nil
-
-            phase_path = File.join(phases_dir, dir)
-            phase_files = Dir.children(phase_path)
-
-            plans = phase_files.select { |f| f.end_with?("-PLAN.md") || f == "PLAN.md" }
-            summaries = phase_files.select { |f| f.end_with?("-SUMMARY.md") || f == "SUMMARY.md" }
-            has_research = phase_files.any? { |f| f.end_with?("-RESEARCH.md") || f == "RESEARCH.md" }
-
-            status = if summaries.length >= plans.length && plans.any?
-                       "complete"
-                     elsif plans.any?
-                       "in_progress"
-                     elsif has_research
-                       "researched"
-                     else
-                       "pending"
-                     end
-
-            phase_entry = {
-              number: phase_number, name: phase_name,
-              directory: File.join(".ariadna_planning", "phases", dir),
-              status: status, plan_count: plans.length,
-              summary_count: summaries.length, has_research: has_research
-            }
-
-            phases << phase_entry
-            current_phase ||= phase_entry if status == "in_progress" || status == "researched"
-            next_phase ||= phase_entry if status == "pending"
-          end
-        end
-
-        paused_at = nil
-        state_path = File.join(cwd, ".ariadna_planning", "STATE.md")
-        if File.exist?(state_path)
-          state_content = File.read(state_path)
-          pause_match = state_content.match(/\*\*Paused At:\*\*\s*(.+)/)
-          paused_at = pause_match[1].strip if pause_match
-        end
-
-        result = {
-          executor_model: resolve_model(cwd, "ariadna-executor"),
-          planner_model: resolve_model(cwd, "ariadna-planner"),
-          commit_docs: config["commit_docs"],
-          milestone_version: milestone[:version],
-          milestone_name: milestone[:name],
+        result = base_result(config).merge(
+          milestone_version: milestone_version(cwd),
           phases: phases,
           phase_count: phases.length,
           completed_count: phases.count { |p| p[:status] == "complete" },
           in_progress_count: phases.count { |p| p[:status] == "in_progress" },
-          current_phase: current_phase,
-          next_phase: next_phase,
-          paused_at: paused_at,
-          has_work_in_progress: !current_phase.nil?,
-          project_exists: path_exists?(cwd, ".ariadna_planning/PROJECT.md"),
-          roadmap_exists: path_exists?(cwd, ".ariadna_planning/ROADMAP.md"),
-          state_exists: path_exists?(cwd, ".ariadna_planning/STATE.md")
-        }
-
-        result[:state_content] = safe_read_file(File.join(cwd, ".ariadna_planning", "STATE.md")) if includes.include?("state")
-        result[:roadmap_content] = safe_read_file(File.join(cwd, ".ariadna_planning", "ROADMAP.md")) if includes.include?("roadmap")
-        result[:project_content] = safe_read_file(File.join(cwd, ".ariadna_planning", "PROJECT.md")) if includes.include?("project")
-        result[:config_content] = safe_read_file(File.join(cwd, ".ariadna_planning", "config.json")) if includes.include?("config")
+          has_work_in_progress: phases.any? { |p| p[:status] == "in_progress" }
+        )
 
         Output.json(result, raw: raw)
       end
 
       # --- Private helpers ---
 
-      def self.find_phase_internal(cwd, phase)
+      def self.base_result(config)
+        { memory_dir: StateManager::MEMORY_DIR, config: config }
+      end
+
+      def self.find_phase(cwd, phase)
         return nil unless phase
 
         phases_dir = File.join(cwd, ".ariadna_planning", "phases")
         normalized = normalize_phase(phase)
-
         return nil unless File.directory?(phases_dir)
 
         dirs = Dir.children(phases_dir).select { |d| File.directory?(File.join(phases_dir, d)) }.sort
         match = dirs.find { |d| d.start_with?(normalized) }
         return nil unless match
 
+        parse_phase_dir(phases_dir, match, normalized)
+      rescue StandardError
+        nil
+      end
+
+      def self.parse_phase_dir(phases_dir, match, _normalized) # rubocop:disable Metrics
         dir_match = match.match(/\A(\d+(?:\.\d+)?)-?(.*)/)
-        phase_number = dir_match ? dir_match[1] : normalized
+        phase_number = dir_match ? dir_match[1] : match
         phase_name = dir_match && !dir_match[2].empty? ? dir_match[2] : nil
-        phase_slug = phase_name ? phase_name.downcase.gsub(/[^a-z0-9]+/, "-").gsub(/\A-+|-+\z/, "") : nil
 
         phase_dir = File.join(phases_dir, match)
-        phase_files = Dir.children(phase_dir)
-
-        plans = phase_files.select { |f| f.end_with?("-PLAN.md") || f == "PLAN.md" }.sort
-        summaries = phase_files.select { |f| f.end_with?("-SUMMARY.md") || f == "SUMMARY.md" }.sort
-        has_research = phase_files.any? { |f| f.end_with?("-RESEARCH.md") || f == "RESEARCH.md" }
-        has_context = phase_files.any? { |f| f.end_with?("-CONTEXT.md") || f == "CONTEXT.md" }
-        has_verification = phase_files.any? { |f| f.end_with?("-VERIFICATION.md") || f == "VERIFICATION.md" }
-
-        completed_plan_ids = summaries.map { |s| s.sub(/-SUMMARY\.md$/, "").sub(/\ASUMMARY\.md$/, "") }
-        incomplete_plans = plans.reject do |p|
-          plan_id = p.sub(/-PLAN\.md$/, "").sub(/\APLAN\.md$/, "")
-          completed_plan_ids.include?(plan_id)
-        end
+        files = Dir.children(phase_dir)
 
         {
           directory: File.join(".ariadna_planning", "phases", match),
           phase_number: phase_number,
           phase_name: phase_name,
-          phase_slug: phase_slug,
-          plans: plans,
-          summaries: summaries,
-          incomplete_plans: incomplete_plans,
-          has_research: has_research,
-          has_context: has_context,
-          has_verification: has_verification
+          phase_slug: generate_slug(phase_name),
+          plans: files.select { |f| f.end_with?("-PLAN.md") || f == "PLAN.md" }.sort,
+          summaries: files.select { |f| f.end_with?("-SUMMARY.md") || f == "SUMMARY.md" }.sort,
+          has_research: files.any? { |f| f.end_with?("-RESEARCH.md") || f == "RESEARCH.md" },
+          has_context: files.any? { |f| f.end_with?("-CONTEXT.md") || f == "CONTEXT.md" },
+          has_verification: files.any? { |f| f.end_with?("-VERIFICATION.md") || f == "VERIFICATION.md" }
         }
-      rescue StandardError
-        nil
       end
 
-      def self.get_milestone_info(cwd)
-        roadmap = File.read(File.join(cwd, ".ariadna_planning", "ROADMAP.md"))
-        version_match = roadmap.match(/v(\d+\.\d+)/)
-        name_match = roadmap.match(/## .*v\d+\.\d+[:\s]+([^\n(]+)/)
-        {
-          version: version_match ? version_match[0] : "v1.0",
-          name: name_match ? name_match[1].strip : "milestone"
-        }
-      rescue Errno::ENOENT
-        { version: "v1.0", name: "milestone" }
+      def self.build_plan_metadata(cwd, phase_info)
+        return [] unless phase_info
+
+        phase_dir = File.join(cwd, phase_info[:directory])
+        phase_info[:plans].map do |plan_file|
+          fm = Frontmatter.extract(File.read(File.join(phase_dir, plan_file)))
+          { file: plan_file, domain: fm["domain"] || "general", wave: fm["wave"] || "1" }
+        end
+      end
+
+      def self.incomplete_plan_files(_cwd, phase_info)
+        return [] unless phase_info
+
+        completed_ids = (phase_info[:summaries] || []).map { |s| s.sub(/-SUMMARY\.md$/, "") }
+        (phase_info[:plans] || []).reject { |p| completed_ids.include?(p.sub(/-PLAN\.md$/, "")) }
       end
 
       def self.resolve_model(cwd, agent_type)
@@ -577,20 +319,12 @@ module Ariadna
         ModelProfiles.resolve_model(agent_type, profile)
       end
 
-      def self.path_exists?(cwd, relative_path)
-        File.exist?(File.join(cwd, relative_path))
-      end
-
-      def self.safe_read_file(path)
-        File.read(path)
-      rescue StandardError
-        nil
-      end
-
-      def self.generate_slug(text)
-        return nil unless text
-
-        text.downcase.gsub(/[^a-z0-9]+/, "-").gsub(/\A-+|-+\z/, "")
+      def self.milestone_version(cwd)
+        roadmap = File.read(File.join(cwd, ".ariadna_planning", "ROADMAP.md"))
+        match = roadmap.match(/v(\d+\.\d+)/)
+        match ? match[0] : "v1.0"
+      rescue Errno::ENOENT
+        "v1.0"
       end
 
       def self.normalize_phase(phase)
@@ -602,19 +336,85 @@ module Ariadna
         parts.length > 1 ? "#{padded}.#{parts[1]}" : padded
       end
 
-      def self.parse_include_flag(argv)
-        idx = argv.index("--include")
-        return [] unless idx
+      def self.generate_slug(text)
+        return nil unless text
 
-        value = argv[idx + 1]
-        return [] unless value
-
-        value.split(",").map(&:strip)
+        text.downcase.gsub(/[^a-z0-9]+/, "-").gsub(/\A-+|-+\z/, "")
       end
 
-      private_class_method :find_phase_internal, :get_milestone_info, :resolve_model,
-                           :path_exists?, :safe_read_file, :generate_slug,
-                           :normalize_phase, :parse_include_flag
+      def self.detect_brownfield(cwd)
+        package_files = %w[package.json requirements.txt Cargo.toml go.mod Gemfile]
+        return true if package_files.any? { |f| File.exist?(File.join(cwd, f)) }
+
+        exts = %w[*.ts *.js *.py *.rb].map { |e| "-name \"#{e}\"" }.join(" -o ")
+        cmd = "find #{cwd} -maxdepth 3 \\( #{exts} \\) 2>/dev/null"
+        !`#{cmd} | grep -v node_modules | grep -v .git | head -3`.strip.empty?
+      rescue StandardError
+        false
+      end
+
+      def self.next_quick_number(cwd)
+        quick_dir = File.join(cwd, ".ariadna_planning", "quick")
+        return 1 unless File.directory?(quick_dir)
+
+        existing = Dir.children(quick_dir).filter_map do |f|
+          m = f.match(/\A(\d+)-/)
+          m ? m[1].to_i : nil
+        end
+        existing.any? ? existing.max + 1 : 1
+      end
+
+      def self.collect_todos(cwd, area) # rubocop:disable Metrics
+        pending_dir = File.join(cwd, ".ariadna_planning", "todos", "pending")
+        return [] unless File.directory?(pending_dir)
+
+        Dir[File.join(pending_dir, "*.md")].filter_map do |file|
+          content = File.read(file)
+          todo_area = content[/^area:\s*(.+)$/i, 1]&.strip || "general"
+          next if area && todo_area != area
+
+          {
+            file: File.basename(file),
+            title: content[/^title:\s*(.+)$/i, 1]&.strip || "Untitled",
+            area: todo_area,
+            path: File.join(".ariadna_planning", "todos", "pending", File.basename(file))
+          }
+        end
+      end
+
+      def self.scan_phases(cwd)
+        phases_dir = File.join(cwd, ".ariadna_planning", "phases")
+        return [] unless File.directory?(phases_dir)
+
+        Dir.children(phases_dir)
+           .select { |d| File.directory?(File.join(phases_dir, d)) }
+           .sort
+           .map { |dir| build_phase_entry(phases_dir, dir) }
+      end
+
+      def self.build_phase_entry(phases_dir, dir) # rubocop:disable Metrics
+        m = dir.match(/\A(\d+(?:\.\d+)?)-?(.*)/)
+        phase_number = m ? m[1] : dir
+        files = Dir.children(File.join(phases_dir, dir))
+        plans = files.select { |f| f.end_with?("-PLAN.md") || f == "PLAN.md" }
+        summaries = files.select { |f| f.end_with?("-SUMMARY.md") || f == "SUMMARY.md" }
+
+        status = if summaries.length >= plans.length && plans.any?
+                   "complete"
+                 elsif plans.any?
+                   "in_progress"
+                 else
+                   "pending"
+                 end
+
+        { number: phase_number, directory: File.join(".ariadna_planning", "phases", dir), status: status }
+      end
+
+      private_class_method :base_result, :find_phase, :parse_phase_dir,
+                           :build_plan_metadata, :incomplete_plan_files,
+                           :resolve_model, :milestone_version, :normalize_phase,
+                           :generate_slug, :detect_brownfield, :next_quick_number,
+                           :collect_todos, :scan_phases, :build_phase_entry
     end
   end
 end

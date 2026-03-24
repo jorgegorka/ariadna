@@ -14,38 +14,25 @@ Start a new milestone: questioning → research (optional) → requirements → 
 
 Brownfield equivalent of new-project. Project exists, PROJECT.md has history. Gathers "what's next", updates PROJECT.md, then runs requirements → roadmap cycle.
 
-**Creates/Updates:**
-- `.ariadna_planning/PROJECT.md` — updated with new milestone goals
-- `.ariadna_planning/research/` — domain research (optional, NEW features only)
-- `.ariadna_planning/REQUIREMENTS.md` — scoped requirements for this milestone
-- `.ariadna_planning/ROADMAP.md` — phase structure (continues numbering)
-- `.ariadna_planning/STATE.md` — reset for new milestone
+**Creates/Updates:** `PROJECT.md`, `REQUIREMENTS.md`, `ROADMAP.md`, `STATE.md`
 
 **After:** `/ariadna:plan-phase [N]` to start execution.
 </objective>
 
-<execution_context>
-@~/.claude/ariadna/workflows/new-milestone.md
-@~/.claude/ariadna/references/questioning.md
-@~/.claude/ariadna/references/ui-brand.md
-@~/.claude/ariadna/templates/project.md
-@~/.claude/ariadna/templates/requirements.md
-</execution_context>
-
 <context>
-Milestone name: $ARGUMENTS (optional - will prompt if not provided)
+Milestone name: $ARGUMENTS (optional — will prompt if not provided)
 
-**Load project context:**
-@.ariadna_planning/PROJECT.md
-@.ariadna_planning/STATE.md
-@.ariadna_planning/MILESTONES.md
-@.ariadna_planning/config.json
-
-**Load milestone context (if exists, from /ariadna:discuss-milestone):**
-@.ariadna_planning/MILESTONE-CONTEXT.md
+Follow the workflow in `~/.claude/ariadna/workflows/new-milestone.md` end-to-end.
 </context>
 
 <process>
-Execute the new-milestone workflow from @~/.claude/ariadna/workflows/new-milestone.md end-to-end.
-Preserve all workflow gates (validation, questioning, research, requirements, roadmap approval, commits).
+1. Run `ariadna-tools init new-milestone` to load context as JSON.
+2. Load PROJECT.md, STATE.md, MILESTONES.md; check for MILESTONE-CONTEXT.md.
+3. Gather milestone goals through conversation (or use existing MILESTONE-CONTEXT.md).
+4. Determine milestone version; update PROJECT.md and STATE.md; commit.
+5. Ask about research; optionally spawn 4 parallel researchers + synthesizer.
+6. Define requirements by category; write REQUIREMENTS.md; commit.
+7. Spawn `ariadna-roadmapper` with continuing phase numbering.
+8. Present roadmap for approval; commit on approval.
+9. Display next step: `/ariadna:plan-phase [N]`.
 </process>

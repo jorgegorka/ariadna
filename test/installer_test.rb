@@ -40,29 +40,8 @@ class InstallerTest < Minitest::Test
 
     assert File.directory?(File.join(@tmpdir, "ariadna", "workflows")), "workflows/ should exist"
     assert File.directory?(File.join(@tmpdir, "ariadna", "templates")), "templates/ should exist"
-    assert File.directory?(File.join(@tmpdir, "ariadna", "references")), "references/ should exist"
   end
 
-  def test_fresh_install_creates_guides
-    installer = Ariadna::Installer.new(target_dir: @tmpdir)
-    installer.install
-
-    guides_dir = File.join(@tmpdir, "guides")
-    assert File.directory?(guides_dir), "guides/ should exist"
-    assert File.exist?(File.join(guides_dir, "backend.md")), "backend.md should exist"
-    assert File.exist?(File.join(guides_dir, "frontend.md")), "frontend.md should exist"
-    assert File.exist?(File.join(guides_dir, "testing.md")), "testing.md should exist"
-  end
-
-  def test_guides_included_in_manifest
-    installer = Ariadna::Installer.new(target_dir: @tmpdir)
-    installer.install
-
-    manifest = JSON.parse(File.read(File.join(@tmpdir, Ariadna::Installer::MANIFEST_NAME)))
-    guide_entries = manifest["files"].keys.select { |k| k.start_with?("guides/") }
-    refute_empty guide_entries, "manifest should include guide entries"
-    assert guide_entries.any? { |k| k.include?("backend.md") }, "manifest should include backend.md"
-  end
 
   def test_fresh_install_writes_version
     installer = Ariadna::Installer.new(target_dir: @tmpdir)
@@ -112,9 +91,9 @@ class InstallerTest < Minitest::Test
     installer.install
 
     # Modify a file
-    cmd_file = File.join(@tmpdir, "commands", "ariadna", "help.md")
+    cmd_file = File.join(@tmpdir, "commands", "ariadna", "execute-phase.md")
     assert File.exist?(cmd_file)
-    File.write(cmd_file, "# My custom help\n\nI modified this file.")
+    File.write(cmd_file, "# My custom execute-phase\n\nI modified this file.")
 
     # Re-install (upgrade)
     installer2 = Ariadna::Installer.new(target_dir: @tmpdir)
@@ -124,14 +103,14 @@ class InstallerTest < Minitest::Test
     patches_dir = File.join(@tmpdir, Ariadna::Installer::PATCHES_DIR)
     assert File.directory?(patches_dir), "patches dir should exist"
 
-    backup = File.join(patches_dir, "commands", "ariadna", "help.md")
+    backup = File.join(patches_dir, "commands", "ariadna", "execute-phase.md")
     assert File.exist?(backup), "modified file should be backed up"
-    assert_equal "# My custom help\n\nI modified this file.", File.read(backup)
+    assert_equal "# My custom execute-phase\n\nI modified this file.", File.read(backup)
 
     meta_path = File.join(patches_dir, "backup-meta.json")
     assert File.exist?(meta_path)
     meta = JSON.parse(File.read(meta_path))
-    assert_includes meta["files"], "commands/ariadna/help.md"
+    assert_includes meta["files"], "commands/ariadna/execute-phase.md"
     assert_equal Ariadna::VERSION, meta["from_version"]
   end
 
@@ -212,7 +191,7 @@ class InstallerTest < Minitest::Test
     installer.install
 
     # Modify a file and re-install to create patches
-    cmd_file = File.join(@tmpdir, "commands", "ariadna", "help.md")
+    cmd_file = File.join(@tmpdir, "commands", "ariadna", "execute-phase.md")
     File.write(cmd_file, "modified")
     installer2 = Ariadna::Installer.new(target_dir: @tmpdir)
     installer2.install
@@ -241,6 +220,41 @@ class InstallerTest < Minitest::Test
 
     # File hashes should be identical
     assert_equal manifest1["files"], manifest2["files"]
+  end
+
+  # --- Skills ---
+
+  def test_installs_skills_directory
+    installer = Ariadna::Installer.new(target_dir: @tmpdir)
+    installer.install
+
+    skills_dir = File.join(@tmpdir, "skills")
+    assert File.directory?(skills_dir), "skills/ should exist"
+    assert File.exist?(File.join(skills_dir, "rails-backend", "SKILL.md")),
+           "rails-backend/SKILL.md should exist"
+  end
+
+  def test_manifest_includes_skills
+    installer = Ariadna::Installer.new(target_dir: @tmpdir)
+    installer.install
+
+    manifest = JSON.parse(File.read(File.join(@tmpdir, Ariadna::Installer::MANIFEST_NAME)))
+    skill_entries = manifest["files"].keys.select { |k| k.start_with?("skills/") }
+    refute_empty skill_entries, "manifest should include skills/ entries"
+    assert skill_entries.any? { |k| k.include?("SKILL.md") }, "manifest should include SKILL.md entries"
+  end
+
+  def test_uninstall_removes_skills_directory
+    installer = Ariadna::Installer.new(target_dir: @tmpdir)
+    installer.install
+
+    skills_dir = File.join(@tmpdir, "skills")
+    assert File.directory?(skills_dir), "skills/ should exist after install"
+
+    uninstaller = Ariadna::Uninstaller.new(target_dir: @tmpdir)
+    uninstaller.uninstall
+
+    refute File.directory?(skills_dir), "skills/ should be removed after uninstall"
   end
 
   # --- Local install ---

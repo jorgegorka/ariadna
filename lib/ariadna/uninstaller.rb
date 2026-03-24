@@ -13,6 +13,7 @@ module Ariadna
 
       remove_commands
       remove_agents
+      remove_skills
       remove_content
       remove_statusline
       remove_patches
@@ -49,6 +50,14 @@ module Ariadna
         removed += 1
       end
       puts "  \u2713 Removed #{removed} agents" if removed > 0
+    end
+
+    def remove_skills
+      dir = File.join(@target_dir, "skills")
+      if File.directory?(dir)
+        FileUtils.rm_rf(dir)
+        puts "  \u2713 Removed skills/"
+      end
     end
 
     def remove_content

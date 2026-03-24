@@ -140,16 +140,7 @@ module Ariadna
           }
         end
 
-        domains = plans.map { |p| p[:domain] }.uniq
-        non_general = domains.reject { |d| d == "general" }
-
-        Output.json({
-                      plans: plans, count: plans.size,
-                      domains: domains,
-                      domain_count: non_general.size,
-                      multi_domain: non_general.size >= 2,
-                      recommend_team: plans.size >= 3 && non_general.size >= 2
-                    }, raw: raw)
+        Output.json({ plans: plans, count: plans.size }, raw: raw)
       end
 
       def self.list(options, raw: false)

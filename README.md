@@ -5,11 +5,11 @@ A meta-prompting and context engineering system for building Ruby on Rails appli
 [![Gem Version](https://badge.fury.io/rb/ariadna.svg)](https://rubygems.org/gems/ariadna)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Ariadna turns Claude Code into a disciplined Rails project execution engine that plans before it builds, verifies after it ships, and tracks state across sessions. It provides structured planning, multi-agent orchestration, and verification workflows via slash commands. Specialized executor agents handle backend, frontend, and testing domains with Rails-specific guides and conventions baked in.
+Ariadna turns Claude Code into a disciplined Rails project execution engine that plans before it builds, verifies after it ships, and tracks state across sessions. It provides structured planning, multi-agent orchestration, and verification workflows via slash commands.
 
-A system of prompts, agents, and workflows that make Claude Code work like a disciplined Rails engineering team.
+A system of prompts, agents, workflows, and Rails Skills that make Claude Code work like a disciplined Rails engineering team.
 
-This is not a vibe-coding tool.  You will get the best results when you review both the created plans and the outcomes of each phase. 
+This is not a vibe-coding tool. You will get the best results when you review both the created plans and the outcomes of each phase.
 
 ## Why Ariadna
 
@@ -17,20 +17,20 @@ This is not a vibe-coding tool.  You will get the best results when you review b
 
 **With Ariadna**, you get:
 
-- **Persistent memory** — `STATE.md` tracks decisions, progress, and blockers across sessions
+- **Persistent memory** — a `memory/` directory tracks decisions, progress, and blockers across sessions
 - **Structured planning** — roadmaps, phases, and plans with dependency-aware execution
 - **Parallel agents** — wave-based execution spawns multiple agents working simultaneously
-- **Rails-aware executors** — backend, frontend, and test agents load Rails-specific guides and conventions
-- **Verification** — automated goal checking plus conversational UAT after every phase
+- **Rails Skills** — domain-specific knowledge packages (backend, frontend, testing, security, performance) that agents load automatically
+- **Verification** — goal-backward phase checking after every execution
 - **Session continuity** — pause mid-phase, resume later with full context restoration
 
 ## How It Works
 
 1. You invoke a slash command (e.g., `/ariadna:execute-phase 1`)
 2. The command loads a workflow definition and gathers context via `ariadna-tools`
-3. An orchestrator spawns specialised agents (planner, executor, verifier) in parallel, routing to Rails-specific executors based on plan metadata
+3. An orchestrator spawns specialised agents (planner, executor, verifier) in parallel, routing to the appropriate agent based on plan domain
 4. Agents execute tasks, make atomic commits, and produce summaries
-5. Project state is updated in `.ariadna_planning/STATE.md`
+5. Project memory is updated in `.ariadna_planning/memory/`
 
 ## Quick Start
 
@@ -60,7 +60,7 @@ ariadna install --local     # Installs to ./.claude/ — project-specific
 /ariadna:plan-phase 1          # Create detailed plan for first phase
 /clear
 /ariadna:execute-phase 1       # Execute it with parallel agents
-/ariadna:verify-work 1         # Conversational UAT
+/ariadna:verify-work 1         # Verify phase goal achievement
 ```
 
 Use `/clear` between commands to give each orchestrator a fresh context window. Each command loads only the context it needs.
@@ -85,39 +85,19 @@ For adding features to an existing project without a full roadmap, use `/ariadna
 
 Every phase follows the same three-step cycle:
 
-**Plan** (`/ariadna:plan-phase N`) — gathers context inline, then spawns a planner and plan-checker. The planner creates `PLAN.md` files using pre-loaded Rails conventions, and the plan-checker validates the plan against the phase goal. Use `--research` to force ecosystem research for non-standard domains. Output: one or more `PLAN.md` files in `.ariadna_planning/phases/`.
+**Plan** (`/ariadna:plan-phase N`) — gathers context inline, then spawns the planner. The planner creates `PLAN.md` files using pre-loaded Rails Skills. Output: one or more `PLAN.md` files in `.ariadna_planning/phases/`.
 
-**Execute** (`/ariadna:execute-phase N`) — groups plans into waves based on dependency numbering. Plans in the same wave run in parallel via separate executor agents. Each agent reads its plan, executes tasks with atomic commits, and writes a `SUMMARY.md`. The orchestrator spot-checks results between waves.
+**Execute** (`/ariadna:execute-phase N`) — groups plans into waves based on dependency numbering. Plans in the same wave run in parallel via separate executor agents. Each agent reads its plan, loads the matching Rails Skill, executes tasks with atomic commits, and writes a `SUMMARY.md`.
 
-**Verify** (`/ariadna:verify-work N`) — conversational UAT session. The verifier checks whether the phase goal was achieved (not just whether tasks were completed). If gaps are found, it creates a verification report and you can run `/ariadna:plan-phase N --gaps` to close them.
-
-### Phase Preparation (Optional)
-
-`/ariadna:plan-phase` now gathers context inline — it assesses whether the phase needs discussion and offers a quick in-line option. For most Rails phases, you can go straight to planning.
-
-For complex phases involving unfamiliar libraries or non-standard domains, prepare before planning:
-
-```
-/ariadna:discuss-phase N              # Capture your vision and decisions → CONTEXT.md
-/clear
-/ariadna:research-phase N             # Deep ecosystem research → RESEARCH.md
-/clear
-/ariadna:list-phase-assumptions N     # See Claude's intended approach before committing
-/clear
-/ariadna:plan-phase N                 # Plan with full context
-```
-
-Use `--research` with `/ariadna:plan-phase` to force research for phases involving unfamiliar gems, external APIs, or non-standard patterns. Standard Rails work (models, controllers, auth, jobs, mailers, Turbo) uses pre-loaded conventions and doesn't need research.
+**Verify** (`/ariadna:verify-work N`) — goal-backward verification. The verifier checks whether the phase goal was achieved (not just whether tasks were completed). If gaps are found, it creates a verification report and you can run `/ariadna:plan-phase N --gaps` to close them.
 
 ### Session Management
 
 ```
-/ariadna:pause-work        # Creates .continue-here.md handoff document
-/ariadna:resume-work       # Restores context and routes to next action
 /ariadna:progress          # Status overview with next-action routing
 ```
 
-Pause *before* hitting context limits. The handoff document captures current position, completed work, and what's next so the new session starts informed.
+The progress command reads `.ariadna_planning/memory/` to restore your position and show what's next.
 
 ### Quick Tasks
 
@@ -125,7 +105,7 @@ Pause *before* hitting context limits. The handoff document captures current pos
 /ariadna:quick             # Same guarantees, skips optional agents
 ```
 
-For small, ad-hoc tasks that don't warrant a full phase cycle. Quick tasks live in `.ariadna_planning/quick/`, get atomic commits, and update `STATE.md` — but skip the roadmap and don't create phase directories.
+For small, ad-hoc tasks that don't warrant a full phase cycle. Quick tasks live in `.ariadna_planning/quick/`, get atomic commits, and update memory — but skip the roadmap and don't create phase directories.
 
 ### Milestone Lifecycle
 
@@ -133,11 +113,7 @@ Milestones represent major release boundaries (v1.0, v2.0). The full lifecycle:
 
 ```
 # After completing all phases in a milestone:
-/ariadna:audit-milestone           # Check completion against original intent
-/ariadna:plan-milestone-gaps       # Create phases to close any audit gaps
-# Execute gap phases...
-/ariadna:complete-milestone v1.0   # Archive milestone and tag release
-/ariadna:new-milestone v2.0        # Start next milestone
+/ariadna:new-milestone v2.0    # Start next milestone
 ```
 
 Roadmap manipulation commands:
@@ -174,52 +150,50 @@ Plans use wave-based numbering (e.g., `01-01`, `01-02`) to express parallelism. 
 
 Lightweight coordinators that spawn specialised agents. They stay lean (~10-15% context usage), passing file paths to subagents rather than content. Each subagent gets a fresh 200k context window.
 
-### Specialised Executors
-
-Plans include a `domain` field in their frontmatter. The execute-phase orchestrator routes each plan to the appropriate Rails-aware executor:
-
-| Domain | Executor | Guide |
-|--------|----------|-------|
-| `backend` | `ariadna-backend-executor` | `guides/backend.md` |
-| `frontend` | `ariadna-frontend-executor` | `guides/frontend.md` |
-| `testing` | `ariadna-test-executor` | `guides/testing.md` |
-| `general` (default) | `ariadna-executor` | (none) |
-
-Each specialised executor loads its domain guide automatically, applying domain-specific patterns and best practices.
-
-### Analysis & Research Agents
+### Agents
 
 | Agent | Role |
 |-------|------|
-| `ariadna-planner` | Creates PLAN.md files from phase goals and research |
-| `ariadna-plan-checker` | Validates plans against phase goals |
-| `ariadna-verifier` | Checks goal achievement, not just task completion |
-| `ariadna-integration-checker` | Verifies cross-phase integration and E2E flows |
-| `ariadna-debugger` | Scientific method debugging with persistent state |
-| `ariadna-phase-researcher` | Deep ecosystem research for a specific phase |
-| `ariadna-project-researcher` | Domain research during project initialisation |
-| `ariadna-research-synthesizer` | Synthesises parallel research outputs |
-| `ariadna-codebase-mapper` | Analyses existing codebase structure |
-| `ariadna-roadmapper` | Creates project roadmaps with phase breakdown |
+| `ariadna-executor` | Implements plan tasks with atomic commits; loads domain Skill automatically |
+| `ariadna-planner` | Creates PLAN.md files from phase goals; absorbs research and self-checking |
+| `ariadna-verifier` | Goal-backward phase verification; checks actual codebase, not just SUMMARY.md claims |
+| `ariadna-debugger` | Scientific method debugging with persistent state across sessions |
+| `ariadna-roadmapper` | Creates ROADMAP.md and STATE.md from project context; absorbs domain research |
+| `ariadna-codebase-mapper` | Explores existing codebase and writes structured analysis documents |
 
-## Guides
+## Rails Skills
 
-Guides encode Rails patterns, conventions, and best practices that executors follow during plan execution. Read below how to customise them for your project.
+Skills are standalone domain knowledge packages that agents load on demand. Each Skill is a directory of Markdown files installed to `~/.claude/skills/` (global) or `.claude/skills/` (local).
 
-| Guide | Purpose |
-|-------|---------|
-| `backend.md` | Ruby on Rails patterns, API design, database conventions |
-| `frontend.md` | Frontend architecture, component patterns, accessibility |
-| `testing.md` | Test strategy, framework conventions, coverage expectations |
-| `security.md` | Security patterns, authentication, authorisation, OWASP |
-| `performance.md` | Performance optimisation, caching, database tuning |
-| `style-guide.md` | Code style, naming conventions, formatting rules |
+The executor loads the matching Skill automatically based on the plan's `domain` frontmatter field.
 
-Executors load the relevant guide automatically based on plan domain. The security and performance guides are also used during verification.
+| Skill | Domain | Contents |
+|-------|--------|----------|
+| `rails-backend` | `backend` | Models, controllers, jobs, API design; domain model at the center |
+| `rails-frontend` | `frontend` | Hotwire, Turbo, Stimulus, views, components, assets |
+| `rails-testing` | `testing` | Minitest strategy, fixtures, system tests |
+| `rails-security` | verification | Authentication, authorization, OWASP patterns, audit checklist |
+| `rails-performance` | verification | N+1 prevention, caching, database tuning, profiling |
 
-### Customising Guides
+### Skill Structure
 
-Guides are installed to `~/.claude/guides/` (global) or `.claude/guides/` (local). Edit them to match your project's conventions. After updating Ariadna, use `/ariadna:reapply-patches` to restore your customisations.
+Each Skill has a `SKILL.md` entry point that describes the skill and links to sub-files:
+
+```
+skills/
+└── rails-backend/
+    ├── SKILL.md        # Entry point: philosophy and sub-file index
+    ├── MODELS.md       # Concern architecture, associations, scoping
+    ├── CONTROLLERS.md  # REST conventions, strong params, concerns
+    ├── JOBS.md         # _now/_later pattern, multi-tenancy context
+    └── API.md          # JSON responses, serialization, versioning
+```
+
+Skills are the replacement for the guides system from 1.x. Unlike guides, Skills are self-contained packages with a clear entry point, making them composable and independently loadable.
+
+### Customising Skills
+
+Skills are installed to `~/.claude/skills/` (global) or `.claude/skills/` (local). Edit them to match your project's conventions. After updating Ariadna, use `/ariadna:update` to restore your customisations.
 
 ## Commands
 
@@ -227,17 +201,14 @@ Guides are installed to `~/.claude/guides/` (global) or `.claude/guides/` (local
 
 | Command | Description |
 |---|---|
-| `/ariadna:new-project` | Initialise project: vision, requirements, roadmap (opinionated defaults, no research by default) |
+| `/ariadna:new-project` | Initialise project: vision, requirements, roadmap |
 | `/ariadna:map-codebase` | Analyse existing codebase before starting (brownfield projects) |
 
 ### Phase Planning
 
 | Command | Description |
 |---|---|
-| `/ariadna:discuss-phase <n>` | Capture your vision for a phase before planning |
-| `/ariadna:research-phase <n>` | Deep ecosystem research for specialised domains |
-| `/ariadna:list-phase-assumptions <n>` | See Claude's intended approach before it plans |
-| `/ariadna:plan-phase <n>` | Create detailed execution plan (inline context gathering, Rails conventions pre-loaded) |
+| `/ariadna:plan-phase <n>` | Create detailed execution plan (inline context gathering, Rails Skills pre-loaded) |
 
 ### Execution
 
@@ -245,7 +216,7 @@ Guides are installed to `~/.claude/guides/` (global) or `.claude/guides/` (local
 |---|---|
 | `/ariadna:execute-phase <n>` | Execute all plans in a phase (wave-based parallelism) |
 | `/ariadna:quick` | Small ad-hoc tasks with Ariadna guarantees |
-| `/ariadna:verify-work <n>` | Conversational UAT for built features |
+| `/ariadna:verify-work <n>` | Goal-backward verification for built features |
 
 ### Roadmap & Milestones
 
@@ -255,35 +226,18 @@ Guides are installed to `~/.claude/guides/` (global) or `.claude/guides/` (local
 | `/ariadna:insert-phase <after> <desc>` | Insert urgent work as decimal phase (e.g., 7.1) |
 | `/ariadna:remove-phase <n>` | Remove future phase and renumber |
 | `/ariadna:new-milestone <name>` | Start a new milestone |
-| `/ariadna:complete-milestone <ver>` | Archive milestone and tag release |
-| `/ariadna:audit-milestone` | Audit completion against original intent |
-| `/ariadna:plan-milestone-gaps` | Create phases to close audit gaps |
 
 ### Session & Progress
 
 | Command | Description |
 |---|---|
 | `/ariadna:progress` | Status overview and next-action routing |
-| `/ariadna:resume-work` | Restore context from previous session |
-| `/ariadna:pause-work` | Create handoff for mid-phase breaks |
 
-### Debugging & Todos
+### Debugging
 
 | Command | Description |
 |---|---|
 | `/ariadna:debug [desc]` | Systematic debugging with persistent state (survives `/clear`) |
-| `/ariadna:add-todo [desc]` | Capture ideas/tasks |
-| `/ariadna:check-todos [area]` | Review and work on pending todos |
-
-### Configuration & Maintenance
-
-| Command | Description |
-|---|---|
-| `/ariadna:settings` | Configure workflow toggles and model profile |
-| `/ariadna:set-profile <profile>` | Switch model profile |
-| `/ariadna:help` | Show full command reference |
-| `/ariadna:update` | Update gem with changelog preview |
-| `/ariadna:reapply-patches` | Restore local guide customisations after update |
 
 ## Planning Directory
 
@@ -291,17 +245,19 @@ Guides are installed to `~/.claude/guides/` (global) or `.claude/guides/` (local
 .ariadna_planning/
 ├── PROJECT.md                # Project vision and requirements
 ├── ROADMAP.md                # Phase breakdown with status
-├── STATE.md                  # Project memory across sessions
+├── STATE.md                  # Current project state
 ├── REQUIREMENTS.md           # Detailed requirements
-├── CONTEXT.md                # Phase discussion decisions
-├── config.json               # Workflow mode and agent toggles
+├── config.json               # Model profile and workflow settings
+├── memory/                   # Persistent memory across sessions
+│   ├── progress.md           # Phase and milestone progress
+│   ├── decisions.md          # Key decisions log
+│   ├── blockers.md           # Current blockers
+│   ├── metrics.md            # Execution metrics
+│   ├── session.md            # Last session summary
+│   └── history.md            # History digest
 ├── quick/                    # Quick task plans and summaries
-├── todos/
-│   ├── pending/
-│   └── done/
 ├── debug/
 │   └── resolved/
-├── research/                 # Project-level research outputs
 ├── codebase/                 # Brownfield project analysis
 │   ├── STACK.md              # Languages, frameworks, dependencies
 │   ├── INTEGRATIONS.md       # External APIs, databases, auth
@@ -312,9 +268,9 @@ Guides are installed to `~/.claude/guides/` (global) or `.claude/guides/` (local
 │   └── CONCERNS.md           # Tech debt, security, performance
 └── phases/
     ├── 01-foundation/
-    │   ├── RESEARCH.md
     │   ├── 01-01-PLAN.md
-    │   └── 01-01-SUMMARY.md
+    │   ├── 01-01-SUMMARY.md
+    │   └── VERIFICATION.md
     └── 02-core-features/
         ├── 02-01-PLAN.md
         └── 02-01-SUMMARY.md
@@ -322,51 +278,42 @@ Guides are installed to `~/.claude/guides/` (global) or `.claude/guides/` (local
 
 ## Configuration
 
+Configuration lives in `.ariadna_planning/config.json` and can be viewed or changed via `/ariadna:progress`.
+
+| Setting | Default | Description |
+|---|---|---|
+| `model_profile` | `"balanced"` | Model profile for agent routing |
+| `verifier` | `true` | Run verifier after phase execution |
+| `branching_strategy` | `"none"` | Git branching: `none`, `phase`, or `milestone` |
+| `phase_branch_template` | `"ariadna/phase-{phase}-{slug}"` | Branch name template for phase strategy |
+| `milestone_branch_template` | `"ariadna/{milestone}-{slug}"` | Branch name template for milestone strategy |
+| `commit_docs` | `true` | Commit planning documents automatically |
+| `search_gitignored` | `false` | Include gitignored files in searches |
+| `parallelization` | `true` | Run plans in the same wave in parallel |
+
 ### Model Profiles
 
-Control which Claude models agents use via `/ariadna:set-profile`:
+Control which Claude models agents use:
 
-| Profile | Planning | Execution | Research/Verification |
+| Profile | Planner / Roadmapper | Executor / Debugger | Verifier / Mapper |
 |---|---|---|---|
-| **quality** | Opus | Opus | Opus |
+| **quality** | Opus | Opus | Sonnet |
 | **balanced** (default) | Opus | Sonnet | Sonnet |
 | **budget** | Sonnet | Sonnet | Haiku |
 
-### Workflow Toggles
-
-Configure via `/ariadna:settings`:
-
-| Toggle | Default | Effect |
-|---|---|---|
-| Research | **off** | Phase researcher runs before planning (use `--research` to enable) |
-| Plan check | on | Plan-checker validates plans against goals |
-| Verifier | on | Verifier runs after phase execution |
-
-Per-command overrides: `--research`, `--skip-research`, `--skip-context`, `--skip-verify`.
-
 ### Branching Strategies
 
-| Strategy | When branch is created | Scope | Best for |
-|---|---|---|---|
-| `none` (default) | Never | N/A | Solo development, simple projects |
-| `phase` | At `execute-phase` start | Single phase | Code review per phase, granular rollback |
-| `milestone` | At first `execute-phase` | Entire milestone | Release branches, PR per version |
-
-Configure via `/ariadna:settings` or directly in `.ariadna_planning/config.json`.
-
-## Updating
-
-```
-/ariadna:update              # Shows changelog, confirms before installing
-```
-
-Local modifications to guides and templates are backed up automatically during updates. After updating, use `/ariadna:reapply-patches` to restore your customisations.
+| Strategy | When branch is created | Best for |
+|---|---|---|
+| `none` (default) | Never | Solo development, simple projects |
+| `phase` | At `execute-phase` start | Code review per phase, granular rollback |
+| `milestone` | At first `execute-phase` in milestone | Release branches, PR per version |
 
 ## Default Settings
 
 Ariadna is configured to generate Ruby on Rails applications following the Rails philosophy and conventions. We believe in the [Rails is plenty](https://world.hey.com/jorge/a-vanilla-rails-stack-is-plenty-567a4708) approach — vanilla Rails with minimal dependencies.
 
-This project has taken inspiration from [Fizzy](https://www.fizzy.do/) and [Once Campfire](https://github.com/basecamp/once-campfire), both great resources for Ruby on Rails best practices. Remember that you can customise Ariadna by editing the guides installed at `~/.claude/guides/`.
+This project has taken inspiration from [Fizzy](https://www.fizzy.do/) and [Once Campfire](https://github.com/basecamp/once-campfire), both great resources for Ruby on Rails best practices. Remember that you can customise Ariadna by editing the Skills installed at `~/.claude/skills/`.
 
 ## Requirements
 

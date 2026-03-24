@@ -51,22 +51,14 @@ module Ariadna
           end
           file_count = file_mentions.length
 
-          template = "templates/summary-standard.md"
-          type = "standard"
-
-          if task_count <= 2 && file_count <= 3 && !has_decisions
-            template = "templates/summary-minimal.md"
-            type = "minimal"
-          elsif has_decisions || file_count > 6 || task_count > 5
-            template = "templates/summary-complex.md"
-            type = "complex"
-          end
+          template = "templates/summary.md"
+          type = "summary"
 
           Output.json({ template: template, type: type, taskCount: task_count, fileCount: file_count, hasDecisions: has_decisions },
                       raw: raw, raw_value: template)
         rescue StandardError => e
-          Output.json({ template: "templates/summary-standard.md", type: "standard", error: e.message },
-                      raw: raw, raw_value: "templates/summary-standard.md")
+          Output.json({ template: "templates/summary.md", type: "summary", error: e.message },
+                      raw: raw, raw_value: "templates/summary.md")
         end
       end
 
