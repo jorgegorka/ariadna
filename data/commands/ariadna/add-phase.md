@@ -7,33 +7,22 @@ allowed-tools:
   - Write
   - Bash
 ---
-
 <objective>
 Add a new integer phase to the end of the current milestone in the roadmap.
 
-Routes to the add-phase workflow which handles:
-- Phase number calculation (next sequential integer)
-- Directory creation with slug generation
-- Roadmap structure updates
-- STATE.md roadmap evolution tracking
+Handles: next phase number calculation, directory creation, roadmap entry insertion, STATE.md roadmap evolution tracking.
 </objective>
 
-<execution_context>
-@.ariadna_planning/ROADMAP.md
-@.ariadna_planning/STATE.md
-@~/.claude/ariadna/workflows/add-phase.md
-</execution_context>
+<context>
+Description: $ARGUMENTS
+
+Follow the workflow in `~/.claude/ariadna/workflows/add-phase.md` end-to-end.
+</context>
 
 <process>
-**Follow the add-phase workflow** from `@~/.claude/ariadna/workflows/add-phase.md`.
-
-The workflow handles all logic including:
-1. Argument parsing and validation
-2. Roadmap existence checking
-3. Current milestone identification
-4. Next phase number calculation (ignoring decimals)
-5. Slug generation from description
-6. Phase directory creation
-7. Roadmap entry insertion
-8. STATE.md updates
+1. Validate $ARGUMENTS provided; error with usage if missing.
+2. Run `ariadna-tools init phase-op "0"` — check `roadmap_exists`.
+3. Run `ariadna-tools phase add "$ARGUMENTS"` — calculates next number, creates directory, updates ROADMAP.md.
+4. Update STATE.md "Roadmap Evolution" section with entry.
+5. Display new phase number, directory, and next step: `/ariadna:plan-phase {N}`.
 </process>

@@ -4,41 +4,37 @@ description: Initialize a new project with deep context gathering and PROJECT.md
 argument-hint: "[--auto] [--research]"
 allowed-tools:
   - Read
-  - Bash
   - Write
+  - Bash
   - Task
   - AskUserQuestion
 ---
-<context>
-**Flags:**
-- `--auto` — Automatic mode. Skips config questions, runs requirements → roadmap without further interaction. Expects idea document via @ reference.
-- `--research` — Force domain research (4 parallel researchers + synthesizer). By default, research is skipped and Rails conventions are pre-loaded.
-</context>
-
 <objective>
-Initialize a new project through streamlined flow: questioning → requirements → roadmap. Research skipped by default (Rails conventions pre-loaded); use --research for non-standard domains.
+Initialize a new project through streamlined flow: questioning → requirements → roadmap. Research skipped by default (Rails conventions pre-loaded); use `--research` for non-standard domains.
 
-**Creates:**
-- `.ariadna_planning/PROJECT.md` — project context
-- `.ariadna_planning/config.json` — workflow preferences (opinionated defaults)
-- `.ariadna_planning/research/` — domain research (only with --research flag)
-- `.ariadna_planning/REQUIREMENTS.md` — scoped requirements
-- `.ariadna_planning/ROADMAP.md` — phase structure
-- `.ariadna_planning/STATE.md` — project memory
+**Flags:**
+- `--auto` — Automatic mode. Skips questions, runs requirements → roadmap without interaction. Requires idea document via @ reference.
+- `--research` — Force parallel domain research before requirements.
 
-**After this command:** Run `/ariadna:plan-phase 1` to start planning.
+**Creates:** `.ariadna_planning/PROJECT.md`, `config.json`, `REQUIREMENTS.md`, `ROADMAP.md`, `STATE.md`
+
+**After this command:** `/ariadna:plan-phase 1`
 </objective>
 
-<execution_context>
-@~/.claude/ariadna/workflows/new-project.md
-@~/.claude/ariadna/references/questioning.md
-@~/.claude/ariadna/references/ui-brand.md
-@~/.claude/ariadna/references/rails-conventions.md
-@~/.claude/ariadna/templates/project.md
-@~/.claude/ariadna/templates/requirements.md
-</execution_context>
+<context>
+Arguments: $ARGUMENTS
+
+Follow the workflow in `~/.claude/ariadna/workflows/new-project.md` end-to-end.
+</context>
 
 <process>
-Execute the new-project workflow from @~/.claude/ariadna/workflows/new-project.md end-to-end.
-Preserve all workflow gates (validation, approvals, commits, routing).
+1. Run `ariadna-tools init new-project` to load context as JSON.
+2. Offer codebase mapping if existing code detected but no map present.
+3. Gather project context through deep questioning (or extract from `--auto` document).
+4. Write PROJECT.md, config.json; commit each atomically.
+5. Optionally spawn research agents (4 parallel + synthesizer) if `--research` flag.
+6. Define requirements by category (table stakes / differentiators / out of scope).
+7. Spawn `ariadna-roadmapper` to create ROADMAP.md and STATE.md.
+8. Present roadmap for approval; loop on revisions until approved.
+9. Commit all artifacts; display next step: `/ariadna:plan-phase 1`.
 </process>

@@ -9,24 +9,21 @@ allowed-tools:
   - Glob
 ---
 <objective>
-Remove an unstarted future phase from the roadmap and renumber all subsequent phases to maintain a clean, linear sequence.
-
-Purpose: Clean removal of work you've decided not to do, without polluting context with cancelled/deferred markers.
-Output: Phase deleted, all subsequent phases renumbered, git commit as historical record.
+Remove an unstarted future phase from the roadmap and renumber all subsequent phases to maintain a clean linear sequence. Git commit serves as the historical record.
 </objective>
-
-<execution_context>
-@~/.claude/ariadna/workflows/remove-phase.md
-</execution_context>
 
 <context>
 Phase: $ARGUMENTS
 
-@.ariadna_planning/ROADMAP.md
-@.ariadna_planning/STATE.md
+Follow the workflow in `~/.claude/ariadna/workflows/remove-phase.md` end-to-end.
 </context>
 
 <process>
-Execute the remove-phase workflow from @~/.claude/ariadna/workflows/remove-phase.md end-to-end.
-Preserve all validation gates (future phase check, work check), renumbering logic, and commit.
+1. Validate $ARGUMENTS provided; error with usage if missing.
+2. Run `ariadna-tools init phase-op "$ARGUMENTS"` to load context; check `roadmap_exists`.
+3. Verify target is a future (unstarted) phase vs current phase in STATE.md; error if not.
+4. Present removal summary (what will be deleted/renumbered); confirm with user.
+5. Run `ariadna-tools phase remove "$ARGUMENTS"` — deletes directory, renumbers subsequent phases, updates ROADMAP.md and STATE.md. Use `--force` only if user confirms for phases with summaries.
+6. Commit: `ariadna-tools commit "chore: remove phase $ARGUMENTS ({name})" --files .ariadna_planning/`
+7. Display changes made and offer `/ariadna:progress` to review updated roadmap.
 </process>
