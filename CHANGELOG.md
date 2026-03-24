@@ -5,6 +5,149 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-03-24
+
+Ariadna 2.0 is a major rewrite focused on reducing complexity and improving composability. The system is smaller, faster to load, and easier to reason about.
+
+### Breaking Changes
+
+#### Memory System
+
+- **Removed** `STATE.md` as the primary session memory store
+- **Added** `memory/` directory (`.ariadna_planning/memory/`) with per-concern files:
+  - `progress.md` — phase and milestone progress
+  - `decisions.md` — key decisions log
+  - `blockers.md` — current blockers
+  - `metrics.md` — execution metrics
+  - `session.md` — last session summary
+  - `history.md` — history digest
+- Workflows now update `memory/progress.md` instead of writing back to a monolithic `STATE.md`
+
+#### Agents: 14 → 6
+
+The agent roster was consolidated from 14 agents to 6:
+
+| Kept | Consolidated from |
+|------|------------------|
+| `ariadna-executor` | `ariadna-backend-executor`, `ariadna-frontend-executor`, `ariadna-test-executor` — domain routing now handled via Skills |
+| `ariadna-planner` | Absorbed `ariadna-plan-checker` (self-checking built in) and `ariadna-phase-researcher` (inline research) |
+| `ariadna-verifier` | Absorbed `ariadna-integration-checker` (cross-phase and E2E checks built in) |
+| `ariadna-debugger` | Unchanged |
+| `ariadna-roadmapper` | Absorbed `ariadna-project-researcher` and `ariadna-research-synthesizer` |
+| `ariadna-codebase-mapper` | Unchanged |
+
+#### Workflows: ~30 → 10
+
+| Workflow | Notes |
+|----------|-------|
+| `execute-phase` | Retained; simplified — no team execution mode |
+| `plan-phase` | Retained; plan-checker and researcher merged in |
+| `verify-work` | Retained; integration checker merged in |
+| `new-project` | Retained |
+| `new-milestone` | Retained |
+| `map-codebase` | Retained |
+| `debug` | Retained |
+| `quick` | Retained |
+| `progress` | Retained |
+| `roadmap-ops` | Consolidates add-phase, insert-phase, remove-phase |
+
+Removed workflows: `discuss-phase`, `research-phase`, `list-phase-assumptions`, `plan-milestone-gaps`, `audit-milestone`, `complete-milestone`, `pause-work`, `resume-work`, `reapply-patches`, `set-profile`, `settings`, and others.
+
+#### Commands: 27 → 12
+
+| Kept | Removed |
+|------|---------|
+| `new-project` | `discuss-phase` |
+| `map-codebase` | `research-phase` |
+| `plan-phase` | `list-phase-assumptions` |
+| `execute-phase` | `audit-milestone` |
+| `verify-work` | `plan-milestone-gaps` |
+| `quick` | `complete-milestone` |
+| `add-phase` | `pause-work` |
+| `insert-phase` | `resume-work` |
+| `remove-phase` | `set-profile` |
+| `new-milestone` | `settings` |
+| `progress` | `reapply-patches` |
+| `debug` | `add-todo`, `check-todos`, `help`, `update` |
+
+#### Guides Replaced by Skills
+
+The `guides/` system (6 flat Markdown files) has been replaced by **Rails Skills** — self-contained, composable packages installed to `~/.claude/skills/`.
+
+**Removed guides:**
+- `backend.md`
+- `frontend.md`
+- `testing.md`
+- `security.md`
+- `performance.md`
+- `style-guide.md`
+
+**New Skills (5 packages):**
+
+| Skill | Sub-files |
+|-------|-----------|
+| `rails-backend` | `SKILL.md`, `MODELS.md`, `CONTROLLERS.md`, `JOBS.md`, `API.md` |
+| `rails-frontend` | `SKILL.md`, `VIEWS.md`, `COMPONENTS.md`, `ASSETS.md` |
+| `rails-testing` | `SKILL.md`, `FIXTURES.md`, `SYSTEM-TESTS.md` |
+| `rails-security` | `SKILL.md`, `AUDIT.md` |
+| `rails-performance` | `SKILL.md`, `PROFILING.md` |
+
+Skills have a `SKILL.md` entry point with YAML frontmatter (`name`, `description`) so Claude Code can discover and load them by name. Executors load the domain Skill automatically; the verifier loads the security and performance Skills for non-functional checks.
+
+#### Configuration: Removed Settings
+
+The following config keys were removed:
+
+| Removed key | Reason |
+|-------------|--------|
+| `team_execution` | Team execution mode removed; wave-based parallelism is the only execution model |
+| `execution_mode` | Replaced by `parallelization: true/false` |
+| `research` | Research is now always inline (no separate toggle) |
+| `plan_checker` | Plan checker absorbed into the planner agent |
+
+**Remaining settings (8 flat keys):**
+
+```json
+{
+  "model_profile": "balanced",
+  "verifier": true,
+  "branching_strategy": "none",
+  "phase_branch_template": "ariadna/phase-{phase}-{slug}",
+  "milestone_branch_template": "ariadna/{milestone}-{slug}",
+  "commit_docs": true,
+  "search_gitignored": false,
+  "parallelization": true
+}
+```
+
+#### Init: Returns Paths and Metadata Only
+
+`ariadna-tools init` now returns structured metadata (paths, config values, model assignments) instead of loading and returning file contents. Agents are responsible for reading files themselves, keeping the orchestrator context lean.
+
+#### Verification: Simplified
+
+Verification is now strictly goal-backward:
+
+1. **Goal achievement** — did the phase deliver its goal?
+2. **Phase completeness** — do SUMMARY.md files exist and pass self-check markers?
+3. **Artifacts** — do expected files exist on disk?
+
+Removed: UAT session loop, integration-checker as a separate agent, post-verification approval gate.
+
+### Added
+
+- **Rails Skills system** — 5 standalone SKILL.md packages with domain conventions
+- **`memory/` directory** — granular per-concern memory files replacing monolithic STATE.md
+- **`ariadna-tools state`** subcommand — append to memory files (decisions, blockers, metrics, session, history)
+- `parallelization` config key — explicit control over wave parallelism
+
+### Changed
+
+- `StateManager` rewritten to manage `memory/` directory files; retains history digest and metrics
+- `Init` module rewritten to return paths and metadata only (not file contents)
+- Model profiles updated for 6-agent system
+- Planning directory no longer includes `CONTEXT.md`, `research/` (project-level), or `REQUIREMENTS.md` as required artifacts for quick/milestone workflows
+
 ## [1.3.1] - 2026-03-04
 
 ### Added
@@ -162,6 +305,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Wave-based plan execution with parallelism support
 - Guides for backend, frontend, and testing workflows
 
+[2.0.0]: https://github.com/jorgegorka/ariadna/releases/tag/v2.0.0
 [1.3.1]: https://github.com/jorgegorka/ariadna/releases/tag/v1.3.1
 [1.3.0]: https://github.com/jorgegorka/ariadna/releases/tag/v1.3.0
 [1.2.3]: https://github.com/jorgegorka/ariadna/releases/tag/v1.2.3
