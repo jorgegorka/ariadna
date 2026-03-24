@@ -26,12 +26,12 @@ INIT=$(ariadna-tools init phase-op "${PHASE}")
 
 Then read in this order:
 1. `$phase_dir/*-CONTEXT.md` — locked user decisions (NON-NEGOTIABLE)
-2. `@~/.claude/ariadna/references/rails-conventions.md` — Rails patterns and known domains
+2. `@~/.claude/skills/rails-backend/SKILL.md` — Rails patterns and known domains
 3. `@~/.claude/memory/` files relevant to the project
 4. Existing codebase: `Gemfile`, relevant `app/` directories, existing patterns via Grep/Glob
 
 **Inline research when domain is unfamiliar:**
-- Known Rails domains (models, controllers, views, auth, jobs, mailers, Turbo): skip — use rails-conventions.md
+- Known Rails domains (models, controllers, views, auth, jobs, mailers, Turbo): skip — use rails-backend/SKILL.md
 - Single known library: Context7 resolve + query-docs (2 min, no file needed)
 - New external integration or architectural decision: Context7 → WebFetch official docs → cross-verify; flag LOW confidence findings
 - Novel/niche domain (3D, audio, ML): research thoroughly before planning

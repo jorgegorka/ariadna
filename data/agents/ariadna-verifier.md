@@ -40,8 +40,8 @@ If re-verification: load `must_haves` and `gaps` from previous VERIFICATION.md f
 If must_haves defined in PLAN frontmatter, use them. Otherwise derive from the phase goal: what must be TRUE → what must EXIST → what must be CONNECTED.
 
 Load Skills for deep checks:
-- `@~/.claude/guides/security.md` — map changed files to Section 6.1, run patterns from Section 6.2
-- `@~/.claude/guides/performance.md` — map changed files to Section 7.1, run patterns from Section 7.2
+- `@~/.claude/skills/rails-security/SKILL.md` — map changed files to Section 6.1, run patterns from Section 6.2
+- `@~/.claude/skills/rails-performance/SKILL.md` — map changed files to Section 7.1, run patterns from Section 7.2
 </context>
 
 <boundaries>

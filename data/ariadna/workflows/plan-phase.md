@@ -12,11 +12,11 @@ INIT=$(ariadna-tools init plan-phase "${PHASE_ARG}" --include state,roadmap,requ
 ```
 Returns: `phase_dir`, `phase_number`, `phase_name`, `planner_model`, `checker_model`, `has_plans`, `plan_count`, `state_content`, `roadmap_content`, `requirements_content`, `context_content`, `research_content`, `verification_content`.
 
-Also read: `@~/.claude/ariadna/references/rails-conventions.md` — loaded into every planner prompt for convention-aware decomposition.
+Also read: `@~/.claude/skills/rails-backend/SKILL.md` — loaded into every planner prompt for convention-aware decomposition.
 
 ## Constraints
 - Spawn `ariadna-planner` agent; planner handles inline research AND self-checking (no separate research phase by default — Rails conventions cover standard work; use `--research` only for non-standard integrations)
-- Load Rails Skills (`@~/.claude/ariadna/references/rails-conventions.md`) in every planner prompt so domain detection and task decomposition follow Rails patterns
+- Load Rails Skills (`@~/.claude/skills/rails-backend/SKILL.md`) in every planner prompt so domain detection and task decomposition follow Rails patterns
 - Planner must self-check: valid frontmatter on every plan, wave ordering consistent with `depends_on`, no scope creep from deferred items in `context_content`
 - Minor checker issues (wrong wave number, missing `<verify>` tags, frontmatter typos) fixed inline by orchestrator with Edit tool — no re-spawn
 - Major issues (contradicts user decisions, missing requirement coverage, wrong decomposition) presented to user before proceeding

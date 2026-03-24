@@ -12,11 +12,11 @@ INIT=$(ariadna-tools init verify-work "${PHASE_OR_MILESTONE_ARG}")
 ```
 Returns: `summary_paths[]` (SUMMARY.md files to verify against), `phase_dir`, `memory_dir`, `verifier_model`, `phase_number`, `phase_name`, `has_verification`.
 
-Also read: `@~/.claude/ariadna/references/rails-conventions.md` for expected Rails patterns, and load security + performance Skills in the verifier prompt for non-functional checks.
+Also read: `@~/.claude/skills/rails-backend/SKILL.md` for expected Rails patterns, and load security + performance Skills in the verifier prompt for non-functional checks.
 
 ## Constraints
 - Spawn `ariadna-verifier` agent; verifier checks goal achievement against the codebase, not just SUMMARY.md claims
-- Load security Skills (`@~/.claude/guides/security.md`) and performance Skills (`@~/.claude/guides/performance.md`) in the verifier prompt
+- Load security Skills (`@~/.claude/skills/rails-security/SKILL.md`) and performance Skills (`@~/.claude/skills/rails-performance/SKILL.md`) in the verifier prompt
 - Phase scope: verify one phase goal; milestone scope: verify all phases in the milestone — same workflow, different `--scope` argument
 - Verifier must check `must_haves` from plan frontmatter against actual files on disk — no credit for "plan says done"
 - If `has_verification: true`, offer to re-verify or show existing report

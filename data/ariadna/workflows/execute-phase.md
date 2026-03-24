@@ -19,7 +19,7 @@ Also read: `.ariadna_planning/STATE.md` for current project position.
 - Wave ordering is strict: all wave N plans complete before wave N+1 begins
 - Skip plans where `has_summary: true` (already done); resumption is automatic
 - Route executor agent by `domain` frontmatter: `backend` → `ariadna-backend-executor`, `frontend` → `ariadna-frontend-executor`, `testing` → `ariadna-test-executor`, `general`/unset → `ariadna-executor`
-- Load the matching Rails Skills guide (`@~/.claude/guides/{domain}.md`) in each executor prompt
+- Load the matching Rails Skills (`@~/.claude/skills/rails-{domain}/SKILL.md`) in each executor prompt
 - Each task must be committed atomically; executor creates SUMMARY.md in plan directory
 - Plans with `autonomous: false` require a checkpoint pause before continuing
 - If agent returns `classifyHandoffIfNeeded` error: spot-check SUMMARY.md + git commits — if present, treat as success

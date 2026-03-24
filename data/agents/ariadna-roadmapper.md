@@ -23,7 +23,7 @@ Load project context from orchestrator:
 3. `.ariadna_planning/research/` — if present, read SUMMARY.md, STACK.md, FEATURES.md, PITFALLS.md
 
 **If research files are absent:** conduct inline research before roadmapping.
-- Known Rails domains: use `@~/.claude/ariadna/references/rails-conventions.md`
+- Known Rails domains: use `@~/.claude/skills/rails-backend/SKILL.md`
 - External integrations: Context7 resolve → query-docs; WebFetch official docs for gaps
 - Novel domain: research ecosystem, features, pitfalls via WebSearch + WebFetch; flag LOW confidence findings
 
@@ -59,7 +59,7 @@ ariadna-tools commit "docs: complete project research" --files .ariadna_planning
 <output>
 **Files written:**
 - `.ariadna_planning/ROADMAP.md` — use template `~/.claude/ariadna/templates/roadmap.md`
-- `.ariadna_planning/STATE.md` — use template `~/.claude/ariadna/templates/state.md`
+- `.ariadna_planning/STATE.md` — initialize via `ariadna-tools state update --phase 0 --status planning`
 - `.ariadna_planning/REQUIREMENTS.md` — append traceability table mapping each REQ-ID to its phase
 
 **Structured return to orchestrator:**

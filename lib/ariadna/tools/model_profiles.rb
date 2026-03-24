@@ -6,11 +6,11 @@ module Ariadna
   module Tools
     module ModelProfiles
       PROFILES = {
-        "ariadna-planner"         => { "quality" => "opus",   "balanced" => "opus",   "budget" => "sonnet" },
-        "ariadna-executor"        => { "quality" => "opus",   "balanced" => "sonnet", "budget" => "sonnet" },
-        "ariadna-verifier"        => { "quality" => "sonnet", "balanced" => "sonnet", "budget" => "haiku" },
-        "ariadna-debugger"        => { "quality" => "opus",   "balanced" => "sonnet", "budget" => "sonnet" },
-        "ariadna-roadmapper"      => { "quality" => "opus",   "balanced" => "opus",   "budget" => "sonnet" },
+        "ariadna-planner" => { "quality" => "opus", "balanced" => "opus", "budget" => "sonnet" },
+        "ariadna-executor" => { "quality" => "opus",   "balanced" => "sonnet", "budget" => "sonnet" },
+        "ariadna-verifier" => { "quality" => "sonnet", "balanced" => "sonnet", "budget" => "haiku" },
+        "ariadna-debugger" => { "quality" => "opus",   "balanced" => "sonnet", "budget" => "sonnet" },
+        "ariadna-roadmapper" => { "quality" => "opus", "balanced" => "opus", "budget" => "sonnet" },
         "ariadna-codebase-mapper" => { "quality" => "sonnet", "balanced" => "sonnet", "budget" => "haiku" }
       }.freeze
 
