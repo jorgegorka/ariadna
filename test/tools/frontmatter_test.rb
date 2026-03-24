@@ -91,6 +91,49 @@ class FrontmatterTest < Minitest::Test
     assert_equal "backend.md", fm["domain_guide"]
   end
 
+  def test_skill_schema_exists
+    assert Ariadna::Tools::Frontmatter::SCHEMAS.key?("skill")
+    assert_includes Ariadna::Tools::Frontmatter::SCHEMAS["skill"], "name"
+    assert_includes Ariadna::Tools::Frontmatter::SCHEMAS["skill"], "description"
+  end
+
+  def test_skill_frontmatter_valid
+    content = "---\nname: rails-backend\ndescription: Rails backend conventions\n---\n# Content"
+    fm = Ariadna::Tools::Frontmatter.extract(content)
+    errors = Ariadna::Tools::Frontmatter.validate_skill(fm)
+    assert_empty errors
+  end
+
+  def test_skill_name_must_be_lowercase_hyphens
+    fm = { "name" => "Rails-Backend", "description" => "test" }
+    errors = Ariadna::Tools::Frontmatter.validate_skill(fm)
+    assert errors.any? { |e| e.include?("name") }
+  end
+
+  def test_skill_name_max_64_chars
+    fm = { "name" => "a" * 65, "description" => "test" }
+    errors = Ariadna::Tools::Frontmatter.validate_skill(fm)
+    assert errors.any? { |e| e.include?("64") }
+  end
+
+  def test_skill_name_no_reserved_words
+    fm = { "name" => "claude-helper", "description" => "test" }
+    errors = Ariadna::Tools::Frontmatter.validate_skill(fm)
+    assert errors.any? { |e| e.include?("reserved") }
+  end
+
+  def test_skill_description_required
+    fm = { "name" => "my-skill", "description" => "" }
+    errors = Ariadna::Tools::Frontmatter.validate_skill(fm)
+    assert errors.any? { |e| e.include?("description") }
+  end
+
+  def test_skill_description_max_1024_chars
+    fm = { "name" => "my-skill", "description" => "x" * 1025 }
+    errors = Ariadna::Tools::Frontmatter.validate_skill(fm)
+    assert errors.any? { |e| e.include?("1024") }
+  end
+
   def test_plan_validates_with_domain_field
     dir = Dir.mktmpdir
     plan_content = "---\nphase: 03-features\nplan: 01\ntype: execute\ndomain: backend\n---\n\n# Body"

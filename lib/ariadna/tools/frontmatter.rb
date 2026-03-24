@@ -7,8 +7,14 @@ module Ariadna
       SCHEMAS = {
         "plan" => %w[phase plan type],
         "summary" => %w[phase plan subsystem],
-        "verification" => %w[phase]
+        "verification" => %w[phase],
+        "skill" => %w[name description]
       }.freeze
+
+      SKILL_RESERVED_WORDS = %w[anthropic claude].freeze
+      SKILL_NAME_PATTERN = /\A[a-z][a-z0-9-]*\z/
+      SKILL_NAME_MAX = 64
+      SKILL_DESCRIPTION_MAX = 1024
 
       def self.dispatch(argv, raw: false)
         subcommand = argv.shift
@@ -189,6 +195,22 @@ module Ariadna
         Output.json({ valid: valid, missing: missing, schema: schema }, raw: raw, raw_value: valid.to_s)
       rescue Errno::ENOENT
         Output.error("File not found: #{file}")
+      end
+
+      def self.validate_skill(fm)
+        errors = []
+        name = fm["name"].to_s
+        description = fm["description"].to_s
+
+        errors << "name must match lowercase-hyphens pattern" unless name.match?(SKILL_NAME_PATTERN)
+        errors << "name must be #{SKILL_NAME_MAX} chars or fewer" if name.length > SKILL_NAME_MAX
+        if SKILL_RESERVED_WORDS.any? { |w| name.include?(w) }
+          errors << "name contains reserved word"
+        end
+        errors << "description must not be empty" if description.empty?
+        errors << "description must be #{SKILL_DESCRIPTION_MAX} chars or fewer" if description.length > SKILL_DESCRIPTION_MAX
+
+        errors
       end
 
       # --- Private helpers ---
