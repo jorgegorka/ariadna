@@ -30,9 +30,6 @@ module Ariadna
         when "verify-path-exists"
           require_relative "utilities"
           Utilities.verify_path_exists(argv, raw: raw)
-        when "verify-summary"
-          require_relative "verification"
-          Verification.verify_summary(argv, raw: raw)
         when "config-ensure-section"
           require_relative "config_manager"
           ConfigManager.ensure_section(argv, raw: raw)
@@ -42,12 +39,6 @@ module Ariadna
         when "history-digest"
           require_relative "state_manager"
           StateManager.history_digest(argv, raw: raw)
-        when "summary-extract"
-          require_relative "state_manager"
-          StateManager.summary_extract(argv, raw: raw)
-        when "state-snapshot"
-          require_relative "state_manager"
-          StateManager.snapshot(argv, raw: raw)
         when "phase-plan-index"
           require_relative "phase_manager"
           PhaseManager.plan_index(argv, raw: raw)
@@ -63,9 +54,6 @@ module Ariadna
         when "milestone"
           require_relative "phase_manager"
           PhaseManager.milestone_dispatch(argv, raw: raw)
-        when "validate"
-          require_relative "verification"
-          Verification.validate_dispatch(argv, raw: raw)
         when "progress"
           require_relative "roadmap_analyzer"
           RoadmapAnalyzer.progress(argv, raw: raw)
