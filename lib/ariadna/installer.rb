@@ -22,6 +22,7 @@ module Ariadna
       copy_commands
       copy_agents
       copy_guides
+      copy_skills
       copy_content
       write_version
       install_statusline
@@ -125,7 +126,7 @@ module Ariadna
 
     def source_manifest_keys
       keys = []
-      %w[commands/ariadna agents guides ariadna].each do |subdir|
+      %w[commands/ariadna agents guides skills ariadna].each do |subdir|
         src_base = subdir == "agents" ? source_dir : source_dir
         dir = File.join(src_base, subdir)
         next unless File.directory?(dir)
@@ -142,7 +143,7 @@ module Ariadna
     end
 
     def cleanup_empty_dirs
-      %w[commands/ariadna agents guides ariadna].each do |subdir|
+      %w[commands/ariadna agents guides skills ariadna].each do |subdir|
         dir = File.join(@target_dir, subdir)
         next unless File.directory?(dir)
 
@@ -213,6 +214,14 @@ module Ariadna
       puts "  \u2713 Installed #{count} guides"
     end
 
+    def copy_skills
+      src = File.join(source_dir, "skills")
+      dest = File.join(@target_dir, "skills")
+      copy_tree(src, dest)
+      count = Dir[File.join(dest, "*")].count { |d| File.directory?(d) }
+      puts "  \u2713 Installed #{count} skills"
+    end
+
     def copy_content
       src = File.join(source_dir, "ariadna")
       dest = File.join(@target_dir, "ariadna")
@@ -240,7 +249,7 @@ module Ariadna
 
     def generate_manifest_entries
       entries = {}
-      %w[commands/ariadna agents guides ariadna].each do |subdir|
+      %w[commands/ariadna agents guides skills ariadna].each do |subdir|
         dir = File.join(@target_dir, subdir)
         next unless File.directory?(dir)
 

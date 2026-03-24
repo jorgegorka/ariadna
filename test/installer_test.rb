@@ -243,6 +243,41 @@ class InstallerTest < Minitest::Test
     assert_equal manifest1["files"], manifest2["files"]
   end
 
+  # --- Skills ---
+
+  def test_installs_skills_directory
+    installer = Ariadna::Installer.new(target_dir: @tmpdir)
+    installer.install
+
+    skills_dir = File.join(@tmpdir, "skills")
+    assert File.directory?(skills_dir), "skills/ should exist"
+    assert File.exist?(File.join(skills_dir, "rails-backend", "SKILL.md")),
+           "rails-backend/SKILL.md should exist"
+  end
+
+  def test_manifest_includes_skills
+    installer = Ariadna::Installer.new(target_dir: @tmpdir)
+    installer.install
+
+    manifest = JSON.parse(File.read(File.join(@tmpdir, Ariadna::Installer::MANIFEST_NAME)))
+    skill_entries = manifest["files"].keys.select { |k| k.start_with?("skills/") }
+    refute_empty skill_entries, "manifest should include skills/ entries"
+    assert skill_entries.any? { |k| k.include?("SKILL.md") }, "manifest should include SKILL.md entries"
+  end
+
+  def test_uninstall_removes_skills_directory
+    installer = Ariadna::Installer.new(target_dir: @tmpdir)
+    installer.install
+
+    skills_dir = File.join(@tmpdir, "skills")
+    assert File.directory?(skills_dir), "skills/ should exist after install"
+
+    uninstaller = Ariadna::Uninstaller.new(target_dir: @tmpdir)
+    uninstaller.uninstall
+
+    refute File.directory?(skills_dir), "skills/ should be removed after uninstall"
+  end
+
   # --- Local install ---
 
   def test_local_install_uses_pwd
