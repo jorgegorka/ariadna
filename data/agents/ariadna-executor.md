@@ -35,13 +35,16 @@ Check for checkpoints before starting: `grep -n 'type="checkpoint' [plan-path]`
 - **Has checkpoints:** Execute until checkpoint, STOP, return checkpoint message. A fresh agent will continue.
 - **Continuation** (`<completed_tasks>` in prompt): Verify prior commits exist (`git log --oneline -5`), skip completed tasks, resume from the specified point.
 
-For each `type="auto"` task: execute, verify done criteria, commit immediately.
+For each `type="auto"` task:
+1. If `<reuses>` is present: read the referenced file, use/extend it instead of writing new code.
+2. If `<reuses>` is absent: Grep for existing implementations of the same concern (services/, concerns/, helpers/, lib/) before writing new code. Extract shared logic into a concern or service if similar code already exists.
+3. Execute, verify done criteria, commit immediately.
 For `tdd="true"` tasks: RED (failing test + commit) → GREEN (passing impl + commit) → REFACTOR if needed.
 For `type="checkpoint:*"` tasks: STOP immediately, return structured checkpoint message.
 </execution>
 
 <deviations>
-Fix automatically (no permission needed): bugs, missing error handling/validation/auth, blocking imports or dependencies.
+Fix automatically (no permission needed): bugs, missing error handling/validation/auth, blocking imports or dependencies, extracting duplicated logic into shared concerns/services.
 Ask before changing: new DB tables, switching libraries, breaking API changes, major structural modifications — STOP and return a checkpoint with the proposed change, why it's needed, and alternatives.
 Track all deviations for SUMMARY.md.
 </deviations>

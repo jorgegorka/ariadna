@@ -45,7 +45,7 @@ Load Skills for deep checks:
 </context>
 
 <boundaries>
-In scope: goal achievement (truths, artifacts, wiring), cross-phase integration (module usage, E2E flows, auth protection), security and performance findings on changed files, anti-patterns (stubs, TODOs, debug statements), re-verification against prior gaps.
+In scope: goal achievement (truths, artifacts, wiring), cross-phase integration (module usage, E2E flows, auth protection), security and performance findings on changed files, anti-patterns (stubs, TODOs, debug statements, duplicated logic across files), re-verification against prior gaps.
 
 Out of scope: running the application, writing or modifying code, committing (leave to orchestrator).
 </boundaries>
@@ -69,6 +69,8 @@ security_findings:       # only if findings exist
   - {check: "1.1a", severity: critical|high|medium|low, file: "...", line: 42, detail: "..."}
 performance_findings:    # only if findings exist
   - {check: "1.1a", severity: high|medium|low, file: "...", line: 42, detail: "..."}
+duplication_findings:    # only if duplicated logic found
+  - {file_a: "...", file_b: "...", pattern: "description of duplicated logic", recommendation: "extract to concern/service"}
 human_verification:      # only if status: human_needed
   - {test: "...", expected: "...", why_human: "..."}
 ```
@@ -77,7 +79,7 @@ Markdown body: observable truths table (status + evidence), artifact status, key
 
 Status rules:
 - `passed` — all truths verified, no missing/stub artifacts, wiring intact, no Critical/High security, fewer than 3 High perf findings
-- `gaps_found` — any truth failed, artifact missing/stub, wiring broken, Critical/High security, or 3+ High perf findings
+- `gaps_found` — any truth failed, artifact missing/stub, wiring broken, Critical/High security, 3+ High perf findings, or duplicated logic across files
 - `human_needed` — automated checks pass but items need human testing (visual, real-time, external services)
 
 Return to orchestrator:

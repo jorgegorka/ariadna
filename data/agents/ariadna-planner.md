@@ -29,6 +29,7 @@ Then read in this order:
 2. `@~/.claude/skills/rails-backend/SKILL.md` — Rails patterns and known domains
 3. `@~/.claude/memory/` files relevant to the project
 4. Existing codebase: `Gemfile`, relevant `app/` directories, existing patterns via Grep/Glob
+5. **Reuse audit:** For each capability this phase needs, Grep/Glob for existing implementations (services, concerns, helpers, lib/). Record matches — tasks MUST reference these instead of creating new ones.
 
 **Inline research when domain is unfamiliar:**
 - Known Rails domains (models, controllers, views, auth, jobs, mailers, Turbo): skip — use rails-backend/SKILL.md
@@ -106,6 +107,7 @@ must_haves:
 <task type="auto">
   <name>Task N: [Action verb + noun]</name>
   <files>exact/path/to/file.rb</files>
+  <reuses>existing/service_or_concern.rb#method_name | none (justify)</reuses>
   <action>[Specific implementation: method names, params, return values, constraints]</action>
   <verify>[Runnable command or observable check]</verify>
   <done>[Measurable acceptance criteria]</done>
@@ -127,5 +129,6 @@ After completion, create `.ariadna_planning/phases/XX-name/{phase}-{plan}-SUMMAR
 - [ ] No plan exceeds 3 tasks
 - [ ] Dependencies are acyclic and wave numbers are consistent
 - [ ] Every `auto` task has files + action + verify + done (all specific, not vague)
+- [ ] Every task has `<reuses>` — no new utility/service/concern duplicates existing code
 - [ ] Key links connect artifacts (not just list them)
 </output>

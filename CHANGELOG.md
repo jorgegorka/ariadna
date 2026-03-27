@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2026-03-27
+
+### Changed
+
+- Planner agent now requires a **reuse audit** step — Grep/Glob for existing implementations before proposing new code
+- Planner task template includes `<reuses>` tag forcing explicit reference to existing code or justification for new code
+- Planner self-check enforces that no task duplicates existing utilities, services, or concerns
+- Executor follows a **reuse-first protocol** — reads referenced files from `<reuses>` tags or searches independently before writing new code
+- Executor can auto-fix duplication by extracting shared logic into concerns/services without asking
+- Verifier now detects **duplicated logic across files** as an anti-pattern
+- Verifier outputs structured `duplication_findings` in VERIFICATION.md frontmatter
+- Duplication triggers `gaps_found` status, routing to gap-closure planning
+
 ## [2.0.0] - 2026-03-24
 
 Ariadna 2.0 is a major rewrite focused on reducing complexity and improving composability. The system is smaller, faster to load, and easier to reason about.
@@ -305,6 +318,7 @@ Removed: UAT session loop, integration-checker as a separate agent, post-verific
 - Wave-based plan execution with parallelism support
 - Guides for backend, frontend, and testing workflows
 
+[2.0.1]: https://github.com/jorgegorka/ariadna/releases/tag/v2.0.1
 [2.0.0]: https://github.com/jorgegorka/ariadna/releases/tag/v2.0.0
 [1.3.1]: https://github.com/jorgegorka/ariadna/releases/tag/v1.3.1
 [1.3.0]: https://github.com/jorgegorka/ariadna/releases/tag/v1.3.0
